@@ -1,6 +1,5 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
-import { setupAuth } from "./auth";
 import { db } from "@db";
 import { projects, contributions, type User } from "@db/schema";
 import { eq, desc, sql } from "drizzle-orm";
@@ -12,8 +11,6 @@ declare module "express-session" {
 }
 
 export function registerRoutes(app: Express): Server {
-  setupAuth(app);
-
   // Project routes
   app.get("/api/projects", async (req, res) => {
     try {
@@ -86,7 +83,7 @@ export function registerRoutes(app: Express): Server {
         })
         .returning();
 
-      // Update project current amount by adding the new contribution
+      // Update project current amount
       await db
         .update(projects)
         .set({
