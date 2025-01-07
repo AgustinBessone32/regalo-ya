@@ -1,66 +1,56 @@
-import { pgTable, text, serial, integer, timestamp, boolean } from "drizzle-orm/pg-core";
-import { createInsertSchema, createSelectSchema } from "drizzle-zod";
-import { relations } from "drizzle-orm";
+// Type definitions for our database entities
+import { z } from "zod";
 
-export const users = pgTable("users", {
-  id: serial("id").primaryKey(),
-  username: text("username").unique().notNull(),
-  password: text("password").notNull(),
-  createdAt: timestamp("created_at").defaultNow(),
+export interface User {
+  id: number;
+  username: string;
+  password: string;
+  created_at: Date;
+}
+
+export interface Project {
+  id: number;
+  title: string;
+  description: string | null;
+  target_amount: number;
+  current_amount: number;
+  event_date: Date | null;
+  location: string | null;
+  image_url: string | null;
+  creator_id: number;
+  is_public: boolean;
+  created_at: Date;
+}
+
+export interface Contribution {
+  id: number;
+  amount: number;
+  message: string | null;
+  contributor_name: string;
+  project_id: number;
+  created_at: Date;
+}
+
+// Schema validation using zod
+export const insertUserSchema = z.object({
+  username: z.string().min(3, "Username must be at least 3 characters"),
+  password: z.string().min(6, "Password must be at least 6 characters"),
 });
 
-export const projects = pgTable("projects", {
-  id: serial("id").primaryKey(),
-  title: text("title").notNull(),
-  description: text("description"),
-  targetAmount: integer("target_amount"),
-  currentAmount: integer("current_amount").default(0),
-  eventDate: timestamp("event_date"),
-  location: text("location"),
-  imageUrl: text("image_url"),
-  creatorId: integer("creator_id").references(() => users.id),
-  isPublic: boolean("is_public").default(true),
-  createdAt: timestamp("created_at").defaultNow(),
+export const insertProjectSchema = z.object({
+  title: z.string().min(3, "Title must be at least 3 characters"),
+  description: z.string().optional(),
+  target_amount: z.number().min(1, "Target amount must be greater than 0"),
+  location: z.string().optional(),
+  event_date: z.string().optional(),
+  is_public: z.boolean().default(true),
 });
 
-export const contributions = pgTable("contributions", {
-  id: serial("id").primaryKey(),
-  amount: integer("amount").notNull(),
-  message: text("message"),
-  contributorName: text("contributor_name").notNull(),
-  projectId: integer("project_id").references(() => projects.id),
-  createdAt: timestamp("created_at").defaultNow(),
+export const insertContributionSchema = z.object({
+  amount: z.number().min(1, "Amount must be greater than 0"),
+  message: z.string().optional(),
+  contributor_name: z.string().min(2, "Name must be at least 2 characters"),
 });
 
-export const projectRelations = relations(projects, ({ one, many }) => ({
-  creator: one(users, {
-    fields: [projects.creatorId],
-    references: [users.id],
-  }),
-  contributions: many(contributions),
-}));
-
-export const userRelations = relations(users, ({ many }) => ({
-  projects: many(projects),
-}));
-
-export const contributionRelations = relations(contributions, ({ one }) => ({
-  project: one(projects, {
-    fields: [contributions.projectId],
-    references: [projects.id],
-  }),
-}));
-
-export const insertUserSchema = createInsertSchema(users);
-export const selectUserSchema = createSelectSchema(users);
-export const insertProjectSchema = createInsertSchema(projects);
-export const selectProjectSchema = createSelectSchema(projects);
-export const insertContributionSchema = createInsertSchema(contributions);
-export const selectContributionSchema = createSelectSchema(contributions);
-
-export type User = typeof users.$inferSelect;
-export type InsertUser = typeof users.$inferInsert;
-export type Project = typeof projects.$inferSelect;
-export type InsertProject = typeof projects.$inferInsert;
-export type Contribution = typeof contributions.$inferSelect;
-export type InsertContribution = typeof contributions.$inferInsert;
+// Type for authenticated user (excludes password)
+export type AuthenticatedUser = Omit<User, "password">;

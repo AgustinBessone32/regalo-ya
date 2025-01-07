@@ -1,177 +1,91 @@
 import passport from "passport";
-import { IVerifyOptions, Strategy as LocalStrategy } from "passport-local";
+import { Strategy as LocalStrategy } from "passport-local";
 import { type Express } from "express";
 import session from "express-session";
 import createMemoryStore from "memorystore";
-import { scrypt, randomBytes, timingSafeEqual } from "crypto";
-import { promisify } from "util";
-import { users, type User } from "@db/schema";
-import { db } from "@db";
-import { eq } from "drizzle-orm";
-
-const scryptAsync = promisify(scrypt);
-const crypto = {
-  hash: async (password: string) => {
-    const salt = randomBytes(16).toString("hex");
-    const buf = (await scryptAsync(password, salt, 64)) as Buffer;
-    return `${buf.toString("hex")}.${salt}`;
-  },
-  compare: async (suppliedPassword: string, storedPassword: string) => {
-    const [hashedPassword, salt] = storedPassword.split(".");
-    const hashedPasswordBuf = Buffer.from(hashedPassword, "hex");
-    const suppliedPasswordBuf = (await scryptAsync(
-      suppliedPassword,
-      salt,
-      64
-    )) as Buffer;
-    return timingSafeEqual(hashedPasswordBuf, suppliedPasswordBuf);
-  },
-};
-
-declare global {
-  namespace Express {
-    interface User extends User {}
-  }
-}
+import { pool } from "../db";
 
 export function setupAuth(app: Express) {
   const MemoryStore = createMemoryStore(session);
-  const sessionSettings: session.SessionOptions = {
+
+  app.use(session({
     secret: process.env.REPL_ID || "birthday-gift-manager",
     resave: false,
     saveUninitialized: false,
-    cookie: {},
-    store: new MemoryStore({
-      checkPeriod: 86400000,
-    }),
-  };
+    cookie: { secure: false },
+    store: new MemoryStore({ checkPeriod: 86400000 })
+  }));
 
-  if (app.get("env") === "production") {
-    app.set("trust proxy", 1);
-    sessionSettings.cookie = {
-      secure: true,
-    };
-  }
-
-  app.use(session(sessionSettings));
   app.use(passport.initialize());
   app.use(passport.session());
 
-  passport.use(
-    new LocalStrategy(async (username, password, done) => {
-      try {
-        const [user] = await db
-          .select()
-          .from(users)
-          .where(eq(users.username, username))
-          .limit(1);
-
-        if (!user) {
-          return done(null, false, { message: "Incorrect username." });
-        }
-        const isMatch = await crypto.compare(password, user.password);
-        if (!isMatch) {
-          return done(null, false, { message: "Incorrect password." });
-        }
-        return done(null, user);
-      } catch (err) {
-        return done(err);
+  passport.use(new LocalStrategy(async (username, password, done) => {
+    try {
+      const result = await pool.query(
+        "SELECT * FROM users WHERE username = $1 AND password = $2 LIMIT 1",
+        [username, password]
+      );
+      const user = result.rows[0];
+      if (!user) {
+        return done(null, false, { message: "Invalid credentials." });
       }
-    })
-  );
+      return done(null, user);
+    } catch (err) {
+      return done(err);
+    }
+  }));
 
-  passport.serializeUser((user, done) => {
+  passport.serializeUser((user: any, done) => {
     done(null, user.id);
   });
 
   passport.deserializeUser(async (id: number, done) => {
     try {
-      const [user] = await db
-        .select()
-        .from(users)
-        .where(eq(users.id, id))
-        .limit(1);
-      done(null, user);
+      const result = await pool.query(
+        "SELECT id, username, created_at FROM users WHERE id = $1",
+        [id]
+      );
+      done(null, result.rows[0]);
     } catch (err) {
       done(err);
     }
   });
 
-  app.post("/api/register", async (req, res, next) => {
+  app.post("/api/register", async (req, res) => {
     try {
       const { username, password } = req.body;
 
-      const [existingUser] = await db
-        .select()
-        .from(users)
-        .where(eq(users.username, username))
-        .limit(1);
+      const existingUser = await pool.query(
+        "SELECT id FROM users WHERE username = $1",
+        [username]
+      );
 
-      if (existingUser) {
+      if (existingUser.rows.length > 0) {
         return res.status(400).send("Username already exists");
       }
 
-      const hashedPassword = await crypto.hash(password);
+      const result = await pool.query(
+        "INSERT INTO users (username, password) VALUES ($1, $2) RETURNING id, username",
+        [username, password]
+      );
 
-      const [newUser] = await db
-        .insert(users)
-        .values({
-          username,
-          password: hashedPassword,
-        })
-        .returning();
-
-      req.login(newUser, (err) => {
-        if (err) {
-          return next(err);
-        }
-        return res.json({
-          message: "Registration successful",
-          user: newUser,
-        });
-      });
+      res.json({ user: result.rows[0] });
     } catch (error) {
-      next(error);
+      res.status(500).send("Registration failed");
     }
   });
 
-  app.post("/api/login", (req, res, next) => {
-    passport.authenticate("local", (err: any, user: Express.User | false, info: IVerifyOptions) => {
-      if (err) {
-        return next(err);
-      }
-
-      if (!user) {
-        return res.status(400).send(info.message ?? "Login failed");
-      }
-
-      req.logIn(user, (err) => {
-        if (err) {
-          return next(err);
-        }
-
-        return res.json({
-          message: "Login successful",
-          user,
-        });
-      });
-    })(req, res, next);
+  app.post("/api/login", passport.authenticate("local"), (req, res) => {
+    res.json({ user: req.user });
   });
 
   app.post("/api/logout", (req, res) => {
-    req.logout((err) => {
-      if (err) {
-        return res.status(500).send("Logout failed");
-      }
-
-      res.json({ message: "Logout successful" });
+    req.logout(() => {
+      res.json({ message: "Logged out" });
     });
   });
 
   app.get("/api/user", (req, res) => {
-    if (req.isAuthenticated()) {
-      return res.json(req.user);
-    }
-    res.status(401).send("Not logged in");
+    res.json(req.user || null);
   });
 }

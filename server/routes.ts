@@ -1,8 +1,8 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
-import { db } from "@db";
-import { projects, contributions, type User } from "@db/schema";
-import { eq, desc, sql } from "drizzle-orm";
+import { pool } from "../db";
+import type { User } from "../db/schema";
+import { setupAuth } from "./auth";
 
 declare module "express-session" {
   interface SessionData {
@@ -11,38 +11,47 @@ declare module "express-session" {
 }
 
 export function registerRoutes(app: Express): Server {
+  // Setup auth before other routes
+  setupAuth(app);
+
   // Project routes
   app.get("/api/projects", async (req, res) => {
     try {
-      const allProjects = await db.query.projects.findMany({
-        orderBy: desc(projects.createdAt),
-        with: {
-          creator: true,
-          contributions: true,
-        },
-      });
-      res.json(allProjects);
+      const result = await pool.query(`
+        SELECT p.*, u.username as creator_username,
+        COALESCE(json_agg(c.*) FILTER (WHERE c.id IS NOT NULL), '[]') as contributions
+        FROM projects p
+        LEFT JOIN users u ON p.creator_id = u.id
+        LEFT JOIN contributions c ON p.id = c.project_id
+        GROUP BY p.id, u.username
+        ORDER BY p.created_at DESC
+      `);
+      res.json(result.rows);
     } catch (error) {
+      console.error('Error fetching projects:', error);
       res.status(500).send("Error fetching projects");
     }
   });
 
   app.get("/api/projects/:id", async (req, res) => {
     try {
-      const [project] = await db.query.projects.findMany({
-        where: eq(projects.id, parseInt(req.params.id)),
-        with: {
-          creator: true,
-          contributions: true,
-        },
-      });
+      const result = await pool.query(`
+        SELECT p.*, u.username as creator_username,
+        COALESCE(json_agg(c.*) FILTER (WHERE c.id IS NOT NULL), '[]') as contributions
+        FROM projects p
+        LEFT JOIN users u ON p.creator_id = u.id
+        LEFT JOIN contributions c ON p.id = c.project_id
+        WHERE p.id = $1
+        GROUP BY p.id, u.username
+      `, [req.params.id]);
 
-      if (!project) {
+      if (result.rows.length === 0) {
         return res.status(404).send("Project not found");
       }
 
-      res.json(project);
+      res.json(result.rows[0]);
     } catch (error) {
+      console.error('Error fetching project:', error);
       res.status(500).send("Error fetching project");
     }
   });
@@ -54,17 +63,26 @@ export function registerRoutes(app: Express): Server {
 
     try {
       const user = req.user as User;
-      const [project] = await db
-        .insert(projects)
-        .values({
-          ...req.body,
-          creatorId: user.id,
-          currentAmount: 0,
-        })
-        .returning();
+      const result = await pool.query(
+        `INSERT INTO projects (
+          title, description, target_amount, event_date, 
+          location, creator_id, current_amount, is_public
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *`,
+        [
+          req.body.title,
+          req.body.description,
+          req.body.targetAmount,
+          req.body.eventDate,
+          req.body.location,
+          user.id,
+          0,
+          req.body.isPublic ?? true,
+        ]
+      );
 
-      res.json(project);
+      res.json(result.rows[0]);
     } catch (error) {
+      console.error('Error creating project:', error);
       res.status(500).send("Error creating project");
     }
   });
@@ -72,27 +90,41 @@ export function registerRoutes(app: Express): Server {
   // Contribution routes
   app.post("/api/projects/:id/contribute", async (req, res) => {
     try {
-      const projectId = parseInt(req.params.id);
-      const contributionAmount = req.body.amount;
+      const client = await pool.connect();
+      try {
+        await client.query('BEGIN');
 
-      const [contribution] = await db
-        .insert(contributions)
-        .values({
-          ...req.body,
-          projectId,
-        })
-        .returning();
+        // Insert contribution
+        const contributionResult = await client.query(
+          `INSERT INTO contributions (
+            amount, message, contributor_name, project_id
+          ) VALUES ($1, $2, $3, $4) RETURNING *`,
+          [
+            req.body.amount,
+            req.body.message,
+            req.body.contributorName,
+            req.params.id,
+          ]
+        );
 
-      // Update project current amount
-      await db
-        .update(projects)
-        .set({
-          currentAmount: sql`${projects.currentAmount} + ${contributionAmount}`,
-        })
-        .where(eq(projects.id, projectId));
+        // Update project current amount
+        await client.query(
+          `UPDATE projects 
+          SET current_amount = current_amount + $1 
+          WHERE id = $2`,
+          [req.body.amount, req.params.id]
+        );
 
-      res.json(contribution);
+        await client.query('COMMIT');
+        res.json(contributionResult.rows[0]);
+      } catch (error) {
+        await client.query('ROLLBACK');
+        throw error;
+      } finally {
+        client.release();
+      }
     } catch (error) {
+      console.error('Error creating contribution:', error);
       res.status(500).send("Error creating contribution");
     }
   });
