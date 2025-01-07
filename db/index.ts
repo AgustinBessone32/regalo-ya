@@ -10,15 +10,15 @@ if (!process.env.DATABASE_URL) {
 
 const pool = new pg.Pool({
   connectionString: process.env.DATABASE_URL,
-  max: 10,
+  max: 5, // Reduce max connections
   idleTimeoutMillis: 30000,
   connectionTimeoutMillis: 5000,
+  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : undefined
 });
 
 // Add basic error handling to the pool
 pool.on('error', (err) => {
   console.error('Unexpected error on idle client', err);
-  process.exit(-1);
 });
 
 export const db = drizzle(pool, { schema });
@@ -30,19 +30,31 @@ process.on('SIGINT', async () => {
   process.exit(0);
 });
 
-// Export a function to test the connection
-export async function testConnection() {
-  try {
-    const client = await pool.connect();
+// Export a function to test the connection with retries
+export async function testConnection(retries = 3, delay = 2000) {
+  let lastError: Error | null = null;
+
+  for (let i = 0; i < retries; i++) {
+    let client;
     try {
+      client = await pool.connect();
       await client.query('SELECT 1');
       console.log("Database connection established successfully");
       return true;
+    } catch (error) {
+      lastError = error instanceof Error ? error : new Error(String(error));
+      console.error(`Database connection attempt ${i + 1} failed:`, lastError.message);
+
+      if (i < retries - 1) {
+        console.log(`Retrying in ${delay/1000} seconds...`);
+        await new Promise(resolve => setTimeout(resolve, delay));
+      }
     } finally {
-      client.release();
+      if (client) {
+        client.release();
+      }
     }
-  } catch (error) {
-    console.error("Failed to initialize database:", error);
-    throw error;
   }
+
+  throw new Error(`Failed to connect to database after ${retries} attempts: ${lastError?.message || 'Unknown error'}`);
 }

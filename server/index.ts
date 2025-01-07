@@ -66,8 +66,10 @@ app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
     // Setup vite or serve static files
     if (app.get("env") === "development") {
       await setupVite(app, server);
+      log("Vite middleware initialized");
     } else {
       serveStatic(app);
+      log("Static file serving initialized");
     }
 
     // Start server
