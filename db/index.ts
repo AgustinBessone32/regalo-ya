@@ -1,6 +1,5 @@
-import pkg from 'pg';
-const { Pool } = pkg;
 import { drizzle } from "drizzle-orm/node-postgres";
+import pg from 'pg';
 import * as schema from "@db/schema";
 
 if (!process.env.DATABASE_URL) {
@@ -9,7 +8,7 @@ if (!process.env.DATABASE_URL) {
   );
 }
 
-const pool = new Pool({
+const pool = new pg.Pool({
   connectionString: process.env.DATABASE_URL,
   max: 10,
   idleTimeoutMillis: 30000,
@@ -22,17 +21,8 @@ pool.on('error', (err) => {
   process.exit(-1);
 });
 
-const db = drizzle(pool, { schema });
-
-// Test the connection
-try {
-  await pool.query('SELECT 1');
-  console.log("Database connection established successfully");
-} catch (error) {
-  console.error("Failed to initialize database:", error);
-  throw error;
-}
-
+export const db = drizzle(pool, { schema });
+export { pool };
 
 // For clean shutdown
 process.on('SIGINT', async () => {
@@ -40,4 +30,19 @@ process.on('SIGINT', async () => {
   process.exit(0);
 });
 
-export { db };
+// Export a function to test the connection
+export async function testConnection() {
+  try {
+    const client = await pool.connect();
+    try {
+      await client.query('SELECT 1');
+      console.log("Database connection established successfully");
+      return true;
+    } finally {
+      client.release();
+    }
+  } catch (error) {
+    console.error("Failed to initialize database:", error);
+    throw error;
+  }
+}

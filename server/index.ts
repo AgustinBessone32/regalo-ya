@@ -2,8 +2,7 @@ import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupAuth } from "./auth";
 import { setupVite, serveStatic, log } from "./vite";
-import { db } from "@db";
-import { users } from "@db/schema";
+import { testConnection } from "@db";
 
 const app = express();
 
@@ -42,37 +41,27 @@ app.use((req, res, next) => {
   next();
 });
 
-async function initializeDatabase() {
-  try {
-    // Test database connection with a simple query
-    const result = await db.select().from(users).limit(1);
-    log("Database connection successful");
-    return true;
-  } catch (error) {
-    log("Database connection failed: " + error);
-    return false;
-  }
-}
+// Error handling middleware
+app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
+  log("Server error: " + err);
+  const status = err.status || err.statusCode || 500;
+  const message = err.message || "Internal Server Error";
+  res.status(status).json({ message });
+});
 
 (async () => {
   try {
-    // Initialize database first
-    const dbInitialized = await initializeDatabase();
-    if (!dbInitialized) {
-      throw new Error("Failed to initialize database");
-    }
+    // Test database connection first
+    await testConnection();
+    log("Database connection established successfully");
 
     // Setup auth before registering routes
     setupAuth(app);
-    const server = registerRoutes(app);
+    log("Authentication middleware initialized");
 
-    // Error handling middleware
-    app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
-      log("Server error: " + err);
-      const status = err.status || err.statusCode || 500;
-      const message = err.message || "Internal Server Error";
-      res.status(status).json({ message });
-    });
+    // Register routes after auth is setup
+    const server = registerRoutes(app);
+    log("Routes registered successfully");
 
     // Setup vite or serve static files
     if (app.get("env") === "development") {
