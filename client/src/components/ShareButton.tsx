@@ -1,4 +1,4 @@
-import { Share2, Facebook, Twitter } from "lucide-react";
+import { Share2, Facebook, Twitter, MessageCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 
@@ -85,6 +85,14 @@ export function ShareButton({ title, description, url }: ShareButtonProps) {
         onClick={() => openShareWindow(`https://www.facebook.com/sharer/sharer.php?u=${shareUrl}`)}
       >
         <Facebook className="h-4 w-4" />
+      </Button>
+
+      <Button
+        variant="outline"
+        size="icon"
+        onClick={() => window.open(`https://wa.me/?text=${shareTitle}%0A${shareDescription}%0A${shareUrl}`, '_blank')}
+      >
+        <MessageCircle className="h-4 w-4" />
       </Button>
     </div>
   );

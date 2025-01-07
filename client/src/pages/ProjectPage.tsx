@@ -18,6 +18,7 @@ import { CountdownTimer } from "@/components/CountdownTimer";
 import { ShareButton } from "@/components/ShareButton";
 import { useNotifications } from "@/hooks/use-notifications";
 import { BudgetAnalytics } from "@/components/BudgetAnalytics";
+import { MetaTags } from "@/components/MetaTags";
 
 const contributionSchema = z.object({
   amount: z.coerce.number().min(1, "Amount must be greater than 0"),
@@ -41,6 +42,9 @@ export default function ProjectPage() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+
+  // Generate the full shareable URL
+  const shareableUrl = `${window.location.origin}/projects/${id}`;
 
   const { data: project, isLoading } = useQuery<ProjectWithDetails>({
     queryKey: [`/api/projects/${id}`],
@@ -143,190 +147,199 @@ export default function ProjectPage() {
   const progress = (currentAmount / (project.target_amount || 1)) * 100;
 
   return (
-    <div className="space-y-8">
-      <div className="flex justify-between items-center">
-        <Button variant="outline" onClick={() => setLocation("/")}>
-          Back to Projects
-        </Button>
+    <>
+      <MetaTags
+        title={`${project.title} - Birthday Gift Collection`}
+        description={project.description || ''}
+        url={shareableUrl}
+        image={project.image_url || undefined}
+      />
 
-        <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={handleNotificationToggle}
-            title={permission === 'granted' ? 'Notifications enabled' : 'Enable notifications'}
-          >
-            {permission === 'granted' ? (
-              <Bell className="h-4 w-4" />
-            ) : (
-              <BellOff className="h-4 w-4" />
-            )}
+      <div className="space-y-8">
+        <div className="flex justify-between items-center">
+          <Button variant="outline" onClick={() => setLocation("/")}>
+            Back to Projects
           </Button>
 
-          <ShareButton
-            title={project.title}
-            description={project.description || ''}
-            url={window.location.href}
-          />
-        </div>
-      </div>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={handleNotificationToggle}
+              title={permission === 'granted' ? 'Notifications enabled' : 'Enable notifications'}
+            >
+              {permission === 'granted' ? (
+                <Bell className="h-4 w-4" />
+              ) : (
+                <BellOff className="h-4 w-4" />
+              )}
+            </Button>
 
-      <div className="grid gap-8 md:grid-cols-2">
-        <div className="space-y-6">
-          <div>
-            <h1 className="text-3xl font-bold mb-2">{project.title}</h1>
-            <p className="text-muted-foreground">{project.description}</p>
+            <ShareButton
+              title={`${project.title} - Birthday Gift Collection`}
+              description={project.description || ''}
+              url={shareableUrl}
+            />
           </div>
+        </div>
 
-          <div className="flex flex-col gap-2">
-            {project.event_date && (
-              <>
-                <div className="flex items-center gap-2 text-muted-foreground">
-                  <CalendarIcon className="h-4 w-4" />
-                  <span>{format(new Date(project.event_date), "PPP")}</span>
-                </div>
-                <CountdownTimer eventDate={project.event_date} />
-              </>
-            )}
-
-            {project.location && (
-              <div className="flex items-center gap-2 text-muted-foreground">
-                <MapPinIcon className="h-4 w-4" />
-                <span>{project.location}</span>
-              </div>
-            )}
-
-            <div className="flex items-center gap-2 text-muted-foreground">
-              <Users className="h-4 w-4" />
-              <span>Created by {project.creator.username}</span>
+        <div className="grid gap-8 md:grid-cols-2">
+          <div className="space-y-6">
+            <div>
+              <h1 className="text-3xl font-bold mb-2">{project.title}</h1>
+              <p className="text-muted-foreground">{project.description}</p>
             </div>
-          </div>
 
-          <Card>
-            <CardContent className="pt-6">
-              <Progress value={progress} className="h-2 mb-4" />
-              <div className="flex justify-between text-sm mb-2">
-                <span className="text-muted-foreground">
-                  ${currentAmount} raised
-                </span>
-                {project.target_amount && (
-                  <span className="font-medium">
-                    ${project.target_amount} goal
-                  </span>
-                )}
-              </div>
-              <p className="text-sm text-muted-foreground">
-                {project.contributions.length} contributions
-              </p>
-            </CardContent>
-          </Card>
-        </div>
+            <div className="flex flex-col gap-2">
+              {project.event_date && (
+                <>
+                  <div className="flex items-center gap-2 text-muted-foreground">
+                    <CalendarIcon className="h-4 w-4" />
+                    <span>{format(new Date(project.event_date), "PPP")}</span>
+                  </div>
+                  <CountdownTimer eventDate={project.event_date} />
+                </>
+              )}
 
-        <div className="space-y-6">
-          <BudgetAnalytics
-            avgAmount={project.avg_amount || 0}
-            medianAmount={project.median_amount || 0}
-            minAmount={project.min_amount || 0}
-            maxAmount={project.max_amount || 0}
-            totalContributions={project.total_contributions || 0}
-            contributionHistory={project.contribution_history || []}
-          />
-          <Card>
-            <CardHeader>
-              <CardTitle>Make a Contribution</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <Form {...form}>
-                <form
-                  onSubmit={form.handleSubmit((data) => contributeMutation.mutate(data))}
-                  className="space-y-4"
-                >
-                  <FormField
-                    control={form.control}
-                    name="amount"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Amount ($)</FormLabel>
-                        <FormControl>
-                          <Input type="number" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="contributorName"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Your Name</FormLabel>
-                        <FormControl>
-                          <Input {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="message"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Message (Optional)</FormLabel>
-                        <FormControl>
-                          <Textarea {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <Button
-                    type="submit"
-                    className="w-full"
-                    disabled={contributeMutation.isPending}
-                  >
-                    {contributeMutation.isPending && (
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    )}
-                    Contribute
-                  </Button>
-                </form>
-              </Form>
-            </CardContent>
-          </Card>
-
-          {project.contributions.length > 0 && (
-            <Card>
-              <CardHeader>
-                <CardTitle>Recent Contributions</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {project.contributions.map((contribution) => (
-                    <div
-                      key={contribution.id}
-                      className="flex justify-between items-start pb-4 border-b last:border-0 last:pb-0"
-                    >
-                      <div>
-                        <p className="font-medium">{contribution.contributor_name}</p>
-                        {contribution.message && (
-                          <p className="text-sm text-muted-foreground mt-1">
-                            {contribution.message}
-                          </p>
-                        )}
-                      </div>
-                      <span className="font-medium">${contribution.amount}</span>
-                    </div>
-                  ))}
+              {project.location && (
+                <div className="flex items-center gap-2 text-muted-foreground">
+                  <MapPinIcon className="h-4 w-4" />
+                  <span>{project.location}</span>
                 </div>
+              )}
+
+              <div className="flex items-center gap-2 text-muted-foreground">
+                <Users className="h-4 w-4" />
+                <span>Created by {project.creator.username}</span>
+              </div>
+            </div>
+
+            <Card>
+              <CardContent className="pt-6">
+                <Progress value={progress} className="h-2 mb-4" />
+                <div className="flex justify-between text-sm mb-2">
+                  <span className="text-muted-foreground">
+                    ${currentAmount} raised
+                  </span>
+                  {project.target_amount && (
+                    <span className="font-medium">
+                      ${project.target_amount} goal
+                    </span>
+                  )}
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  {project.contributions.length} contributions
+                </p>
               </CardContent>
             </Card>
-          )}
+          </div>
+
+          <div className="space-y-6">
+            <BudgetAnalytics
+              avgAmount={project.avg_amount || 0}
+              medianAmount={project.median_amount || 0}
+              minAmount={project.min_amount || 0}
+              maxAmount={project.max_amount || 0}
+              totalContributions={project.total_contributions || 0}
+              contributionHistory={project.contribution_history || []}
+            />
+            <Card>
+              <CardHeader>
+                <CardTitle>Make a Contribution</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <Form {...form}>
+                  <form
+                    onSubmit={form.handleSubmit((data) => contributeMutation.mutate(data))}
+                    className="space-y-4"
+                  >
+                    <FormField
+                      control={form.control}
+                      name="amount"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Amount ($)</FormLabel>
+                          <FormControl>
+                            <Input type="number" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="contributorName"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Your Name</FormLabel>
+                          <FormControl>
+                            <Input {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="message"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Message (Optional)</FormLabel>
+                          <FormControl>
+                            <Textarea {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <Button
+                      type="submit"
+                      className="w-full"
+                      disabled={contributeMutation.isPending}
+                    >
+                      {contributeMutation.isPending && (
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      )}
+                      Contribute
+                    </Button>
+                  </form>
+                </Form>
+              </CardContent>
+            </Card>
+
+            {project.contributions.length > 0 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Recent Contributions</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    {project.contributions.map((contribution) => (
+                      <div
+                        key={contribution.id}
+                        className="flex justify-between items-start pb-4 border-b last:border-0 last:pb-0"
+                      >
+                        <div>
+                          <p className="font-medium">{contribution.contributor_name}</p>
+                          {contribution.message && (
+                            <p className="text-sm text-muted-foreground mt-1">
+                              {contribution.message}
+                            </p>
+                          )}
+                        </div>
+                        <span className="font-medium">${contribution.amount}</span>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+          </div>
         </div>
       </div>
-    </div>
+    </>
   );
 }
