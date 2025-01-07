@@ -51,7 +51,11 @@ export default function ProjectPage() {
       const response = await fetch(`/api/projects/${id}/contribute`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
+        body: JSON.stringify({
+          amount: data.amount,
+          contributor_name: data.contributorName,
+          message: data.message,
+        }),
       });
 
       if (!response.ok) {
@@ -90,8 +94,8 @@ export default function ProjectPage() {
     return null;
   }
 
-  const currentAmount = project.currentAmount ?? 0;
-  const progress = (currentAmount / (project.targetAmount || 1)) * 100;
+  const currentAmount = project.current_amount ?? 0;
+  const progress = (currentAmount / (project.target_amount || 1)) * 100;
 
   return (
     <div className="space-y-8">
@@ -115,13 +119,13 @@ export default function ProjectPage() {
           </div>
 
           <div className="flex flex-col gap-2">
-            {project.eventDate && (
+            {project.event_date && (
               <>
                 <div className="flex items-center gap-2 text-muted-foreground">
                   <CalendarIcon className="h-4 w-4" />
-                  <span>{format(new Date(project.eventDate), "PPP")}</span>
+                  <span>{format(new Date(project.event_date), "PPP")}</span>
                 </div>
-                <CountdownTimer eventDate={project.eventDate} />
+                <CountdownTimer eventDate={project.event_date} />
               </>
             )}
 
@@ -145,9 +149,9 @@ export default function ProjectPage() {
                 <span className="text-muted-foreground">
                   ${currentAmount} raised
                 </span>
-                {project.targetAmount && (
+                {project.target_amount && (
                   <span className="font-medium">
-                    ${project.targetAmount} goal
+                    ${project.target_amount} goal
                   </span>
                 )}
               </div>
@@ -239,7 +243,7 @@ export default function ProjectPage() {
                       className="flex justify-between items-start pb-4 border-b last:border-0 last:pb-0"
                     >
                       <div>
-                        <p className="font-medium">{contribution.contributorName}</p>
+                        <p className="font-medium">{contribution.contributor_name}</p>
                         {contribution.message && (
                           <p className="text-sm text-muted-foreground mt-1">
                             {contribution.message}

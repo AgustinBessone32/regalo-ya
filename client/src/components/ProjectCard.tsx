@@ -15,8 +15,8 @@ type ProjectCardProps = {
 };
 
 export default function ProjectCard({ project }: ProjectCardProps) {
-  const currentAmount = project.currentAmount ?? 0;
-  const progress = (currentAmount / (project.targetAmount || 1)) * 100;
+  const currentAmount = project.current_amount ?? 0;
+  const progress = (currentAmount / (project.target_amount || 1)) * 100;
 
   return (
     <Card className="h-full flex flex-col">
@@ -28,13 +28,13 @@ export default function ProjectCard({ project }: ProjectCardProps) {
           {project.description}
         </p>
 
-        {project.eventDate && (
+        {project.event_date && (
           <div className="space-y-1 mb-2">
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <CalendarIcon className="h-4 w-4" />
-              <span>{format(new Date(project.eventDate), "PPP")}</span>
+              <span>{format(new Date(project.event_date), "PPP")}</span>
             </div>
-            <CountdownTimer eventDate={project.eventDate} />
+            <CountdownTimer eventDate={project.event_date} />
           </div>
         )}
 
@@ -51,9 +51,9 @@ export default function ProjectCard({ project }: ProjectCardProps) {
             <span className="text-muted-foreground">
               ${currentAmount} raised
             </span>
-            {project.targetAmount && (
+            {project.target_amount && (
               <span className="font-medium">
-                ${project.targetAmount} goal
+                ${project.target_amount} goal
               </span>
             )}
           </div>
