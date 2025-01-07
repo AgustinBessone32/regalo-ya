@@ -31,6 +31,10 @@ type ProjectWithDetails = Project & {
   creator: { username: string };
   contributions: Contribution[];
   reactions: { emoji: string; count: number; reacted: boolean }[];
+  shares: {
+    total: number;
+    by_platform: { platform: string; count: number }[];
+  };
   avg_amount: number;
   median_amount: number;
   min_amount: number;
@@ -249,6 +253,9 @@ export default function ProjectPage() {
               maxAmount={project.max_amount || 0}
               totalContributions={project.total_contributions || 0}
               contributionHistory={project.contribution_history || []}
+              reactionCounts={project.reactions}
+              totalShares={project.shares?.total || 0}
+              platformShares={project.shares?.by_platform || []}
             />
             <Card>
               <CardHeader>

@@ -1,5 +1,6 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip } from "recharts";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, PieChart, Pie, Cell } from "recharts";
+import { useMemo } from "react";
 
 interface BudgetAnalyticsProps {
   avgAmount: number;
@@ -8,7 +9,12 @@ interface BudgetAnalyticsProps {
   maxAmount: number;
   totalContributions: number;
   contributionHistory: number[];
+  reactionCounts?: { emoji: string; count: number }[];
+  totalShares?: number;
+  platformShares?: { platform: string; count: number }[];
 }
+
+const COLORS = ['hsl(var(--primary))', 'hsl(var(--secondary))', 'hsl(var(--accent))'];
 
 export function BudgetAnalytics({
   avgAmount,
@@ -17,12 +23,23 @@ export function BudgetAnalytics({
   maxAmount,
   totalContributions,
   contributionHistory,
+  reactionCounts = [],
+  totalShares = 0,
+  platformShares = [],
 }: BudgetAnalyticsProps) {
-  // Prepare data for visualization
+  // Prepare data for contribution history visualization
   const chartData = contributionHistory.map((amount, index) => ({
     contribution: index + 1,
     amount,
   }));
+
+  // Calculate contribution growth rate
+  const growthRate = useMemo(() => {
+    if (contributionHistory.length < 2) return 0;
+    const firstAmount = contributionHistory[0];
+    const lastAmount = contributionHistory[contributionHistory.length - 1];
+    return ((lastAmount - firstAmount) / firstAmount) * 100;
+  }, [contributionHistory]);
 
   const statistics = [
     { label: "Average", value: avgAmount },
@@ -30,48 +47,121 @@ export function BudgetAnalytics({
     { label: "Minimum", value: minAmount },
     { label: "Maximum", value: maxAmount },
     { label: "Total Contributors", value: totalContributions },
+    { label: "Growth Rate", value: `${growthRate.toFixed(1)}%` },
   ];
 
+  // Prepare data for engagement visualization
+  const engagementData = platformShares.map((share, index) => ({
+    name: share.platform,
+    value: share.count,
+    color: COLORS[index % COLORS.length],
+  }));
+
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Contribution Analytics</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-8">
-          {statistics.map(({ label, value }) => (
-            <div key={label} className="text-center p-4 bg-muted rounded-lg">
-              <p className="text-sm text-muted-foreground mb-1">{label}</p>
+    <div className="space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle>Contribution Analytics</CardTitle>
+          <CardDescription>
+            Track contribution patterns and project growth
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-8">
+            {statistics.map(({ label, value }) => (
+              <div key={label} className="text-center p-4 bg-muted rounded-lg">
+                <p className="text-sm text-muted-foreground mb-1">{label}</p>
+                <p className="text-xl font-semibold">
+                  {typeof value === 'number' && label !== "Growth Rate" 
+                    ? label === "Total Contributors" 
+                      ? value 
+                      : `$${value.toFixed(2)}`
+                    : value}
+                </p>
+              </div>
+            ))}
+          </div>
+
+          {contributionHistory.length > 0 && (
+            <div className="h-[200px] mt-4">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={chartData}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="contribution" />
+                  <YAxis />
+                  <Tooltip 
+                    formatter={(value) => [`$${value}`, "Amount"]}
+                    labelFormatter={(value) => `Contribution #${value}`}
+                  />
+                  <Bar dataKey="amount" fill="hsl(var(--primary))" />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Engagement Metrics</CardTitle>
+          <CardDescription>
+            Community engagement and social impact
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-2 gap-4 mb-8">
+            <div className="text-center p-4 bg-muted rounded-lg">
+              <p className="text-sm text-muted-foreground mb-1">Total Reactions</p>
               <p className="text-xl font-semibold">
-                {label === "Total Contributors" ? value : `$${value.toFixed(2)}`}
+                {reactionCounts.reduce((sum, r) => sum + r.count, 0)}
               </p>
             </div>
-          ))}
-        </div>
-
-        {contributionHistory.length > 0 && (
-          <div className="h-[200px] mt-4">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={chartData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="contribution" />
-                <YAxis />
-                <Tooltip 
-                  formatter={(value) => [`$${value}`, "Amount"]}
-                  labelFormatter={(value) => `Contribution #${value}`}
-                />
-                <Bar dataKey="amount" fill="hsl(var(--primary))" />
-              </BarChart>
-            </ResponsiveContainer>
+            <div className="text-center p-4 bg-muted rounded-lg">
+              <p className="text-sm text-muted-foreground mb-1">Total Shares</p>
+              <p className="text-xl font-semibold">{totalShares}</p>
+            </div>
           </div>
-        )}
 
-        {contributionHistory.length === 0 && (
-          <p className="text-center text-muted-foreground">
-            No contributions yet. Be the first to contribute!
-          </p>
-        )}
-      </CardContent>
-    </Card>
+          {/* Engagement Distribution */}
+          {platformShares.length > 0 && (
+            <div className="h-[200px] mt-4">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={engagementData}
+                    dataKey="value"
+                    nameKey="name"
+                    cx="50%"
+                    cy="50%"
+                    outerRadius={80}
+                    label={({ name, value }) => `${name}: ${value}`}
+                  >
+                    {engagementData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color} />
+                    ))}
+                  </Pie>
+                  <Tooltip />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+          )}
+
+          {/* Reaction Distribution */}
+          {reactionCounts.length > 0 && (
+            <div className="mt-4">
+              <h4 className="text-sm font-medium mb-2">Reaction Distribution</h4>
+              <div className="flex flex-wrap gap-2">
+                {reactionCounts.map(({ emoji, count }) => (
+                  <div key={emoji} className="flex items-center gap-1 text-sm">
+                    <span>{emoji}</span>
+                    <span className="text-muted-foreground">{count}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    </div>
   );
 }

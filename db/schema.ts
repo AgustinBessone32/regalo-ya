@@ -39,6 +39,13 @@ export interface Reaction {
   created_at: Date;
 }
 
+export interface Share {
+  id: number;
+  project_id: number;
+  platform: string;
+  created_at: Date;
+}
+
 // Schema validation using zod
 export const insertUserSchema = z.object({
   username: z.string().min(3, "Username must be at least 3 characters"),
@@ -62,6 +69,10 @@ export const insertContributionSchema = z.object({
 
 export const insertReactionSchema = z.object({
   emoji: z.string(),
+});
+
+export const insertShareSchema = z.object({
+  platform: z.string(),
 });
 
 // Type for authenticated user (excludes password)

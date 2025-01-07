@@ -90,11 +90,39 @@ export function registerRoutes(app: Express): Server {
                  cs.contribution_history
       `, [req.params.id, req.user?.id || null]);
 
+      const projectId = parseInt(req.params.id);
+      const shareStats = await pool.query(`
+        WITH platform_shares AS (
+          SELECT 
+            platform,
+            COUNT(*) as count
+          FROM shares
+          WHERE project_id = $1
+          GROUP BY platform
+        )
+        SELECT 
+          json_build_object(
+            'total', (SELECT COUNT(*) FROM shares WHERE project_id = $1),
+            'by_platform', (
+              SELECT json_agg(json_build_object(
+                'platform', platform,
+                'count', count
+              ))
+              FROM platform_shares
+            )
+          ) as shares
+      `, [projectId]);
+
       if (result.rows.length === 0) {
         return res.status(404).send("Project not found");
       }
 
-      res.json(result.rows[0]);
+      const projectData = {
+        ...result.rows[0],
+        shares: shareStats.rows[0].shares,
+      };
+
+      res.json(projectData);
     } catch (error) {
       console.error('Error fetching project:', error);
       res.status(500).send("Error fetching project");
@@ -238,6 +266,23 @@ export function registerRoutes(app: Express): Server {
     } catch (error) {
       console.error('Error handling reaction:', error);
       res.status(500).send("Error handling reaction");
+    }
+  });
+
+  app.post("/api/projects/:id/share", async (req, res) => {
+    try {
+      const { platform } = req.body;
+      const projectId = parseInt(req.params.id);
+
+      await pool.query(
+        `INSERT INTO shares (project_id, platform) VALUES ($1, $2)`,
+        [projectId, platform]
+      );
+
+      res.json({ success: true });
+    } catch (error) {
+      console.error('Error tracking share:', error);
+      res.status(500).send("Error tracking share");
     }
   });
 
