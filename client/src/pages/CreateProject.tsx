@@ -11,12 +11,13 @@ import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { WizardForm } from "@/components/WizardForm";
+import { MapPinIcon } from "lucide-react";
 
 const projectSchema = z.object({
   title: z.string().min(3, "Title must be at least 3 characters"),
   description: z.string().min(10, "Description must be at least 10 characters"),
   targetAmount: z.coerce.number().min(1, "Target amount must be greater than 0"),
-  location: z.string().min(3, "Location must be at least 3 characters"),
+  location: z.string().min(3, "Location must be at least 3 characters").max(100, "Location must be less than 100 characters"),
   eventDate: z.string().refine((date) => {
     const eventDate = new Date(date);
     const today = new Date();
@@ -140,7 +141,14 @@ export default function CreateProject() {
                 <FormItem>
                   <FormLabel>Location</FormLabel>
                   <FormControl>
-                    <Input placeholder="Party venue or address" {...field} />
+                    <div className="relative">
+                      <MapPinIcon className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+                      <Input
+                        placeholder="Party venue or address"
+                        className="pl-9"
+                        {...field}
+                      />
+                    </div>
                   </FormControl>
                   <FormMessage />
                 </FormItem>
