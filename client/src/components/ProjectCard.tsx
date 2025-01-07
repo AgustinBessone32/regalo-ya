@@ -5,6 +5,7 @@ import { CalendarIcon, MapPinIcon } from "lucide-react";
 import { format } from "date-fns";
 import { Link } from "wouter";
 import type { Project } from "@db/schema";
+import { CountdownTimer } from "./CountdownTimer";
 
 type ProjectCardProps = {
   project: Project & {
@@ -27,9 +28,12 @@ export default function ProjectCard({ project }: ProjectCardProps) {
         </p>
 
         {project.eventDate && (
-          <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
-            <CalendarIcon className="h-4 w-4" />
-            <span>{format(new Date(project.eventDate), "PPP")}</span>
+          <div className="space-y-1 mb-2">
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <CalendarIcon className="h-4 w-4" />
+              <span>{format(new Date(project.eventDate), "PPP")}</span>
+            </div>
+            <CountdownTimer eventDate={project.eventDate} />
           </div>
         )}
 

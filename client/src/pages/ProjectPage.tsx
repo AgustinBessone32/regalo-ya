@@ -13,6 +13,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import type { Project, Contribution } from "@db/schema";
+import { CountdownTimer } from "@/components/CountdownTimer";
 
 const contributionSchema = z.object({
   amount: z.coerce.number().min(1, "Amount must be greater than 0"),
@@ -106,10 +107,13 @@ export default function ProjectPage() {
 
           <div className="flex flex-col gap-2">
             {project.eventDate && (
-              <div className="flex items-center gap-2 text-muted-foreground">
-                <CalendarIcon className="h-4 w-4" />
-                <span>{format(new Date(project.eventDate), "PPP")}</span>
-              </div>
+              <>
+                <div className="flex items-center gap-2 text-muted-foreground">
+                  <CalendarIcon className="h-4 w-4" />
+                  <span>{format(new Date(project.eventDate), "PPP")}</span>
+                </div>
+                <CountdownTimer eventDate={project.eventDate} />
+              </>
             )}
 
             {project.location && (
