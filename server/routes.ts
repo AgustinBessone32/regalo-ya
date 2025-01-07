@@ -52,6 +52,20 @@ export function registerRoutes(app: Express): Server {
           FROM contributions
           WHERE project_id = $1
           GROUP BY project_id
+        ),
+        reaction_stats AS (
+          SELECT 
+            emoji,
+            COUNT(*) as count,
+            EXISTS(
+              SELECT 1 FROM reactions 
+              WHERE project_id = $1 
+              AND emoji = r.emoji 
+              AND user_id = $2
+            ) as reacted
+          FROM reactions r
+          WHERE project_id = $1
+          GROUP BY emoji
         )
         SELECT 
           p.*,
@@ -63,16 +77,18 @@ export function registerRoutes(app: Express): Server {
           cs.min_amount,
           cs.max_amount,
           cs.total_amount,
-          cs.contribution_history
+          cs.contribution_history,
+          COALESCE(json_agg(rs.*) FILTER (WHERE rs.emoji IS NOT NULL), '[]') as reactions
         FROM projects p
         LEFT JOIN users u ON p.creator_id = u.id
         LEFT JOIN contributions c ON p.id = c.project_id
         LEFT JOIN contribution_stats cs ON p.id = cs.project_id
+        LEFT JOIN reaction_stats rs ON true
         WHERE p.id = $1
         GROUP BY p.id, u.username, cs.total_contributions, cs.avg_amount, 
                  cs.median_amount, cs.min_amount, cs.max_amount, cs.total_amount,
                  cs.contribution_history
-      `, [req.params.id]);
+      `, [req.params.id, req.user?.id || null]);
 
       if (result.rows.length === 0) {
         return res.status(404).send("Project not found");
@@ -154,6 +170,74 @@ export function registerRoutes(app: Express): Server {
     } catch (error) {
       console.error('Error creating contribution:', error);
       res.status(500).send("Error creating contribution");
+    }
+  });
+
+  app.post("/api/projects/:id/react", async (req, res) => {
+    try {
+      const { emoji } = req.body;
+      const projectId = parseInt(req.params.id);
+      const userId = req.user?.id; 
+
+      const client = await pool.connect();
+      try {
+        await client.query('BEGIN');
+
+        if (userId) {
+          const existingReaction = await client.query(
+            `SELECT id FROM reactions 
+             WHERE project_id = $1 AND user_id = $2 AND emoji = $3`,
+            [projectId, userId, emoji]
+          );
+
+          if (existingReaction.rows.length > 0) {
+            await client.query(
+              `DELETE FROM reactions 
+               WHERE project_id = $1 AND user_id = $2 AND emoji = $3`,
+              [projectId, userId, emoji]
+            );
+          } else {
+            await client.query(
+              `INSERT INTO reactions (project_id, user_id, emoji) 
+               VALUES ($1, $2, $3)`,
+              [projectId, userId, emoji]
+            );
+          }
+        } else {
+          await client.query(
+            `INSERT INTO reactions (project_id, emoji) 
+             VALUES ($1, $2)`,
+            [projectId, emoji]
+          );
+        }
+
+        const reactionCounts = await client.query(`
+          SELECT 
+            r.emoji,
+            COUNT(*) as count,
+            EXISTS(
+              SELECT 1 FROM reactions 
+              WHERE project_id = $1 
+              AND emoji = r.emoji 
+              AND user_id = $2
+            ) as reacted
+          FROM reactions r
+          WHERE r.project_id = $1
+          GROUP BY r.emoji
+        `, [projectId, userId || null]);
+
+        await client.query('COMMIT');
+
+        res.json({ reactions: reactionCounts.rows });
+      } catch (error) {
+        await client.query('ROLLBACK');
+        throw error;
+      } finally {
+        client.release();
+      }
+    } catch (error) {
+      console.error('Error handling reaction:', error);
+      res.status(500).send("Error handling reaction");
     }
   });
 

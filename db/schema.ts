@@ -1,6 +1,6 @@
-// Type definitions for our database entities
 import { z } from "zod";
 
+// Type definitions for our database entities
 export interface User {
   id: number;
   username: string;
@@ -31,6 +31,14 @@ export interface Contribution {
   created_at: Date;
 }
 
+export interface Reaction {
+  id: number;
+  project_id: number;
+  user_id: number | null;
+  emoji: string;
+  created_at: Date;
+}
+
 // Schema validation using zod
 export const insertUserSchema = z.object({
   username: z.string().min(3, "Username must be at least 3 characters"),
@@ -50,6 +58,10 @@ export const insertContributionSchema = z.object({
   amount: z.number().min(1, "Amount must be greater than 0"),
   message: z.string().optional(),
   contributor_name: z.string().min(2, "Name must be at least 2 characters"),
+});
+
+export const insertReactionSchema = z.object({
+  emoji: z.string(),
 });
 
 // Type for authenticated user (excludes password)

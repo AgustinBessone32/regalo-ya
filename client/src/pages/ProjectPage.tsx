@@ -19,6 +19,7 @@ import { ShareButton } from "@/components/ShareButton";
 import { useNotifications } from "@/hooks/use-notifications";
 import { BudgetAnalytics } from "@/components/BudgetAnalytics";
 import { MetaTags } from "@/components/MetaTags";
+import { EmojiReaction } from "@/components/EmojiReaction";
 
 const contributionSchema = z.object({
   amount: z.coerce.number().min(1, "Amount must be greater than 0"),
@@ -29,6 +30,7 @@ const contributionSchema = z.object({
 type ProjectWithDetails = Project & {
   creator: { username: string };
   contributions: Contribution[];
+  reactions: { emoji: string; count: number; reacted: boolean }[];
   avg_amount: number;
   median_amount: number;
   min_amount: number;
@@ -189,6 +191,11 @@ export default function ProjectPage() {
               <h1 className="text-3xl font-bold mb-2">{project.title}</h1>
               <p className="text-muted-foreground">{project.description}</p>
             </div>
+
+            <EmojiReaction
+              projectId={project.id}
+              initialReactions={project.reactions}
+            />
 
             <div className="flex flex-col gap-2">
               {project.event_date && (
