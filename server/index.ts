@@ -43,16 +43,18 @@ app.use((req, res, next) => {
 
 // Error handling middleware
 app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
-  log("Server error: " + err);
+  console.error("Server error:", err);
   const status = err.status || err.statusCode || 500;
   const message = err.message || "Internal Server Error";
   res.status(status).json({ message });
 });
 
-(async () => {
+let server: any;
+
+async function startServer() {
   try {
-    // Test database connection first
-    await testConnection();
+    // Test database connection first with retries
+    await testConnection(5, 2000);
     log("Database connection established successfully");
 
     // Setup auth before registering routes
@@ -60,7 +62,7 @@ app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
     log("Authentication middleware initialized");
 
     // Register routes after auth is setup
-    const server = registerRoutes(app);
+    server = registerRoutes(app);
     log("Routes registered successfully");
 
     // Setup vite or serve static files
@@ -81,4 +83,15 @@ app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
     console.error("Failed to start server:", error);
     process.exit(1);
   }
-})();
+}
+
+// Handle graceful shutdown
+process.on('SIGTERM', () => {
+  console.log('SIGTERM signal received: closing HTTP server');
+  server?.close(() => {
+    console.log('HTTP server closed');
+    process.exit(0);
+  });
+});
+
+startServer();
