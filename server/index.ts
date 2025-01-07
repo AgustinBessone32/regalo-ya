@@ -2,7 +2,6 @@ import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupAuth } from "./auth";
 import { setupVite, serveStatic, log } from "./vite";
-import { testConnection } from "@db";
 
 const app = express();
 
@@ -53,10 +52,6 @@ let server: any;
 
 async function startServer() {
   try {
-    // Test database connection first with retries
-    await testConnection(5, 2000);
-    log("Database connection established successfully");
-
     // Setup auth before registering routes
     setupAuth(app);
     log("Authentication middleware initialized");

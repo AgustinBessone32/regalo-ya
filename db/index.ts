@@ -1,5 +1,5 @@
 import { drizzle } from "drizzle-orm/node-postgres";
-import pg from 'pg';
+import { Pool } from "pg";
 import * as schema from "@db/schema";
 
 if (!process.env.DATABASE_URL) {
@@ -8,39 +8,38 @@ if (!process.env.DATABASE_URL) {
   );
 }
 
-const pool = new pg.Pool({
+// Create a connection pool with proper configuration
+const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
-  max: 5, // Reduce max connections for better stability
-  idleTimeoutMillis: 30000,
-  connectionTimeoutMillis: 5000,
+  max: 5, // Limit concurrent connections
+  idleTimeoutMillis: 30000, // Close idle connections after 30s
+  connectionTimeoutMillis: 5000, // Connection timeout after 5s
   ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : undefined
 });
 
-// Add basic error handling to the pool
+// Add error handling to the pool
 pool.on('error', (err) => {
   console.error('Unexpected error on idle client', err);
+  process.exit(-1); // Exit in case of fatal error
 });
 
+// Create and export the Drizzle instance
 export const db = drizzle(pool, { schema });
-export { pool };
 
-// For clean shutdown
-process.on('SIGINT', async () => {
-  await pool.end();
-  process.exit(0);
-});
-
-// Export a function to test the connection with retries
-export async function testConnection(retries = 3, delay = 2000) {
+// Function to test database connection with retries
+export async function testConnection(retries = 5, delay = 2000): Promise<boolean> {
   let lastError: Error | null = null;
 
   for (let i = 0; i < retries; i++) {
-    let client;
     try {
-      client = await pool.connect();
-      await client.query('SELECT 1');
-      console.log("Database connection established successfully");
-      return true;
+      const client = await pool.connect();
+      try {
+        await client.query('SELECT 1');
+        console.log("Database connection established successfully");
+        return true;
+      } finally {
+        client.release();
+      }
     } catch (error) {
       lastError = error instanceof Error ? error : new Error(String(error));
       console.error(`Database connection attempt ${i + 1} failed:`, lastError.message);
@@ -49,12 +48,16 @@ export async function testConnection(retries = 3, delay = 2000) {
         console.log(`Retrying in ${delay/1000} seconds...`);
         await new Promise(resolve => setTimeout(resolve, delay));
       }
-    } finally {
-      if (client) {
-        client.release();
-      }
     }
   }
 
   throw new Error(`Failed to connect to database after ${retries} attempts: ${lastError?.message || 'Unknown error'}`);
 }
+
+// Handle graceful shutdown
+process.on('SIGINT', async () => {
+  console.log('Closing database pool...');
+  await pool.end();
+  console.log('Database pool closed.');
+  process.exit(0);
+});
