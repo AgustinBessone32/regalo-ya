@@ -49,7 +49,7 @@ async function initializeDatabase() {
     log("Database connection successful");
     return true;
   } catch (error) {
-    console.error("Database connection failed:", error);
+    log("Database connection failed: " + error);
     return false;
   }
 }
@@ -68,7 +68,7 @@ async function initializeDatabase() {
 
     // Error handling middleware
     app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
-      console.error("Server error:", err);
+      log("Server error: " + err);
       const status = err.status || err.statusCode || 500;
       const message = err.message || "Internal Server Error";
       res.status(status).json({ message });
