@@ -4,7 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { format } from "date-fns";
-import { Loader2, CalendarIcon, MapPinIcon, Users, Share2, Facebook, Twitter } from "lucide-react";
+import { Loader2, CalendarIcon, MapPinIcon, Users } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
@@ -12,6 +12,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
+import { useConfetti } from "@/hooks/use-confetti";
 import type { Project, Contribution } from "@db/schema";
 import { CountdownTimer } from "@/components/CountdownTimer";
 import { ShareButton } from "@/components/ShareButton";
@@ -46,6 +47,7 @@ export default function ProjectPage() {
     },
   });
 
+  const { fire: fireConfetti } = useConfetti();
   const contributeMutation = useMutation({
     mutationFn: async (data: z.infer<typeof contributionSchema>) => {
       const response = await fetch(`/api/projects/${id}/contribute`, {
@@ -64,13 +66,23 @@ export default function ProjectPage() {
 
       return response.json();
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: [`/api/projects/${id}`] });
       form.reset();
       toast({
         title: "Success",
         description: "Thank you for your contribution!",
       });
+
+      // Check if this contribution reached the goal
+      const newTotal = (project?.current_amount || 0) + data.amount;
+      if (project?.target_amount && newTotal >= project.target_amount) {
+        fireConfetti();
+        toast({
+          title: "🎉 Goal Reached!",
+          description: "Congratulations! The project has reached its funding goal!",
+        });
+      }
     },
     onError: (error: Error) => {
       toast({
