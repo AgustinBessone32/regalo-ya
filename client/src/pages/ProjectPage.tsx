@@ -4,7 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { format } from "date-fns";
-import { Loader2, CalendarIcon, MapPinIcon, Users } from "lucide-react";
+import { Loader2, CalendarIcon, MapPinIcon, Users, Share2, Facebook, Twitter } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
@@ -14,6 +14,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import type { Project, Contribution } from "@db/schema";
 import { CountdownTimer } from "@/components/CountdownTimer";
+import { ShareButton } from "@/components/ShareButton";
 
 const contributionSchema = z.object({
   amount: z.coerce.number().min(1, "Amount must be greater than 0"),
@@ -94,9 +95,17 @@ export default function ProjectPage() {
 
   return (
     <div className="space-y-8">
-      <Button variant="outline" onClick={() => setLocation("/")}>
-        Back to Projects
-      </Button>
+      <div className="flex justify-between items-center">
+        <Button variant="outline" onClick={() => setLocation("/")}>
+          Back to Projects
+        </Button>
+
+        <ShareButton
+          title={project.title}
+          description={project.description || ''}
+          url={window.location.href}
+        />
+      </div>
 
       <div className="grid gap-8 md:grid-cols-2">
         <div className="space-y-6">

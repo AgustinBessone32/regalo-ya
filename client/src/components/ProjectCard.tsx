@@ -6,6 +6,7 @@ import { format } from "date-fns";
 import { Link } from "wouter";
 import type { Project } from "@db/schema";
 import { CountdownTimer } from "./CountdownTimer";
+import { ShareButton } from "./ShareButton";
 
 type ProjectCardProps = {
   project: Project & {
@@ -58,10 +59,16 @@ export default function ProjectCard({ project }: ProjectCardProps) {
           </div>
         </div>
       </CardContent>
-      <CardFooter>
+      <CardFooter className="flex justify-between gap-2">
         <Link href={`/projects/${project.id}`}>
-          <Button className="w-full">View Project</Button>
+          <Button>View Project</Button>
         </Link>
+
+        <ShareButton
+          title={project.title}
+          description={project.description || ''}
+          url={`${window.location.origin}/projects/${project.id}`}
+        />
       </CardFooter>
     </Card>
   );
