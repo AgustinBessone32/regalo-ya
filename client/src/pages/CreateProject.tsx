@@ -12,6 +12,7 @@ import { Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { WizardForm } from "@/components/WizardForm";
 import { MapPinIcon } from "lucide-react";
+import { useUser } from "@/hooks/use-user";
 
 const projectSchema = z.object({
   title: z.string().min(3, "Title must be at least 3 characters"),
@@ -29,6 +30,13 @@ const projectSchema = z.object({
 export default function CreateProject() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
+  const { user } = useUser();
+
+  // Redirect to login if not authenticated
+  if (!user) {
+    setLocation("/");
+    return null;
+  }
 
   const form = useForm<z.infer<typeof projectSchema>>({
     resolver: zodResolver(projectSchema),
