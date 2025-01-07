@@ -19,7 +19,10 @@ export function registerRoutes(app: Express): Server {
     try {
       const result = await pool.query(`
         SELECT p.*, u.username as creator_username,
-        COALESCE(json_agg(c.*) FILTER (WHERE c.id IS NOT NULL), '[]') as contributions
+        COALESCE(json_agg(c.*) FILTER (WHERE c.id IS NOT NULL), '[]') as contributions,
+        AVG(c.amount) as avg_contribution,
+        COUNT(c.id) as contribution_count,
+        PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY c.amount) as median_contribution
         FROM projects p
         LEFT JOIN users u ON p.creator_id = u.id
         LEFT JOIN contributions c ON p.id = c.project_id
@@ -36,13 +39,39 @@ export function registerRoutes(app: Express): Server {
   app.get("/api/projects/:id", async (req, res) => {
     try {
       const result = await pool.query(`
-        SELECT p.*, u.username as creator_username,
-        COALESCE(json_agg(c.*) FILTER (WHERE c.id IS NOT NULL), '[]') as contributions
+        WITH contribution_stats AS (
+          SELECT 
+            project_id,
+            COUNT(*) as total_contributions,
+            AVG(amount) as avg_amount,
+            PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY amount) as median_amount,
+            MIN(amount) as min_amount,
+            MAX(amount) as max_amount,
+            SUM(amount) as total_amount,
+            array_agg(amount ORDER BY created_at) as contribution_history
+          FROM contributions
+          WHERE project_id = $1
+          GROUP BY project_id
+        )
+        SELECT 
+          p.*,
+          u.username as creator_username,
+          COALESCE(json_agg(c.*) FILTER (WHERE c.id IS NOT NULL), '[]') as contributions,
+          cs.total_contributions,
+          cs.avg_amount,
+          cs.median_amount,
+          cs.min_amount,
+          cs.max_amount,
+          cs.total_amount,
+          cs.contribution_history
         FROM projects p
         LEFT JOIN users u ON p.creator_id = u.id
         LEFT JOIN contributions c ON p.id = c.project_id
+        LEFT JOIN contribution_stats cs ON p.id = cs.project_id
         WHERE p.id = $1
-        GROUP BY p.id, u.username
+        GROUP BY p.id, u.username, cs.total_contributions, cs.avg_amount, 
+                 cs.median_amount, cs.min_amount, cs.max_amount, cs.total_amount,
+                 cs.contribution_history
       `, [req.params.id]);
 
       if (result.rows.length === 0) {
@@ -87,7 +116,6 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
-  // Contribution routes
   app.post("/api/projects/:id/contribute", async (req, res) => {
     try {
       const client = await pool.connect();
@@ -102,7 +130,7 @@ export function registerRoutes(app: Express): Server {
           [
             req.body.amount,
             req.body.message,
-            req.body.contributorName,
+            req.body.contributor_name,
             req.params.id,
           ]
         );

@@ -17,6 +17,7 @@ import type { Project, Contribution } from "@db/schema";
 import { CountdownTimer } from "@/components/CountdownTimer";
 import { ShareButton } from "@/components/ShareButton";
 import { useNotifications } from "@/hooks/use-notifications";
+import { BudgetAnalytics } from "@/components/BudgetAnalytics";
 
 const contributionSchema = z.object({
   amount: z.coerce.number().min(1, "Amount must be greater than 0"),
@@ -27,6 +28,12 @@ const contributionSchema = z.object({
 type ProjectWithDetails = Project & {
   creator: { username: string };
   contributions: Contribution[];
+  avg_amount: number;
+  median_amount: number;
+  min_amount: number;
+  max_amount: number;
+  total_contributions: number;
+  contribution_history: number[];
 };
 
 export default function ProjectPage() {
@@ -216,6 +223,14 @@ export default function ProjectPage() {
         </div>
 
         <div className="space-y-6">
+          <BudgetAnalytics
+            avgAmount={project.avg_amount || 0}
+            medianAmount={project.median_amount || 0}
+            minAmount={project.min_amount || 0}
+            maxAmount={project.max_amount || 0}
+            totalContributions={project.total_contributions || 0}
+            contributionHistory={project.contribution_history || []}
+          />
           <Card>
             <CardHeader>
               <CardTitle>Make a Contribution</CardTitle>
