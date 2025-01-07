@@ -4,7 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { format } from "date-fns";
-import { Loader2, CalendarIcon, MapPinIcon, Users } from "lucide-react";
+import { Loader2, CalendarIcon, MapPinIcon, Users, Bell, BellOff } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
@@ -16,6 +16,7 @@ import { useConfetti } from "@/hooks/use-confetti";
 import type { Project, Contribution } from "@db/schema";
 import { CountdownTimer } from "@/components/CountdownTimer";
 import { ShareButton } from "@/components/ShareButton";
+import { useNotifications } from "@/hooks/use-notifications";
 
 const contributionSchema = z.object({
   amount: z.coerce.number().min(1, "Amount must be greater than 0"),
@@ -93,6 +94,31 @@ export default function ProjectPage() {
     },
   });
 
+  const { permission, requestPermission, scheduleNotification } = useNotifications();
+
+  const handleNotificationToggle = async () => {
+    if (permission !== 'granted') {
+      const granted = await requestPermission();
+      if (granted && project.event_date) {
+        scheduleNotification(
+          new Date(project.event_date),
+          [1, 7, 30],
+          project.title
+        );
+        toast({
+          title: "Notifications enabled",
+          description: "You will receive reminders about this event",
+        });
+      }
+    } else {
+      toast({
+        variant: "destructive",
+        title: "Notifications disabled",
+        description: "You can re-enable notifications from your browser settings",
+      });
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-[50vh]">
@@ -116,11 +142,26 @@ export default function ProjectPage() {
           Back to Projects
         </Button>
 
-        <ShareButton
-          title={project.title}
-          description={project.description || ''}
-          url={window.location.href}
-        />
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={handleNotificationToggle}
+            title={permission === 'granted' ? 'Notifications enabled' : 'Enable notifications'}
+          >
+            {permission === 'granted' ? (
+              <Bell className="h-4 w-4" />
+            ) : (
+              <BellOff className="h-4 w-4" />
+            )}
+          </Button>
+
+          <ShareButton
+            title={project.title}
+            description={project.description || ''}
+            url={window.location.href}
+          />
+        </div>
       </div>
 
       <div className="grid gap-8 md:grid-cols-2">
