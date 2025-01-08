@@ -1,4 +1,5 @@
 import { defineConfig } from "drizzle-kit";
+import * as dotenv from "dotenv";
 
 if (!process.env.DATABASE_URL) {
   throw new Error("DATABASE_URL, ensure the database is provisioned");
@@ -11,4 +12,6 @@ export default defineConfig({
   dbCredentials: {
     connectionString: process.env.DATABASE_URL,
   },
+  verbose: true,
+  strict: true,
 });
