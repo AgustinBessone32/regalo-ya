@@ -57,37 +57,24 @@ export const shares = pgTable("shares", {
   created_at: timestamp("created_at").defaultNow(),
 });
 
-// Schemas para validación
+// Export schemas for validation
 export const insertUserSchema = createInsertSchema(users, {
-  username: z.string().min(3, "El nombre de usuario debe tener al menos 3 caracteres"),
-  password: z.string().min(6, "La contraseña debe tener al menos 6 caracteres"),
+  username: z.string().min(3, "Username must be at least 3 characters"),
+  password: z.string().min(6, "Password must be at least 6 characters"),
 });
+
 export const selectUserSchema = createSelectSchema(users);
 
 export const insertProjectSchema = createInsertSchema(projects, {
-  title: z.string().min(3, "El título debe tener al menos 3 caracteres"),
-  description: z.string().min(10, "La descripción debe tener al menos 10 caracteres"),
-  target_amount: z.number().min(1, "El monto objetivo debe ser mayor a 0"),
+  title: z.string().min(3, "Title must be at least 3 characters"),
+  description: z.string().min(10, "Description must be at least 10 characters"),
+  target_amount: z.number().min(1, "Target amount must be greater than 0"),
   location: z.string().optional(),
   event_date: z.string().optional(),
   is_public: z.boolean().default(false),
 });
 
-export const insertContributionSchema = createInsertSchema(contributions, {
-  amount: z.number().min(1, "El monto debe ser mayor a 0"),
-  message: z.string().optional(),
-  contributor_name: z.string().min(2, "El nombre debe tener al menos 2 caracteres"),
-});
-
-export const insertReactionSchema = createInsertSchema(reactions, {
-  emoji: z.string(),
-});
-
-export const insertShareSchema = createInsertSchema(shares, {
-  platform: z.string(),
-});
-
-// Types
+// Export types
 export type User = typeof users.$inferSelect;
 export type InsertUser = typeof users.$inferInsert;
 export type Project = typeof projects.$inferSelect;

@@ -1,15 +1,15 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
+import { setupAuth } from "./auth";
 import { db } from "@db";
 import type { User } from "@db/schema";
-import { setupAuth } from "./auth";
-import { randomBytes } from "crypto";
 import multer from "multer";
 import path from "path";
 import fs from "fs/promises";
 import express from 'express';
 import { eq, and, or } from "drizzle-orm";
 import { projects, users, userProjects, contributions, reactions, shares } from "@db/schema";
+import { randomBytes } from "crypto";
 
 declare module "express-session" {
   interface SessionData {
@@ -38,7 +38,7 @@ const upload = multer({
     if (allowedTypes.includes(file.mimetype)) {
       cb(null, true);
     } else {
-      cb(new Error('Tipo de archivo inválido. Solo se permiten JPEG, PNG y WebP.'));
+      cb(new Error('Invalid file type. Only JPEG, PNG and WebP are allowed.'));
     }
   }
 });
@@ -56,7 +56,7 @@ export function registerRoutes(app: Express): Server {
   // Project routes
   app.get("/api/projects", async (req, res) => {
     if (!req.isAuthenticated()) {
-      return res.status(401).send("Se requiere autenticación");
+      return res.status(401).send("Authentication required");
     }
 
     try {
@@ -64,8 +64,7 @@ export function registerRoutes(app: Express): Server {
       const projectsData = await db.query.projects.findMany({
         where: or(
           eq(projects.is_public, true),
-          eq(projects.creator_id, userId),
-          eq(userProjects.user_id, userId)
+          eq(projects.creator_id, userId)
         ),
         with: {
           creator: true,
@@ -76,15 +75,53 @@ export function registerRoutes(app: Express): Server {
 
       res.json(projectsData);
     } catch (error) {
-      console.error('Error al obtener proyectos:', error);
-      res.status(500).send("Error al obtener proyectos");
+      console.error('Error fetching projects:', error);
+      res.status(500).send("Error fetching projects");
+    }
+  });
+
+  // Get project details
+  app.get("/api/projects/:id", async (req, res) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).send("Authentication required");
+    }
+
+    try {
+      const userId = (req.user as User).id;
+      const projectId = parseInt(req.params.id);
+
+      const project = await db.query.projects.findFirst({
+        where: and(
+          eq(projects.id, projectId),
+          or(
+            eq(projects.is_public, true),
+            eq(projects.creator_id, userId)
+          )
+        ),
+        with: {
+          creator: true,
+          contributions: true,
+          reactions: true,
+          shares: true,
+          userProjects: true,
+        },
+      });
+
+      if (!project) {
+        return res.status(404).send("Project not found");
+      }
+
+      res.json(project);
+    } catch (error) {
+      console.error('Error fetching project:', error);
+      res.status(500).send("Error fetching project");
     }
   });
 
   // Create new project with image upload
   app.post("/api/projects", upload.single('image'), async (req, res) => {
     if (!req.isAuthenticated()) {
-      return res.status(401).send("No autenticado");
+      return res.status(401).send("Authentication required");
     }
 
     try {
@@ -116,97 +153,11 @@ export function registerRoutes(app: Express): Server {
 
       res.json({ ...newProject, invitation_url: `/invite/${invitationToken}` });
     } catch (error) {
-      console.error('Error al crear proyecto:', error);
+      console.error('Error creating project:', error);
       if (req.file) {
         fs.unlink(req.file.path).catch(console.error);
       }
-      res.status(500).send("Error al crear proyecto");
-    }
-  });
-
-  // Get project details
-  app.get("/api/projects/:id", async (req, res) => {
-    if (!req.isAuthenticated()) {
-      return res.status(401).send("Se requiere autenticación");
-    }
-
-    try {
-      const userId = (req.user as User).id;
-      const projectId = parseInt(req.params.id);
-
-      const project = await db.query.projects.findFirst({
-        where: and(
-          eq(projects.id, projectId),
-          or(
-            eq(projects.is_public, true),
-            eq(projects.creator_id, userId),
-            eq(userProjects.user_id, userId)
-          )
-        ),
-        with: {
-          creator: true,
-          contributions: true,
-          reactions: true,
-          shares: true,
-          userProjects: true,
-        },
-      });
-
-      if (!project) {
-        return res.status(404).send("Proyecto no encontrado");
-      }
-
-      res.json(project);
-    } catch (error) {
-      console.error('Error al obtener proyecto:', error);
-      res.status(500).send("Error al obtener proyecto");
-    }
-  });
-
-  // Accept invitation
-  app.post("/api/projects/accept-invitation/:token", async (req, res) => {
-    if (!req.isAuthenticated()) {
-      return res.status(401).send("Se requiere autenticación");
-    }
-
-    try {
-      const userId = (req.user as User).id;
-      const project = await db.query.projects.findFirst({
-        where: eq(projects.invitation_token, req.params.token),
-      });
-
-      if (!project) {
-        return res.status(404).send("Token de invitación inválido");
-      }
-
-      const existingInvite = await db.query.userProjects.findFirst({
-        where: and(
-          eq(userProjects.user_id, userId),
-          eq(userProjects.project_id, project.id)
-        ),
-      });
-
-      if (!existingInvite) {
-        await db.insert(userProjects)
-          .values({
-            user_id: userId,
-            project_id: project.id,
-            role: 'invited',
-            status: 'accepted',
-          });
-      } else {
-        await db.update(userProjects)
-          .set({ status: 'accepted' })
-          .where(and(
-            eq(userProjects.user_id, userId),
-            eq(userProjects.project_id, project.id)
-          ));
-      }
-
-      res.json({ message: "Invitación aceptada exitosamente" });
-    } catch (error) {
-      console.error('Error al aceptar invitación:', error);
-      res.status(500).send("Error al aceptar invitación");
+      res.status(500).send("Error creating project");
     }
   });
 
