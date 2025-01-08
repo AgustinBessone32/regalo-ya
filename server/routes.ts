@@ -21,13 +21,21 @@ export function registerRoutes(app: Express): Server {
         return res.status(401).send("Debes iniciar sesión para crear un proyecto");
       }
 
-      const result = insertProjectSchema.safeParse({
+      const user = req.user as any;
+      console.log("Datos recibidos:", req.body);
+
+      const projectData = {
         ...req.body,
-        creator_id: req.user!.id,
+        creator_id: user.id,
         invitation_token: nanoid(),
-      });
+      };
+
+      console.log("Datos a validar:", projectData);
+
+      const result = insertProjectSchema.safeParse(projectData);
 
       if (!result.success) {
+        console.log("Errores de validación:", result.error.issues);
         return res.status(400).json({
           message: "Datos inválidos",
           errors: result.error.issues,
@@ -41,13 +49,14 @@ export function registerRoutes(app: Express): Server {
           description: result.data.description,
           target_amount: result.data.target_amount,
           event_date: result.data.event_date ? new Date(result.data.event_date) : null,
-          location: result.data.location,
-          creator_id: req.user!.id,
+          location: result.data.location || null,
+          creator_id: user.id,
           invitation_token: result.data.invitation_token,
           is_public: result.data.is_public ?? false,
         })
         .returning();
 
+      console.log("Proyecto creado:", newProject);
       res.json(newProject);
     } catch (error: any) {
       console.error("Error creating project:", error);

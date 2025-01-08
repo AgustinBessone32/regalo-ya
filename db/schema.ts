@@ -29,12 +29,30 @@ export const projects = pgTable("projects", {
   current_amount: integer("current_amount").default(0),
   event_date: timestamp("event_date"),
   location: text("location"),
-  image_url: text("image_url"),
   creator_id: integer("creator_id").references(() => users.id).notNull(),
   is_public: boolean("is_public").default(false),
   invitation_token: text("invitation_token").notNull(),
   created_at: timestamp("created_at").defaultNow(),
 });
+
+// Modify the project schema to match the client validation
+export const insertProjectSchema = z.object({
+  title: z.string().min(3, "El título debe tener al menos 3 caracteres"),
+  description: z.string().min(10, "La descripción debe tener al menos 10 caracteres"),
+  target_amount: z.number().min(1, "El monto objetivo debe ser mayor a 0"),
+  location: z.string().optional().nullable(),
+  event_date: z.string().optional().nullable(),
+  is_public: z.boolean().default(false),
+  creator_id: z.number(),
+  invitation_token: z.string(),
+});
+
+export type Project = typeof projects.$inferSelect;
+export type InsertProject = typeof projects.$inferInsert;
+export type UserProject = typeof userProjects.$inferSelect;
+export type Contribution = typeof contributions.$inferSelect;
+export type Reaction = typeof reactions.$inferSelect;
+export type Share = typeof shares.$inferSelect;
 
 export const userProjects = pgTable("user_projects", {
   id: serial("id").primaryKey(),
@@ -68,19 +86,3 @@ export const shares = pgTable("shares", {
   platform: text("platform").notNull(),
   created_at: timestamp("created_at").defaultNow(),
 });
-
-export const insertProjectSchema = createInsertSchema(projects, {
-  title: z.string().min(3, "Title must be at least 3 characters"),
-  description: z.string().min(10, "Description must be at least 10 characters"),
-  target_amount: z.number().min(1, "Target amount must be greater than 0"),
-  location: z.string().optional(),
-  event_date: z.string().optional(),
-  is_public: z.boolean().default(false),
-});
-
-export type Project = typeof projects.$inferSelect;
-export type InsertProject = typeof projects.$inferInsert;
-export type UserProject = typeof userProjects.$inferSelect;
-export type Contribution = typeof contributions.$inferSelect;
-export type Reaction = typeof reactions.$inferSelect;
-export type Share = typeof shares.$inferSelect;
