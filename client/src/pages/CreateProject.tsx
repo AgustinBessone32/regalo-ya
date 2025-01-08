@@ -16,9 +16,9 @@ import { useUser } from "@/hooks/use-user";
 const projectSchema = z.object({
   title: z.string().min(3, "El título debe tener al menos 3 caracteres"),
   description: z.string().min(10, "La descripción debe tener al menos 10 caracteres"),
-  targetAmount: z.coerce.number().min(1, "El monto objetivo debe ser mayor a 0"),
+  target_amount: z.coerce.number().min(1, "El monto objetivo debe ser mayor a 0"),
   location: z.string().min(3, "La ubicación debe tener al menos 3 caracteres"),
-  eventDate: z.string().refine((date) => {
+  event_date: z.string().refine((date) => {
     const eventDate = new Date(date);
     const today = new Date();
     return eventDate > today;
@@ -40,9 +40,9 @@ export default function CreateProject() {
     defaultValues: {
       title: "",
       description: "",
-      targetAmount: 0,
+      target_amount: 0,
       location: "",
-      eventDate: "",
+      event_date: "",
     },
   });
 
@@ -53,12 +53,16 @@ export default function CreateProject() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(data),
+        body: JSON.stringify({
+          ...data,
+          target_amount: Number(data.target_amount),
+        }),
         credentials: "include",
       });
 
       if (!response.ok) {
-        throw new Error(await response.text());
+        const error = await response.json();
+        throw new Error(error.message || "Error al crear el proyecto");
       }
 
       return response.json();
@@ -128,7 +132,7 @@ export default function CreateProject() {
           <form className="space-y-4">
             <FormField
               control={form.control}
-              name="eventDate"
+              name="event_date"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Fecha del Evento</FormLabel>
@@ -165,7 +169,7 @@ export default function CreateProject() {
           <form className="space-y-4">
             <FormField
               control={form.control}
-              name="targetAmount"
+              name="target_amount"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Monto Objetivo ($)</FormLabel>
