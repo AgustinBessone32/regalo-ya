@@ -16,7 +16,10 @@ import { useUser } from "@/hooks/use-user";
 const projectSchema = z.object({
   title: z.string().min(3, "El título debe tener al menos 3 caracteres"),
   description: z.string().min(10, "La descripción debe tener al menos 10 caracteres"),
-  target_amount: z.coerce.number().min(1, "El monto objetivo debe ser mayor a 0"),
+  target_amount: z.coerce
+    .number()
+    .min(1, "El monto objetivo debe ser mayor a 0")
+    .transform((val) => Number(val.toFixed(2))), // Asegura 2 decimales
   location: z.string().optional(),
   event_date: z.string().optional(),
   is_public: z.boolean().default(false),
@@ -37,7 +40,7 @@ export default function CreateProject() {
     defaultValues: {
       title: "",
       description: "",
-      target_amount: 0,
+      target_amount: undefined,
       location: "",
       event_date: "",
       is_public: false,
@@ -93,7 +96,7 @@ export default function CreateProject() {
       toast({
         variant: "destructive",
         title: "Error de validación",
-        description: "Por favor revisa los campos del formulario",
+        description: "Por favor revisa los campos del formulario. Asegúrate de que el monto objetivo sea un número válido.",
       });
       return;
     }
@@ -194,11 +197,20 @@ export default function CreateProject() {
                   <FormControl>
                     <Input
                       type="number"
-                      min="1"
-                      step="1"
-                      placeholder="0"
+                      inputMode="decimal"
+                      step="0.01"
+                      min="0.01"
+                      placeholder="0.00"
                       {...field}
-                      onChange={(e) => field.onChange(Number(e.target.value))}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        // Aseguramos que sea un número válido
+                        if (value === "" || isNaN(Number(value))) {
+                          field.onChange(undefined);
+                        } else {
+                          field.onChange(Number(value));
+                        }
+                      }}
                     />
                   </FormControl>
                   <FormMessage />
