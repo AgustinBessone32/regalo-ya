@@ -28,7 +28,7 @@ export function ShareButton({ title, description, url }: ShareButtonProps) {
           toast({
             variant: "destructive",
             title: "Error",
-            description: "Failed to share",
+            description: "Error al compartir",
           });
         }
       }
@@ -37,14 +37,14 @@ export function ShareButton({ title, description, url }: ShareButtonProps) {
       try {
         await navigator.clipboard.writeText(url);
         toast({
-          title: "Success",
-          description: "Link copied to clipboard!",
+          title: "¡Éxito!",
+          description: "¡Enlace copiado al portapapeles!",
         });
       } catch (error) {
         toast({
           variant: "destructive",
           title: "Error",
-          description: "Failed to copy link",
+          description: "Error al copiar el enlace",
         });
       }
     }
@@ -68,7 +68,7 @@ export function ShareButton({ title, description, url }: ShareButtonProps) {
         onClick={handleShare}
       >
         <Share2 className="h-4 w-4" />
-        Share
+        Compartir
       </Button>
 
       <Button

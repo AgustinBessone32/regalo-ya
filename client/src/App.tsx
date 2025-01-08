@@ -35,7 +35,7 @@ function App() {
           <Route>
             <div className="flex flex-col items-center justify-center min-h-[50vh] gap-4">
               <h1 className="text-4xl font-bold text-primary">404</h1>
-              <p className="text-muted-foreground">Page not found</p>
+              <p className="text-muted-foreground">Página no encontrada</p>
             </div>
           </Route>
         </Switch>

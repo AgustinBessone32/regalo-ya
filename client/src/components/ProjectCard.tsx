@@ -3,6 +3,7 @@ import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
 import { CalendarIcon, MapPinIcon } from "lucide-react";
 import { format } from "date-fns";
+import { es } from 'date-fns/locale';
 import { Link } from "wouter";
 import type { Project } from "@db/schema";
 import { CountdownTimer } from "./CountdownTimer";
@@ -32,7 +33,7 @@ export default function ProjectCard({ project }: ProjectCardProps) {
           <div className="space-y-1 mb-2">
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <CalendarIcon className="h-4 w-4" />
-              <span>{format(new Date(project.event_date), "PPP")}</span>
+              <span>{format(new Date(project.event_date), "PPP", { locale: es })}</span>
             </div>
             <CountdownTimer eventDate={project.event_date} />
           </div>
@@ -49,11 +50,11 @@ export default function ProjectCard({ project }: ProjectCardProps) {
           <Progress value={progress} className="h-2" />
           <div className="flex justify-between text-sm">
             <span className="text-muted-foreground">
-              ${currentAmount} raised
+              ${currentAmount} recaudados
             </span>
             {project.target_amount && (
               <span className="font-medium">
-                ${project.target_amount} goal
+                Meta: ${project.target_amount}
               </span>
             )}
           </div>
@@ -61,7 +62,7 @@ export default function ProjectCard({ project }: ProjectCardProps) {
       </CardContent>
       <CardFooter className="flex justify-between gap-2">
         <Link href={`/projects/${project.id}`}>
-          <Button>View Project</Button>
+          <Button>Ver Proyecto</Button>
         </Link>
 
         <ShareButton

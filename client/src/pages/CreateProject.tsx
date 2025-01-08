@@ -19,22 +19,22 @@ const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 const ACCEPTED_IMAGE_TYPES = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
 
 const projectSchema = z.object({
-  title: z.string().min(3, "Title must be at least 3 characters"),
-  description: z.string().min(10, "Description must be at least 10 characters"),
-  targetAmount: z.coerce.number().min(1, "Target amount must be greater than 0"),
-  location: z.string().min(3, "Location must be at least 3 characters").max(100, "Location must be less than 100 characters"),
+  title: z.string().min(3, "El título debe tener al menos 3 caracteres"),
+  description: z.string().min(10, "La descripción debe tener al menos 10 caracteres"),
+  targetAmount: z.coerce.number().min(1, "El monto objetivo debe ser mayor a 0"),
+  location: z.string().min(3, "La ubicación debe tener al menos 3 caracteres").max(100, "La ubicación debe tener menos de 100 caracteres"),
   eventDate: z.string().refine((date) => {
     const eventDate = new Date(date);
     const today = new Date();
     return eventDate > today;
-  }, "Event date must be in the future"),
+  }, "La fecha del evento debe ser en el futuro"),
   isPublic: z.boolean().default(false),
   image: z
     .instanceof(File)
-    .refine((file) => file.size <= MAX_FILE_SIZE, "Max file size is 5MB.")
+    .refine((file) => file.size <= MAX_FILE_SIZE, "El tamaño máximo del archivo es 5MB.")
     .refine(
       (file) => ACCEPTED_IMAGE_TYPES.includes(file.type),
-      "Only .jpg, .jpeg, .png and .webp files are accepted."
+      "Solo se aceptan archivos .jpg, .jpeg, .png y .webp."
     )
     .optional(),
 });
@@ -88,8 +88,8 @@ export default function CreateProject() {
     },
     onSuccess: (data) => {
       toast({
-        title: "Success",
-        description: "Project created successfully",
+        title: "¡Éxito!",
+        description: "Proyecto creado correctamente",
       });
       setLocation(`/projects/${data.id}`);
     },
@@ -116,8 +116,8 @@ export default function CreateProject() {
 
   const steps = [
     {
-      title: "Basics",
-      description: "Let's start with the basic information about the birthday project",
+      title: "Información Básica",
+      description: "Comencemos con la información básica sobre el proyecto de cumpleaños",
       content: (
         <Form {...form}>
           <form className="space-y-4">
@@ -126,9 +126,9 @@ export default function CreateProject() {
               name="title"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Project Title</FormLabel>
+                  <FormLabel>Título del Proyecto</FormLabel>
                   <FormControl>
-                    <Input placeholder="Birthday Gift for John" {...field} />
+                    <Input placeholder="Regalo de Cumpleaños para Juan" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -140,10 +140,10 @@ export default function CreateProject() {
               name="description"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Description</FormLabel>
+                  <FormLabel>Descripción</FormLabel>
                   <FormControl>
                     <Textarea
-                      placeholder="Tell us about the birthday celebration and gift plans..."
+                      placeholder="Cuéntanos sobre la celebración y los planes para el regalo..."
                       {...field}
                     />
                   </FormControl>
@@ -157,7 +157,7 @@ export default function CreateProject() {
               name="image"
               render={() => (
                 <FormItem>
-                  <FormLabel>Birthday Person's Photo</FormLabel>
+                  <FormLabel>Foto del Cumpleañero</FormLabel>
                   <FormControl>
                     <div className="space-y-4">
                       <Input
@@ -170,7 +170,7 @@ export default function CreateProject() {
                         <AspectRatio ratio={1}>
                           <img
                             src={previewImage}
-                            alt="Preview"
+                            alt="Vista previa"
                             className="rounded-lg object-cover h-full w-full"
                           />
                         </AspectRatio>
@@ -186,8 +186,8 @@ export default function CreateProject() {
       ),
     },
     {
-      title: "Details",
-      description: "When and where is the birthday celebration?",
+      title: "Detalles",
+      description: "¿Cuándo y dónde es la celebración?",
       content: (
         <Form {...form}>
           <form className="space-y-4">
@@ -196,7 +196,7 @@ export default function CreateProject() {
               name="eventDate"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Event Date</FormLabel>
+                  <FormLabel>Fecha del Evento</FormLabel>
                   <FormControl>
                     <Input type="date" {...field} />
                   </FormControl>
@@ -210,12 +210,12 @@ export default function CreateProject() {
               name="location"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Location</FormLabel>
+                  <FormLabel>Ubicación</FormLabel>
                   <FormControl>
                     <div className="relative">
                       <MapPinIcon className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
                       <Input
-                        placeholder="Party venue or address"
+                        placeholder="Lugar de la fiesta o dirección"
                         className="pl-9"
                         {...field}
                       />
@@ -230,8 +230,8 @@ export default function CreateProject() {
       ),
     },
     {
-      title: "Goal",
-      description: "Set your gift collection goal",
+      title: "Meta",
+      description: "Establece tu meta de recolección de regalos",
       content: (
         <Form {...form}>
           <form className="space-y-4">
@@ -240,11 +240,11 @@ export default function CreateProject() {
               name="targetAmount"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Target Amount ($)</FormLabel>
+                  <FormLabel>Monto Objetivo ($)</FormLabel>
                   <FormControl>
                     <Input
                       type="number"
-                      placeholder="Enter target amount"
+                      placeholder="Ingresa el monto objetivo"
                       {...field}
                     />
                   </FormControl>
@@ -261,7 +261,7 @@ export default function CreateProject() {
   return (
     <div className="max-w-2xl mx-auto space-y-8">
       <Button variant="outline" onClick={() => setLocation("/")}>
-        Back to Projects
+        Volver a Proyectos
       </Button>
 
       <Card>

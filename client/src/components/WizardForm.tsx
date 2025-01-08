@@ -78,16 +78,16 @@ export function WizardForm({ steps, onComplete, isSubmitting }: WizardFormProps)
           onClick={handleBack}
           disabled={currentStep === 0}
         >
-          Back
+          Atrás
         </Button>
         <Button onClick={handleNext} disabled={isSubmitting}>
           {isSubmitting ? (
-            "Creating..."
+            "Creando..."
           ) : currentStep === steps.length - 1 ? (
-            "Create Project"
+            "Crear Proyecto"
           ) : (
             <>
-              Next
+              Siguiente
               <ChevronRight className="ml-2 h-4 w-4" />
             </>
           )}
