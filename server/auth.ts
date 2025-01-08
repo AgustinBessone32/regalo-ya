@@ -10,6 +10,8 @@ import { db } from "@db";
 import { eq } from "drizzle-orm";
 
 const scryptAsync = promisify(scrypt);
+
+// Utilidades para hash y comparación de contraseñas
 const crypto = {
   hash: async (password: string) => {
     const salt = randomBytes(16).toString("hex");
@@ -29,32 +31,28 @@ const crypto = {
 };
 
 export function setupAuth(app: Express) {
+  // Configuración de la sesión
   const MemoryStore = createMemoryStore(session);
-  const sessionSettings: session.SessionOptions = {
-    secret: process.env.REPL_ID || "birthday-gift-manager",
-    resave: false,
-    saveUninitialized: false,
-    cookie: {
-      maxAge: 24 * 60 * 60 * 1000, // 24 hours
-      sameSite: 'lax'
-    },
-    store: new MemoryStore({
-      checkPeriod: 86400000, // prune expired entries every 24h
-    }),
-  };
+  app.use(
+    session({
+      secret: process.env.REPL_ID || "birthday-gift-manager",
+      resave: false,
+      saveUninitialized: false,
+      cookie: {
+        maxAge: 24 * 60 * 60 * 1000, // 24 horas
+        sameSite: "lax",
+      },
+      store: new MemoryStore({
+        checkPeriod: 86400000, // limpiar sesiones expiradas cada 24h
+      }),
+    })
+  );
 
-  if (app.get("env") === "production") {
-    app.set("trust proxy", 1);
-    sessionSettings.cookie = {
-      ...sessionSettings.cookie,
-      secure: true,
-    };
-  }
-
-  app.use(session(sessionSettings));
+  // Inicializar Passport
   app.use(passport.initialize());
   app.use(passport.session());
 
+  // Configurar estrategia local
   passport.use(
     new LocalStrategy(async (username, password, done) => {
       try {
@@ -65,12 +63,12 @@ export function setupAuth(app: Express) {
           .limit(1);
 
         if (!user) {
-          return done(null, false, { message: "Usuario o contraseña incorrectos" });
+          return done(null, false, { message: "Usuario no encontrado" });
         }
 
         const isMatch = await crypto.compare(password, user.password);
         if (!isMatch) {
-          return done(null, false, { message: "Usuario o contraseña incorrectos" });
+          return done(null, false, { message: "Contraseña incorrecta" });
         }
 
         return done(null, user);
@@ -80,10 +78,12 @@ export function setupAuth(app: Express) {
     })
   );
 
+  // Serialización del usuario
   passport.serializeUser((user: any, done) => {
     done(null, user.id);
   });
 
+  // Deserialización del usuario
   passport.deserializeUser(async (id: number, done) => {
     try {
       const [user] = await db
@@ -97,12 +97,13 @@ export function setupAuth(app: Express) {
     }
   });
 
+  // Rutas de autenticación
   app.post("/api/register", async (req, res) => {
     try {
       const { username, password } = req.body;
-      console.log("Register attempt:", { username });
+      console.log("Intento de registro:", { username });
 
-      // Verificar si el usuario ya existe
+      // Verificar usuario existente
       const [existingUser] = await db
         .select()
         .from(users)
@@ -110,14 +111,12 @@ export function setupAuth(app: Express) {
         .limit(1);
 
       if (existingUser) {
-        console.log("Registration failed: Username exists", { username });
+        console.log("Registro fallido: Usuario existente", { username });
         return res.status(400).send("El nombre de usuario ya existe");
       }
 
-      // Hashear la contraseña
+      // Crear nuevo usuario
       const hashedPassword = await crypto.hash(password);
-
-      // Crear el nuevo usuario
       const [newUser] = await db
         .insert(users)
         .values({
@@ -126,63 +125,72 @@ export function setupAuth(app: Express) {
         })
         .returning();
 
-      console.log("User registered successfully:", { username, userId: newUser.id });
+      console.log("Usuario registrado:", { username, userId: newUser.id });
 
+      // Iniciar sesión automáticamente
       req.login(newUser, (err) => {
         if (err) {
-          console.error("Login after registration failed:", err);
-          return res.status(500).send("Error al iniciar sesión después del registro");
+          console.error("Error al iniciar sesión después del registro:", err);
+          return res.status(500).send("Error al iniciar sesión");
         }
-        return res.json({ user: newUser });
+        res.json({ user: { id: newUser.id, username: newUser.username } });
       });
     } catch (error) {
-      console.error("Error al registrar usuario:", error);
-      res.status(500).send("Error al registrar el usuario");
+      console.error("Error en el registro:", error);
+      res.status(500).send("Error en el registro");
     }
   });
 
   app.post("/api/login", (req, res, next) => {
-    console.log("Login attempt:", { username: req.body.username });
+    console.log("Intento de inicio de sesión:", { username: req.body.username });
 
     passport.authenticate("local", (err, user, info) => {
       if (err) {
-        console.error("Login error:", err);
+        console.error("Error de inicio de sesión:", err);
         return next(err);
       }
       if (!user) {
-        console.log("Login failed:", info.message);
+        console.log("Inicio de sesión fallido:", info.message);
         return res.status(401).send(info.message);
       }
-      req.logIn(user, (err) => {
+      req.login(user, (err) => {
         if (err) {
-          console.error("Session creation error:", err);
+          console.error("Error al crear sesión:", err);
           return next(err);
         }
-        console.log("Login successful:", { username: user.username, userId: user.id });
-        return res.json({ user });
+        console.log("Inicio de sesión exitoso:", {
+          username: user.username,
+          userId: user.id,
+        });
+        res.json({ user: { id: user.id, username: user.username } });
       });
     })(req, res, next);
   });
 
   app.post("/api/logout", (req, res) => {
     const username = (req.user as any)?.username;
-    console.log("Logout attempt:", { username });
+    console.log("Intento de cierre de sesión:", { username });
 
-    req.logout(() => {
-      console.log("Logout successful:", { username });
+    req.logout((err) => {
+      if (err) {
+        console.error("Error al cerrar sesión:", err);
+        return res.status(500).send("Error al cerrar sesión");
+      }
+      console.log("Sesión cerrada:", { username });
       res.json({ message: "Sesión cerrada correctamente" });
     });
   });
 
   app.get("/api/user", (req, res) => {
     if (req.isAuthenticated()) {
-      console.log("User session found:", { 
-        userId: (req.user as any).id,
-        username: (req.user as any).username 
+      const user = req.user as any;
+      console.log("Sesión encontrada:", {
+        userId: user.id,
+        username: user.username,
       });
-      return res.json(req.user);
+      return res.json({ id: user.id, username: user.username });
     }
-    console.log("No authenticated session found");
+    console.log("No se encontró sesión autenticada");
     res.status(401).send("No has iniciado sesión");
   });
 }

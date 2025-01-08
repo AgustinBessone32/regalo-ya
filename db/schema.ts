@@ -9,6 +9,18 @@ export const users = pgTable("users", {
   created_at: timestamp("created_at").defaultNow(),
 });
 
+// Export schemas for validation
+export const insertUserSchema = createInsertSchema(users, {
+  username: z.string().min(3, "El nombre de usuario debe tener al menos 3 caracteres"),
+  password: z.string().min(6, "La contraseña debe tener al menos 6 caracteres"),
+});
+
+export const selectUserSchema = createSelectSchema(users);
+
+// Export types
+export type User = typeof users.$inferSelect;
+export type InsertUser = typeof users.$inferInsert;
+
 export const projects = pgTable("projects", {
   id: serial("id").primaryKey(),
   title: text("title").notNull(),
@@ -57,14 +69,6 @@ export const shares = pgTable("shares", {
   created_at: timestamp("created_at").defaultNow(),
 });
 
-// Export schemas for validation
-export const insertUserSchema = createInsertSchema(users, {
-  username: z.string().min(3, "Username must be at least 3 characters"),
-  password: z.string().min(6, "Password must be at least 6 characters"),
-});
-
-export const selectUserSchema = createSelectSchema(users);
-
 export const insertProjectSchema = createInsertSchema(projects, {
   title: z.string().min(3, "Title must be at least 3 characters"),
   description: z.string().min(10, "Description must be at least 10 characters"),
@@ -74,9 +78,6 @@ export const insertProjectSchema = createInsertSchema(projects, {
   is_public: z.boolean().default(false),
 });
 
-// Export types
-export type User = typeof users.$inferSelect;
-export type InsertUser = typeof users.$inferInsert;
 export type Project = typeof projects.$inferSelect;
 export type InsertProject = typeof projects.$inferInsert;
 export type UserProject = typeof userProjects.$inferSelect;

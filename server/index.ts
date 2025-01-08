@@ -1,6 +1,5 @@
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
-import { setupAuth } from "./auth";
 import { setupVite, serveStatic, log } from "./vite";
 
 const app = express();
@@ -48,45 +47,22 @@ app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
   res.status(status).json({ message });
 });
 
-let server: any;
+// Register routes
+const server = registerRoutes(app);
+log("Routes registered successfully");
 
-async function startServer() {
-  try {
-    // Setup auth before registering routes
-    setupAuth(app);
-    log("Authentication middleware initialized");
-
-    // Register routes after auth is setup
-    server = registerRoutes(app);
-    log("Routes registered successfully");
-
-    // Setup vite or serve static files
-    if (app.get("env") === "development") {
-      await setupVite(app, server);
-      log("Vite middleware initialized");
-    } else {
-      serveStatic(app);
-      log("Static file serving initialized");
-    }
-
-    // Start server
-    const PORT = 5000;
-    server.listen(PORT, "0.0.0.0", () => {
-      log(`Server running on port ${PORT}`);
-    });
-  } catch (error) {
-    console.error("Failed to start server:", error);
-    process.exit(1);
-  }
+// Setup vite or serve static files
+if (app.get("env") === "development") {
+  setupVite(app, server).then(() => {
+    log("Vite middleware initialized");
+  });
+} else {
+  serveStatic(app);
+  log("Static file serving initialized");
 }
 
-// Handle graceful shutdown
-process.on('SIGTERM', () => {
-  console.log('SIGTERM signal received: closing HTTP server');
-  server?.close(() => {
-    console.log('HTTP server closed');
-    process.exit(0);
-  });
+// Start server
+const PORT = 5000;
+server.listen(PORT, "0.0.0.0", () => {
+  log(`Server running on port ${PORT}`);
 });
-
-startServer();
