@@ -3,6 +3,7 @@ import { createServer, type Server } from "http";
 import { pool } from "../db";
 import type { User } from "../db/schema";
 import { setupAuth } from "./auth";
+import { randomBytes } from "crypto";
 
 declare module "express-session" {
   interface SessionData {
@@ -16,19 +17,33 @@ export function registerRoutes(app: Express): Server {
 
   // Project routes
   app.get("/api/projects", async (req, res) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).send("Authentication required");
+    }
+
     try {
       const result = await pool.query(`
+        WITH accessible_projects AS (
+          SELECT p.id
+          FROM projects p
+          LEFT JOIN user_projects up ON p.id = up.project_id
+          WHERE p.is_public = true 
+             OR p.creator_id = $1
+             OR (up.user_id = $1 AND up.status = 'accepted')
+        )
         SELECT p.*, u.username as creator_username,
         COALESCE(json_agg(c.*) FILTER (WHERE c.id IS NOT NULL), '[]') as contributions,
         AVG(c.amount) as avg_contribution,
         COUNT(c.id) as contribution_count,
         PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY c.amount) as median_contribution
         FROM projects p
+        INNER JOIN accessible_projects ap ON p.id = ap.id
         LEFT JOIN users u ON p.creator_id = u.id
         LEFT JOIN contributions c ON p.id = c.project_id
         GROUP BY p.id, u.username
         ORDER BY p.created_at DESC
-      `);
+      `, [req.user.id]);
+
       res.json(result.rows);
     } catch (error) {
       console.error('Error fetching projects:', error);
@@ -36,8 +51,143 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
-  app.get("/api/projects/:id", async (req, res) => {
+  // Create new project
+  app.post("/api/projects", async (req, res) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).send("Not authenticated");
+    }
+
     try {
+      const client = await pool.connect();
+      try {
+        await client.query('BEGIN');
+
+        // Generate unique invitation token
+        const invitationToken = randomBytes(32).toString('hex');
+
+        // Create project
+        const projectResult = await client.query(
+          `INSERT INTO projects (
+            title, description, target_amount, event_date, 
+            location, creator_id, current_amount, is_public, invitation_token
+          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *`,
+          [
+            req.body.title,
+            req.body.description,
+            req.body.targetAmount,
+            req.body.eventDate,
+            req.body.location,
+            req.user.id,
+            0,
+            req.body.isPublic ?? false,
+            invitationToken
+          ]
+        );
+
+        // Create creator relationship
+        await client.query(
+          `INSERT INTO user_projects (user_id, project_id, role, status)
+           VALUES ($1, $2, 'creator', 'accepted')`,
+          [req.user.id, projectResult.rows[0].id]
+        );
+
+        await client.query('COMMIT');
+        res.json({ ...projectResult.rows[0], invitation_url: `/invite/${invitationToken}` });
+      } catch (error) {
+        await client.query('ROLLBACK');
+        throw error;
+      } finally {
+        client.release();
+      }
+    } catch (error) {
+      console.error('Error creating project:', error);
+      res.status(500).send("Error creating project");
+    }
+  });
+
+  // Accept invitation
+  app.post("/api/projects/accept-invitation/:token", async (req, res) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).send("Authentication required");
+    }
+
+    try {
+      const client = await pool.connect();
+      try {
+        await client.query('BEGIN');
+
+        // Find project by invitation token
+        const projectResult = await client.query(
+          'SELECT id FROM projects WHERE invitation_token = $1',
+          [req.params.token]
+        );
+
+        if (projectResult.rows.length === 0) {
+          return res.status(404).send("Invalid invitation token");
+        }
+
+        const projectId = projectResult.rows[0].id;
+
+        // Check if user is already invited
+        const existingInvite = await client.query(
+          'SELECT * FROM user_projects WHERE user_id = $1 AND project_id = $2',
+          [req.user.id, projectId]
+        );
+
+        if (existingInvite.rows.length === 0) {
+          // Create new invitation acceptance
+          await client.query(
+            `INSERT INTO user_projects (user_id, project_id, role, status)
+             VALUES ($1, $2, 'invited', 'accepted')`,
+            [req.user.id, projectId]
+          );
+        } else {
+          // Update existing invitation to accepted
+          await client.query(
+            `UPDATE user_projects SET status = 'accepted'
+             WHERE user_id = $1 AND project_id = $2`,
+            [req.user.id, projectId]
+          );
+        }
+
+        await client.query('COMMIT');
+        res.json({ message: "Invitation accepted successfully" });
+      } catch (error) {
+        await client.query('ROLLBACK');
+        throw error;
+      } finally {
+        client.release();
+      }
+    } catch (error) {
+      console.error('Error accepting invitation:', error);
+      res.status(500).send("Error accepting invitation");
+    }
+  });
+
+  // Get project details
+  app.get("/api/projects/:id", async (req, res) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).send("Authentication required");
+    }
+
+    try {
+      // Check access permission
+      const accessCheck = await pool.query(`
+        SELECT 1
+        FROM projects p
+        LEFT JOIN user_projects up ON p.id = up.project_id
+        WHERE p.id = $1 
+        AND (
+          p.is_public = true 
+          OR p.creator_id = $2
+          OR (up.user_id = $2 AND up.status = 'accepted')
+        )
+      `, [req.params.id, req.user.id]);
+
+      if (accessCheck.rows.length === 0) {
+        return res.status(403).send("You don't have access to this project");
+      }
+
       const result = await pool.query(`
         WITH contribution_stats AS (
           SELECT 
@@ -90,6 +240,10 @@ export function registerRoutes(app: Express): Server {
                  cs.contribution_history
       `, [req.params.id, req.user?.id || null]);
 
+      if (result.rows.length === 0) {
+        return res.status(404).send("Project not found");
+      }
+
       const projectId = parseInt(req.params.id);
       const shareStats = await pool.query(`
         WITH platform_shares AS (
@@ -113,10 +267,6 @@ export function registerRoutes(app: Express): Server {
           ) as shares
       `, [projectId]);
 
-      if (result.rows.length === 0) {
-        return res.status(404).send("Project not found");
-      }
-
       const projectData = {
         ...result.rows[0],
         shares: shareStats.rows[0].shares,
@@ -126,37 +276,6 @@ export function registerRoutes(app: Express): Server {
     } catch (error) {
       console.error('Error fetching project:', error);
       res.status(500).send("Error fetching project");
-    }
-  });
-
-  app.post("/api/projects", async (req, res) => {
-    if (!req.isAuthenticated()) {
-      return res.status(401).send("Not authenticated");
-    }
-
-    try {
-      const user = req.user as User;
-      const result = await pool.query(
-        `INSERT INTO projects (
-          title, description, target_amount, event_date, 
-          location, creator_id, current_amount, is_public
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *`,
-        [
-          req.body.title,
-          req.body.description,
-          req.body.targetAmount,
-          req.body.eventDate,
-          req.body.location,
-          user.id,
-          0,
-          req.body.isPublic ?? true,
-        ]
-      );
-
-      res.json(result.rows[0]);
-    } catch (error) {
-      console.error('Error creating project:', error);
-      res.status(500).send("Error creating project");
     }
   });
 

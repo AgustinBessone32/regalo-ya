@@ -19,6 +19,16 @@ export interface Project {
   image_url: string | null;
   creator_id: number;
   is_public: boolean;
+  invitation_token: string;  // New field for invitation links
+  created_at: Date;
+}
+
+export interface UserProject {
+  id: number;
+  user_id: number;
+  project_id: number;
+  role: 'creator' | 'invited';
+  status: 'pending' | 'accepted';
   created_at: Date;
 }
 
@@ -58,7 +68,7 @@ export const insertProjectSchema = z.object({
   target_amount: z.number().min(1, "Target amount must be greater than 0"),
   location: z.string().optional(),
   event_date: z.string().optional(),
-  is_public: z.boolean().default(true),
+  is_public: z.boolean().default(false), // Changed default to false for privacy
 });
 
 export const insertContributionSchema = z.object({

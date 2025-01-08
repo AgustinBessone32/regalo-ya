@@ -4,6 +4,7 @@ import AuthPage from "./pages/AuthPage";
 import HomePage from "./pages/HomePage";
 import ProjectPage from "./pages/ProjectPage";
 import CreateProject from "./pages/CreateProject";
+import InvitationPage from "./pages/InvitationPage";
 import Navbar from "./components/Navbar";
 import { useUser } from "./hooks/use-user";
 
@@ -30,6 +31,7 @@ function App() {
           <Route path="/" component={HomePage} />
           <Route path="/projects/new" component={CreateProject} />
           <Route path="/projects/:id" component={ProjectPage} />
+          <Route path="/invite/:token" component={InvitationPage} />
           <Route>
             <div className="flex flex-col items-center justify-center min-h-[50vh] gap-4">
               <h1 className="text-4xl font-bold text-primary">404</h1>
