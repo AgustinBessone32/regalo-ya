@@ -1,6 +1,5 @@
-import { drizzle } from "drizzle-orm/neon-serverless";
-import { neon, neonConfig } from "@neondatabase/serverless";
-import ws from "ws";
+import { drizzle } from "drizzle-orm/neon-http";
+import { neon } from "@neondatabase/serverless";
 import * as schema from "@db/schema";
 
 if (!process.env.DATABASE_URL) {
@@ -9,9 +8,11 @@ if (!process.env.DATABASE_URL) {
   );
 }
 
-// Configure WebSocket for Neon
-neonConfig.webSocketConstructor = ws;
+// Create SQL connection
 const sql = neon(process.env.DATABASE_URL);
+
+// Create drizzle database instance
 export const db = drizzle(sql, { schema });
 
+// Export types
 export type * from "@db/schema";
