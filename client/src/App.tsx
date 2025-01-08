@@ -1,4 +1,4 @@
-import { Switch, Route } from "wouter";
+import { Switch, Route, Link } from "wouter";
 import { Card, CardContent } from "@/components/ui/card";
 import { AlertCircle, Loader2 } from "lucide-react";
 import AuthPage from "./pages/AuthPage";
@@ -29,9 +29,11 @@ function App() {
             <div className="space-y-6">
               <div className="flex justify-between items-center">
                 <h1 className="text-3xl font-bold">Bienvenido {user.username}!</h1>
-                <Button variant="default" onClick={() => window.location.href = '/create'}>
-                  Crear Nuevo Proyecto
-                </Button>
+                <Link href="/create">
+                  <Button variant="default">
+                    Crear Nuevo Proyecto
+                  </Button>
+                </Link>
               </div>
               <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                 <Card className="p-6">
@@ -39,9 +41,11 @@ function App() {
                   <p className="text-muted-foreground mb-4">
                     Crea un nuevo proyecto para organizar regalos grupales de manera fácil y divertida.
                   </p>
-                  <Button variant="outline" onClick={() => window.location.href = '/create'}>
-                    Crear Proyecto
-                  </Button>
+                  <Link href="/create">
+                    <Button variant="outline" className="w-full">
+                      Crear Proyecto
+                    </Button>
+                  </Link>
                 </Card>
               </div>
             </div>

@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useLocation } from "wouter";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -8,44 +9,27 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { Loader2, MapPinIcon, Upload } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { WizardForm } from "@/components/WizardForm";
 import { useUser } from "@/hooks/use-user";
-import { AspectRatio } from "@/components/ui/aspect-ratio";
-import { useState } from "react";
-
-const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
-const ACCEPTED_IMAGE_TYPES = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
 
 const projectSchema = z.object({
   title: z.string().min(3, "El título debe tener al menos 3 caracteres"),
   description: z.string().min(10, "La descripción debe tener al menos 10 caracteres"),
   targetAmount: z.coerce.number().min(1, "El monto objetivo debe ser mayor a 0"),
-  location: z.string().min(3, "La ubicación debe tener al menos 3 caracteres").max(100, "La ubicación debe tener menos de 100 caracteres"),
+  location: z.string().min(3, "La ubicación debe tener al menos 3 caracteres"),
   eventDate: z.string().refine((date) => {
     const eventDate = new Date(date);
     const today = new Date();
     return eventDate > today;
   }, "La fecha del evento debe ser en el futuro"),
-  isPublic: z.boolean().default(false),
-  image: z
-    .instanceof(File)
-    .refine((file) => file.size <= MAX_FILE_SIZE, "El tamaño máximo del archivo es 5MB.")
-    .refine(
-      (file) => ACCEPTED_IMAGE_TYPES.includes(file.type),
-      "Solo se aceptan archivos .jpg, .jpeg, .png y .webp."
-    )
-    .optional(),
 });
 
 export default function CreateProject() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const { user } = useUser();
-  const [previewImage, setPreviewImage] = useState<string | null>(null);
 
-  // Redirigir al login si no está autenticado
   if (!user) {
     setLocation("/");
     return null;
@@ -59,24 +43,17 @@ export default function CreateProject() {
       targetAmount: 0,
       location: "",
       eventDate: "",
-      isPublic: false,
     },
   });
 
   const createProjectMutation = useMutation({
     mutationFn: async (data: z.infer<typeof projectSchema>) => {
-      const formData = new FormData();
-      Object.entries(data).forEach(([key, value]) => {
-        if (value instanceof File) {
-          formData.append(key, value);
-        } else if (typeof value !== 'undefined' && value !== null) {
-          formData.append(key, value.toString());
-        }
-      });
-
       const response = await fetch("/api/projects", {
         method: "POST",
-        body: formData,
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data),
         credentials: "include",
       });
 
@@ -102,22 +79,10 @@ export default function CreateProject() {
     },
   });
 
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setPreviewImage(reader.result as string);
-      };
-      reader.readAsDataURL(file);
-      form.setValue("image", file);
-    }
-  };
-
   const steps = [
     {
       title: "Información Básica",
-      description: "Comencemos con la información básica sobre el proyecto de cumpleaños",
+      description: "Comencemos con la información básica sobre el proyecto",
       content: (
         <Form {...form}>
           <form className="space-y-4">
@@ -146,39 +111,6 @@ export default function CreateProject() {
                       placeholder="Cuéntanos sobre la celebración y los planes para el regalo..."
                       {...field}
                     />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="image"
-              render={() => (
-                <FormItem>
-                  <FormLabel>Foto del Cumpleañero</FormLabel>
-                  <FormControl>
-                    <div className="space-y-4">
-                      <div className="flex items-center gap-2">
-                        <Input
-                          type="file"
-                          accept={ACCEPTED_IMAGE_TYPES.join(",")}
-                          onChange={handleImageChange}
-                          className="cursor-pointer"
-                        />
-                        <Upload className="h-4 w-4 text-muted-foreground" />
-                      </div>
-                      {previewImage && (
-                        <AspectRatio ratio={1}>
-                          <img
-                            src={previewImage}
-                            alt="Vista previa"
-                            className="rounded-lg object-cover h-full w-full"
-                          />
-                        </AspectRatio>
-                      )}
-                    </div>
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -215,14 +147,7 @@ export default function CreateProject() {
                 <FormItem>
                   <FormLabel>Ubicación</FormLabel>
                   <FormControl>
-                    <div className="relative">
-                      <MapPinIcon className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
-                      <Input
-                        placeholder="Lugar de la fiesta o dirección"
-                        className="pl-9"
-                        {...field}
-                      />
-                    </div>
+                    <Input placeholder="Lugar de la celebración" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -234,7 +159,7 @@ export default function CreateProject() {
     },
     {
       title: "Meta",
-      description: "Establece tu meta de recolección de regalos",
+      description: "Establece tu meta de recolección",
       content: (
         <Form {...form}>
           <form className="space-y-4">
@@ -245,11 +170,7 @@ export default function CreateProject() {
                 <FormItem>
                   <FormLabel>Monto Objetivo ($)</FormLabel>
                   <FormControl>
-                    <Input
-                      type="number"
-                      placeholder="Ingresa el monto objetivo"
-                      {...field}
-                    />
+                    <Input type="number" placeholder="0" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
