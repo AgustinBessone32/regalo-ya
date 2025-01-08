@@ -1,11 +1,7 @@
 import { Switch, Route } from "wouter";
-import { Loader2 } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+import { AlertCircle, Loader2 } from "lucide-react";
 import AuthPage from "./pages/AuthPage";
-import HomePage from "./pages/HomePage";
-import ProjectPage from "./pages/ProjectPage";
-import CreateProject from "./pages/CreateProject";
-import InvitationPage from "./pages/InvitationPage";
-import Navbar from "./components/Navbar";
 import { useUser } from "./hooks/use-user";
 
 function App() {
@@ -15,7 +11,6 @@ function App() {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
-        <span className="ml-2 text-muted-foreground">Cargando...</span>
       </div>
     );
   }
@@ -26,18 +21,17 @@ function App() {
 
   return (
     <div className="min-h-screen bg-background">
-      <Navbar />
       <main className="container mx-auto px-4 py-8">
         <Switch>
-          <Route path="/" component={HomePage} />
-          <Route path="/projects/new" component={CreateProject} />
-          <Route path="/projects/:id" component={ProjectPage} />
-          <Route path="/invite/:token" component={InvitationPage} />
+          <Route path="/">
+            <div className="flex flex-col items-center justify-center min-h-[50vh] gap-4">
+              <h1 className="text-4xl font-bold text-primary">Bienvenido {user.username}!</h1>
+            </div>
+          </Route>
           <Route>
             <div className="flex flex-col items-center justify-center min-h-[50vh] gap-4">
               <h1 className="text-4xl font-bold text-primary">404</h1>
               <p className="text-muted-foreground">Página no encontrada</p>
-              <p className="text-sm text-muted-foreground">Lo sentimos, no pudimos encontrar la página que buscas.</p>
             </div>
           </Route>
         </Switch>
