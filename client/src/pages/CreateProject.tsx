@@ -8,11 +8,15 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { Loader2 } from "lucide-react";
+import { Loader2, MapPinIcon, Upload } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { WizardForm } from "@/components/WizardForm";
-import { MapPinIcon } from "lucide-react";
 import { useUser } from "@/hooks/use-user";
+import { AspectRatio } from "@/components/ui/aspect-ratio";
+import { useState } from "react";
+
+const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+const ACCEPTED_IMAGE_TYPES = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
 
 const projectSchema = z.object({
   title: z.string().min(3, "Title must be at least 3 characters"),
@@ -24,13 +28,22 @@ const projectSchema = z.object({
     const today = new Date();
     return eventDate > today;
   }, "Event date must be in the future"),
-  isPublic: z.boolean().default(true),
+  isPublic: z.boolean().default(false),
+  image: z
+    .instanceof(File)
+    .refine((file) => file.size <= MAX_FILE_SIZE, "Max file size is 5MB.")
+    .refine(
+      (file) => ACCEPTED_IMAGE_TYPES.includes(file.type),
+      "Only .jpg, .jpeg, .png and .webp files are accepted."
+    )
+    .optional(),
 });
 
 export default function CreateProject() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const { user } = useUser();
+  const [previewImage, setPreviewImage] = useState<string | null>(null);
 
   // Redirect to login if not authenticated
   if (!user) {
@@ -46,16 +59,24 @@ export default function CreateProject() {
       targetAmount: 0,
       location: "",
       eventDate: "",
-      isPublic: true,
+      isPublic: false,
     },
   });
 
   const createProjectMutation = useMutation({
     mutationFn: async (data: z.infer<typeof projectSchema>) => {
+      const formData = new FormData();
+      Object.entries(data).forEach(([key, value]) => {
+        if (value instanceof File) {
+          formData.append(key, value);
+        } else if (typeof value !== 'undefined' && value !== null) {
+          formData.append(key, value.toString());
+        }
+      });
+
       const response = await fetch("/api/projects", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
+        body: formData,
         credentials: "include",
       });
 
@@ -80,6 +101,18 @@ export default function CreateProject() {
       });
     },
   });
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPreviewImage(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+      form.setValue("image", file);
+    }
+  };
 
   const steps = [
     {
@@ -113,6 +146,36 @@ export default function CreateProject() {
                       placeholder="Tell us about the birthday celebration and gift plans..."
                       {...field}
                     />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="image"
+              render={() => (
+                <FormItem>
+                  <FormLabel>Birthday Person's Photo</FormLabel>
+                  <FormControl>
+                    <div className="space-y-4">
+                      <Input
+                        type="file"
+                        accept={ACCEPTED_IMAGE_TYPES.join(",")}
+                        onChange={handleImageChange}
+                        className="cursor-pointer"
+                      />
+                      {previewImage && (
+                        <AspectRatio ratio={1}>
+                          <img
+                            src={previewImage}
+                            alt="Preview"
+                            className="rounded-lg object-cover h-full w-full"
+                          />
+                        </AspectRatio>
+                      )}
+                    </div>
                   </FormControl>
                   <FormMessage />
                 </FormItem>

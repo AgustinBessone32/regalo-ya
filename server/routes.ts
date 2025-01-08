@@ -4,6 +4,10 @@ import { pool } from "../db";
 import type { User } from "../db/schema";
 import { setupAuth } from "./auth";
 import { randomBytes } from "crypto";
+import multer from "multer";
+import path from "path";
+import fs from "fs/promises";
+import express from 'express';
 
 declare module "express-session" {
   interface SessionData {
@@ -11,9 +15,41 @@ declare module "express-session" {
   }
 }
 
+// Configure multer for handling file uploads
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, 'uploads/');
+  },
+  filename: function (req, file, cb) {
+    const uniquePrefix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    cb(null, uniquePrefix + path.extname(file.originalname));
+  }
+});
+
+const upload = multer({
+  storage: storage,
+  limits: {
+    fileSize: 5 * 1024 * 1024 // 5MB limit
+  },
+  fileFilter: (req, file, cb) => {
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+    if (allowedTypes.includes(file.mimetype)) {
+      cb(null, true);
+    } else {
+      cb(new Error('Invalid file type. Only JPEG, PNG and WebP are allowed.'));
+    }
+  }
+});
+
 export function registerRoutes(app: Express): Server {
   // Setup auth before other routes
   setupAuth(app);
+
+  // Ensure uploads directory exists
+  fs.mkdir('uploads', { recursive: true }).catch(console.error);
+
+  // Serve uploaded files
+  app.use('/uploads', express.static('uploads'));
 
   // Project routes
   app.get("/api/projects", async (req, res) => {
@@ -51,8 +87,8 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
-  // Create new project
-  app.post("/api/projects", async (req, res) => {
+  // Create new project with image upload
+  app.post("/api/projects", upload.single('image'), async (req, res) => {
     if (!req.isAuthenticated()) {
       return res.status(401).send("Not authenticated");
     }
@@ -69,8 +105,9 @@ export function registerRoutes(app: Express): Server {
         const projectResult = await client.query(
           `INSERT INTO projects (
             title, description, target_amount, event_date, 
-            location, creator_id, current_amount, is_public, invitation_token
-          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *`,
+            location, creator_id, current_amount, is_public, invitation_token,
+            image_url
+          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING *`,
           [
             req.body.title,
             req.body.description,
@@ -79,8 +116,9 @@ export function registerRoutes(app: Express): Server {
             req.body.location,
             req.user.id,
             0,
-            req.body.isPublic ?? false,
-            invitationToken
+            req.body.isPublic === 'true',
+            invitationToken,
+            req.file ? `/uploads/${req.file.filename}` : null
           ]
         );
 
@@ -101,6 +139,10 @@ export function registerRoutes(app: Express): Server {
       }
     } catch (error) {
       console.error('Error creating project:', error);
+      // Clean up uploaded file if there was an error
+      if (req.file) {
+        fs.unlink(req.file.path).catch(console.error);
+      }
       res.status(500).send("Error creating project");
     }
   });
