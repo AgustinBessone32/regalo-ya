@@ -1,5 +1,6 @@
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
+import { setupAuth } from "./auth";
 import { setupVite, serveStatic, log } from "./vite";
 
 const app = express();
@@ -7,6 +8,10 @@ const app = express();
 // Basic middleware setup
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
+
+// Setup auth before any route handling
+setupAuth(app);
+log("Authentication middleware initialized");
 
 // Setup logging middleware
 app.use((req, res, next) => {
@@ -39,17 +44,17 @@ app.use((req, res, next) => {
   next();
 });
 
-// Error handling middleware
+// Register routes after auth setup
+const server = registerRoutes(app);
+log("Routes registered successfully");
+
+// Global error handling
 app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
   console.error("Server error:", err);
   const status = err.status || err.statusCode || 500;
   const message = err.message || "Internal Server Error";
   res.status(status).json({ message });
 });
-
-// Register routes
-const server = registerRoutes(app);
-log("Routes registered successfully");
 
 // Setup vite or serve static files
 if (app.get("env") === "development") {

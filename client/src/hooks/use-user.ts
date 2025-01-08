@@ -1,6 +1,10 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import type { User } from "@db/schema";
 import { useToast } from '@/hooks/use-toast';
+
+type User = {
+  id: number;
+  username: string;
+};
 
 type RequestResult = {
   ok: true;
@@ -45,6 +49,25 @@ export function useUser() {
 
   const { data: user, error, isLoading } = useQuery<User | null>({
     queryKey: ['/api/user'],
+    queryFn: async () => {
+      try {
+        const response = await fetch('/api/user', {
+          credentials: 'include'
+        });
+
+        if (!response.ok) {
+          if (response.status === 401) {
+            return null;
+          }
+          throw new Error(await response.text());
+        }
+
+        return response.json();
+      } catch (error) {
+        console.error('Error fetching user:', error);
+        return null;
+      }
+    },
     staleTime: Infinity,
     retry: false,
   });
