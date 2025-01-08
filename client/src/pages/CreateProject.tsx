@@ -18,8 +18,8 @@ const projectSchema = z.object({
   description: z.string().min(10, "La descripción debe tener al menos 10 caracteres"),
   target_amount: z.coerce
     .number()
-    .min(1, "El monto objetivo debe ser mayor a 0")
-    .transform((val) => Number(val.toFixed(2))), // Asegura 2 decimales
+    .int("El monto debe ser un número entero")
+    .min(1, "El monto objetivo debe ser mayor a 0"),
   location: z.string().optional(),
   event_date: z.string().optional(),
   is_public: z.boolean().default(false),
@@ -96,7 +96,7 @@ export default function CreateProject() {
       toast({
         variant: "destructive",
         title: "Error de validación",
-        description: "Por favor revisa los campos del formulario. Asegúrate de que el monto objetivo sea un número válido.",
+        description: "Por favor revisa los campos del formulario. El monto objetivo debe ser un número entero mayor a 0.",
       });
       return;
     }
@@ -197,18 +197,18 @@ export default function CreateProject() {
                   <FormControl>
                     <Input
                       type="number"
-                      inputMode="decimal"
-                      step="0.01"
-                      min="0.01"
-                      placeholder="0.00"
+                      inputMode="numeric"
+                      min="1"
+                      placeholder="0"
                       {...field}
                       onChange={(e) => {
                         const value = e.target.value;
-                        // Aseguramos que sea un número válido
-                        if (value === "" || isNaN(Number(value))) {
+                        // Solo permitir números enteros
+                        const intValue = parseInt(value);
+                        if (value === "" || isNaN(intValue)) {
                           field.onChange(undefined);
                         } else {
-                          field.onChange(Number(value));
+                          field.onChange(intValue);
                         }
                       }}
                     />

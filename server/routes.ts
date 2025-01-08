@@ -4,6 +4,7 @@ import { setupAuth } from "./auth";
 import { db } from "@db";
 import { projects, insertProjectSchema } from "@db/schema";
 import { nanoid } from 'nanoid';
+import { eq } from "drizzle-orm";
 
 export function registerRoutes(app: Express): Server {
   // Configurar autenticación
@@ -12,6 +13,27 @@ export function registerRoutes(app: Express): Server {
   // Ruta de estado para verificar que el servidor está funcionando
   app.get("/api/health", (req, res) => {
     res.json({ status: "ok", time: new Date().toISOString() });
+  });
+
+  // Ruta para obtener los proyectos del usuario
+  app.get("/api/projects", async (req, res) => {
+    try {
+      if (!req.isAuthenticated()) {
+        return res.status(401).send("Debes iniciar sesión para ver los proyectos");
+      }
+
+      const user = req.user as any;
+      const userProjects = await db
+        .select()
+        .from(projects)
+        .where(eq(projects.creator_id, user.id))
+        .orderBy(projects.created_at);
+
+      res.json(userProjects);
+    } catch (error: any) {
+      console.error("Error fetching projects:", error);
+      res.status(500).send(error.message || "Error al obtener los proyectos");
+    }
   });
 
   // Ruta para crear un nuevo proyecto

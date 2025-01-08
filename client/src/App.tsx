@@ -6,9 +6,16 @@ import CreateProject from "./pages/CreateProject";
 import ProjectPage from "./pages/ProjectPage";
 import { useUser } from "./hooks/use-user";
 import { Button } from "./components/ui/button";
+import { useQuery } from "@tanstack/react-query";
+import ProjectCard from "./components/ProjectCard";
 
 function App() {
   const { user, isLoading } = useUser();
+
+  const { data: projects = [], isLoading: isLoadingProjects } = useQuery({
+    queryKey: ['/api/projects'],
+    enabled: !!user,
+  });
 
   if (isLoading) {
     return (
@@ -38,17 +45,29 @@ function App() {
                   </Link>
                 </div>
                 <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                  <Card className="p-6">
-                    <h2 className="text-xl font-semibold mb-2">Comienza tu Primer Proyecto</h2>
-                    <p className="text-muted-foreground mb-4">
-                      Crea un nuevo proyecto para organizar regalos grupales de manera fácil y divertida.
-                    </p>
-                    <Link href="/create">
-                      <Button variant="outline" className="w-full">
-                        Crear Proyecto
-                      </Button>
-                    </Link>
-                  </Card>
+                  {isLoadingProjects ? (
+                    <Card className="p-6">
+                      <div className="flex items-center justify-center">
+                        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                      </div>
+                    </Card>
+                  ) : projects.length > 0 ? (
+                    projects.map((project) => (
+                      <ProjectCard key={project.id} project={project} />
+                    ))
+                  ) : (
+                    <Card className="p-6">
+                      <h2 className="text-xl font-semibold mb-2">Comienza tu Primer Proyecto</h2>
+                      <p className="text-muted-foreground mb-4">
+                        Crea un nuevo proyecto para organizar regalos grupales de manera fácil y divertida.
+                      </p>
+                      <Link href="/create">
+                        <Button variant="outline" className="w-full">
+                          Crear Proyecto
+                        </Button>
+                      </Link>
+                    </Card>
+                  )}
                 </div>
               </div>
             )}
