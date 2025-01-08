@@ -17,12 +17,9 @@ const projectSchema = z.object({
   title: z.string().min(3, "El título debe tener al menos 3 caracteres"),
   description: z.string().min(10, "La descripción debe tener al menos 10 caracteres"),
   target_amount: z.coerce.number().min(1, "El monto objetivo debe ser mayor a 0"),
-  location: z.string().min(3, "La ubicación debe tener al menos 3 caracteres"),
-  event_date: z.string().refine((date) => {
-    const eventDate = new Date(date);
-    const today = new Date();
-    return eventDate > today;
-  }, "La fecha del evento debe ser en el futuro"),
+  location: z.string().optional(),
+  event_date: z.string().optional(),
+  is_public: z.boolean().default(false),
 });
 
 export default function CreateProject() {
@@ -43,6 +40,7 @@ export default function CreateProject() {
       target_amount: 0,
       location: "",
       event_date: "",
+      is_public: false,
     },
   });
 
@@ -135,7 +133,7 @@ export default function CreateProject() {
               name="event_date"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Fecha del Evento</FormLabel>
+                  <FormLabel>Fecha del Evento (Opcional)</FormLabel>
                   <FormControl>
                     <Input type="date" {...field} />
                   </FormControl>
@@ -149,7 +147,7 @@ export default function CreateProject() {
               name="location"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Ubicación</FormLabel>
+                  <FormLabel>Ubicación (Opcional)</FormLabel>
                   <FormControl>
                     <Input placeholder="Lugar de la celebración" {...field} />
                   </FormControl>
@@ -174,7 +172,7 @@ export default function CreateProject() {
                 <FormItem>
                   <FormLabel>Monto Objetivo ($)</FormLabel>
                   <FormControl>
-                    <Input type="number" placeholder="0" {...field} />
+                    <Input type="number" min="1" step="1" placeholder="0" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
