@@ -3,6 +3,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { AlertCircle, Loader2 } from "lucide-react";
 import AuthPage from "./pages/AuthPage";
 import CreateProject from "./pages/CreateProject";
+import ProjectPage from "./pages/ProjectPage";
 import { useUser } from "./hooks/use-user";
 import { Button } from "./components/ui/button";
 
@@ -51,6 +52,7 @@ function App() {
             </div>
           </Route>
           <Route path="/create" component={CreateProject} />
+          <Route path="/projects/:id" component={ProjectPage} />
           <Route>
             <div className="flex flex-col items-center justify-center min-h-[50vh] gap-4">
               <h1 className="text-4xl font-bold text-primary">404</h1>
