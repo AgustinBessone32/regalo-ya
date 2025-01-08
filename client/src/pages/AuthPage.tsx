@@ -34,7 +34,7 @@ export default function AuthPage() {
           <Gift className="h-12 w-12 text-primary" />
           <h1 className="text-2xl font-semibold text-center">RegaloFácil</h1>
           <p className="text-sm text-muted-foreground text-center">
-            Simplifica la recolección de regalos de cumpleaños
+            Simplifica la organización de regalos grupales
           </p>
         </div>
 
@@ -89,13 +89,13 @@ export default function AuthPage() {
                     )}
                   />
 
-                  <TabsContent value="login">
+                  <TabsContent value="login" className="space-y-4">
                     <Button type="submit" className="w-full">
                       Iniciar Sesión
                     </Button>
                   </TabsContent>
 
-                  <TabsContent value="register">
+                  <TabsContent value="register" className="space-y-4">
                     <Button type="submit" className="w-full">
                       Crear Cuenta
                     </Button>

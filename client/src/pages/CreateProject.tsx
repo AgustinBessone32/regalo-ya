@@ -45,7 +45,7 @@ export default function CreateProject() {
   const { user } = useUser();
   const [previewImage, setPreviewImage] = useState<string | null>(null);
 
-  // Redirect to login if not authenticated
+  // Redirigir al login si no está autenticado
   if (!user) {
     setLocation("/");
     return null;
@@ -160,12 +160,15 @@ export default function CreateProject() {
                   <FormLabel>Foto del Cumpleañero</FormLabel>
                   <FormControl>
                     <div className="space-y-4">
-                      <Input
-                        type="file"
-                        accept={ACCEPTED_IMAGE_TYPES.join(",")}
-                        onChange={handleImageChange}
-                        className="cursor-pointer"
-                      />
+                      <div className="flex items-center gap-2">
+                        <Input
+                          type="file"
+                          accept={ACCEPTED_IMAGE_TYPES.join(",")}
+                          onChange={handleImageChange}
+                          className="cursor-pointer"
+                        />
+                        <Upload className="h-4 w-4 text-muted-foreground" />
+                      </div>
                       {previewImage && (
                         <AspectRatio ratio={1}>
                           <img

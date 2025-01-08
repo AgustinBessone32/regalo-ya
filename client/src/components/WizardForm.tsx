@@ -32,7 +32,7 @@ export function WizardForm({ steps, onComplete, isSubmitting }: WizardFormProps)
 
   return (
     <div className="space-y-8">
-      {/* Progress Steps */}
+      {/* Pasos del Progreso */}
       <div className="relative">
         <div className="absolute left-0 top-[15px] w-full h-[2px] bg-muted" />
         <div className="relative flex justify-between">
@@ -60,7 +60,7 @@ export function WizardForm({ steps, onComplete, isSubmitting }: WizardFormProps)
         </div>
       </div>
 
-      {/* Step Content */}
+      {/* Contenido del Paso */}
       <div className="min-h-[300px]">
         <div className="mb-6">
           <h3 className="text-lg font-semibold">{steps[currentStep].title}</h3>
@@ -71,7 +71,7 @@ export function WizardForm({ steps, onComplete, isSubmitting }: WizardFormProps)
         {steps[currentStep].content}
       </div>
 
-      {/* Navigation */}
+      {/* Navegación */}
       <div className="flex justify-between">
         <Button
           variant="outline"

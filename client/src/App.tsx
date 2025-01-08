@@ -15,6 +15,7 @@ function App() {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <span className="ml-2 text-muted-foreground">Cargando...</span>
       </div>
     );
   }
@@ -36,6 +37,7 @@ function App() {
             <div className="flex flex-col items-center justify-center min-h-[50vh] gap-4">
               <h1 className="text-4xl font-bold text-primary">404</h1>
               <p className="text-muted-foreground">Página no encontrada</p>
+              <p className="text-sm text-muted-foreground">Lo sentimos, no pudimos encontrar la página que buscas.</p>
             </div>
           </Route>
         </Switch>
