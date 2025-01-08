@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import type { InsertUser, User } from "@db/schema";
+import type { User } from "@db/schema";
 import { useToast } from '@/hooks/use-toast';
 
 type RequestResult = {
@@ -13,7 +13,7 @@ type RequestResult = {
 async function handleRequest(
   url: string,
   method: string,
-  body?: InsertUser
+  body?: { username: string; password: string; }
 ): Promise<RequestResult> {
   try {
     const response = await fetch(url, {
@@ -50,13 +50,13 @@ export function useUser() {
   });
 
   const loginMutation = useMutation({
-    mutationFn: (userData: InsertUser) => handleRequest('/api/login', 'POST', userData),
+    mutationFn: (userData: { username: string; password: string; }) => handleRequest('/api/login', 'POST', userData),
     onSuccess: (result) => {
       if (result.ok) {
         queryClient.invalidateQueries({ queryKey: ['/api/user'] });
         toast({
-          title: "Success",
-          description: "Logged in successfully",
+          title: "¡Éxito!",
+          description: "Sesión iniciada correctamente",
         });
       } else {
         toast({
@@ -69,13 +69,13 @@ export function useUser() {
   });
 
   const registerMutation = useMutation({
-    mutationFn: (userData: InsertUser) => handleRequest('/api/register', 'POST', userData),
+    mutationFn: (userData: { username: string; password: string; }) => handleRequest('/api/register', 'POST', userData),
     onSuccess: (result) => {
       if (result.ok) {
         queryClient.invalidateQueries({ queryKey: ['/api/user'] });
         toast({
-          title: "Success",
-          description: "Registration successful",
+          title: "¡Éxito!",
+          description: "Registro completado correctamente",
         });
       } else {
         toast({
@@ -93,8 +93,8 @@ export function useUser() {
       if (result.ok) {
         queryClient.invalidateQueries({ queryKey: ['/api/user'] });
         toast({
-          title: "Success",
-          description: "Logged out successfully",
+          title: "¡Éxito!",
+          description: "Sesión cerrada correctamente",
         });
       } else {
         toast({

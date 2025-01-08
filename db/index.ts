@@ -1,22 +1,13 @@
-import pkg from 'pg';
-const { Pool } = pkg;
+import { neon } from '@neondatabase/serverless';
+import { drizzle } from 'drizzle-orm/neon-serverless';
+import * as schema from './schema';
 
 if (!process.env.DATABASE_URL) {
-  throw new Error("DATABASE_URL must be set");
+  throw new Error("DATABASE_URL must be set. Did you forget to provision a database?");
 }
 
-// Create a PostgreSQL connection pool
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  max: 20,
-  idleTimeoutMillis: 30000,
-  connectionTimeoutMillis: 2000,
-});
+const sql = neon(process.env.DATABASE_URL);
+export const db = drizzle(sql, { schema });
 
-// Test the database connection implicitly through error handling
-pool.on('error', (err) => {
-  console.error('Unexpected error on idle client', err);
-});
-
-// Export the pool for use in other files
-export { pool };
+// Export the schema types
+export type * from './schema';

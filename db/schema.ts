@@ -1,89 +1,130 @@
+import { relations, pgTable, text, serial, integer, boolean, timestamp } from "drizzle-orm/pg-core";
+import { createInsertSchema, createSelectSchema } from "drizzle-zod";
 import { z } from "zod";
 
-// Type definitions for our database entities
-export interface User {
-  id: number;
-  username: string;
-  password: string;
-  created_at: Date;
-}
-
-export interface Project {
-  id: number;
-  title: string;
-  description: string | null;
-  target_amount: number;
-  current_amount: number;
-  event_date: Date | null;
-  location: string | null;
-  image_url: string | null;
-  creator_id: number;
-  is_public: boolean;
-  invitation_token: string;  // New field for invitation links
-  created_at: Date;
-}
-
-export interface UserProject {
-  id: number;
-  user_id: number;
-  project_id: number;
-  role: 'creator' | 'invited';
-  status: 'pending' | 'accepted';
-  created_at: Date;
-}
-
-export interface Contribution {
-  id: number;
-  amount: number;
-  message: string | null;
-  contributor_name: string;
-  project_id: number;
-  created_at: Date;
-}
-
-export interface Reaction {
-  id: number;
-  project_id: number;
-  user_id: number | null;
-  emoji: string;
-  created_at: Date;
-}
-
-export interface Share {
-  id: number;
-  project_id: number;
-  platform: string;
-  created_at: Date;
-}
-
-// Schema validation using zod
-export const insertUserSchema = z.object({
-  username: z.string().min(3, "Username must be at least 3 characters"),
-  password: z.string().min(6, "Password must be at least 6 characters"),
+export const users = pgTable("users", {
+  id: serial("id").primaryKey(),
+  username: text("username").unique().notNull(),
+  password: text("password").notNull(),
+  created_at: timestamp("created_at").defaultNow(),
 });
 
-export const insertProjectSchema = z.object({
-  title: z.string().min(3, "Title must be at least 3 characters"),
-  description: z.string().optional(),
-  target_amount: z.number().min(1, "Target amount must be greater than 0"),
+export const projects = pgTable("projects", {
+  id: serial("id").primaryKey(),
+  title: text("title").notNull(),
+  description: text("description"),
+  target_amount: integer("target_amount").notNull(),
+  current_amount: integer("current_amount").default(0),
+  event_date: timestamp("event_date"),
+  location: text("location"),
+  image_url: text("image_url"),
+  creator_id: integer("creator_id").references(() => users.id).notNull(),
+  is_public: boolean("is_public").default(false),
+  invitation_token: text("invitation_token").unique().notNull(),
+  created_at: timestamp("created_at").defaultNow(),
+});
+
+export const userProjects = pgTable("user_projects", {
+  id: serial("id").primaryKey(),
+  user_id: integer("user_id").references(() => users.id).notNull(),
+  project_id: integer("project_id").references(() => projects.id).notNull(),
+  role: text("role", { enum: ["creator", "invited"] }).notNull(),
+  status: text("status", { enum: ["pending", "accepted"] }).notNull(),
+  created_at: timestamp("created_at").defaultNow(),
+});
+
+export const contributions = pgTable("contributions", {
+  id: serial("id").primaryKey(),
+  amount: integer("amount").notNull(),
+  message: text("message"),
+  contributor_name: text("contributor_name").notNull(),
+  project_id: integer("project_id").references(() => projects.id).notNull(),
+  created_at: timestamp("created_at").defaultNow(),
+});
+
+export const reactions = pgTable("reactions", {
+  id: serial("id").primaryKey(),
+  project_id: integer("project_id").references(() => projects.id).notNull(),
+  user_id: integer("user_id").references(() => users.id),
+  emoji: text("emoji").notNull(),
+  created_at: timestamp("created_at").defaultNow(),
+});
+
+export const shares = pgTable("shares", {
+  id: serial("id").primaryKey(),
+  project_id: integer("project_id").references(() => projects.id).notNull(),
+  platform: text("platform").notNull(),
+  created_at: timestamp("created_at").defaultNow(),
+});
+
+// Relations
+export const usersRelations = relations(users, ({ many }) => ({
+  projects: many(projects, {
+    fields: [users.id],
+    references: [projects.creator_id],
+  }),
+  userProjects: many(userProjects, {
+    fields: [users.id],
+    references: [userProjects.user_id],
+  }),
+}));
+
+export const projectsRelations = relations(projects, ({ one, many }) => ({
+  creator: one(users, {
+    fields: [projects.creator_id],
+    references: [users.id],
+  }),
+  userProjects: many(userProjects, {
+    fields: [projects.id],
+    references: [userProjects.project_id],
+  }),
+  contributions: many(contributions, {
+    fields: [projects.id],
+    references: [contributions.project_id],
+  }),
+  reactions: many(reactions, {
+    fields: [projects.id],
+    references: [reactions.project_id],
+  }),
+  shares: many(shares, {
+    fields: [projects.id],
+    references: [shares.project_id],
+  }),
+}));
+
+// Schemas for validation
+export const insertUserSchema = createInsertSchema(users);
+export const selectUserSchema = createSelectSchema(users);
+
+export const insertProjectSchema = createInsertSchema(projects, {
+  title: z.string().min(3, "El título debe tener al menos 3 caracteres"),
+  description: z.string().min(10, "La descripción debe tener al menos 10 caracteres"),
+  target_amount: z.number().min(1, "El monto objetivo debe ser mayor a 0"),
   location: z.string().optional(),
   event_date: z.string().optional(),
-  is_public: z.boolean().default(false), // Changed default to false for privacy
+  is_public: z.boolean().default(false),
 });
 
-export const insertContributionSchema = z.object({
-  amount: z.number().min(1, "Amount must be greater than 0"),
+export const insertContributionSchema = createInsertSchema(contributions, {
+  amount: z.number().min(1, "El monto debe ser mayor a 0"),
   message: z.string().optional(),
-  contributor_name: z.string().min(2, "Name must be at least 2 characters"),
+  contributor_name: z.string().min(2, "El nombre debe tener al menos 2 caracteres"),
 });
 
-export const insertReactionSchema = z.object({
+export const insertReactionSchema = createInsertSchema(reactions, {
   emoji: z.string(),
 });
 
-export const insertShareSchema = z.object({
+export const insertShareSchema = createInsertSchema(shares, {
   platform: z.string(),
 });
 
-// Type for authenticated user (excludes password)
-export type AuthenticatedUser = Omit<User, "password">;
+// Types
+export type User = typeof users.$inferSelect;
+export type InsertUser = typeof users.$inferInsert;
+export type Project = typeof projects.$inferSelect;
+export type InsertProject = typeof projects.$inferInsert;
+export type UserProject = typeof userProjects.$inferSelect;
+export type Contribution = typeof contributions.$inferSelect;
+export type Reaction = typeof reactions.$inferSelect;
+export type Share = typeof shares.$inferSelect;

@@ -34,22 +34,22 @@ export default function AuthPage() {
           <Gift className="h-12 w-12 text-primary" />
           <h1 className="text-2xl font-semibold text-center">BirthdayGift</h1>
           <p className="text-sm text-muted-foreground text-center">
-            Simplify birthday gift collections
+            Simplifica la recolección de regalos de cumpleaños
           </p>
         </div>
 
         <Card>
           <CardHeader>
-            <CardTitle>Welcome</CardTitle>
+            <CardTitle>Bienvenido</CardTitle>
             <CardDescription>
-              Sign in to your account or create a new one
+              Inicia sesión en tu cuenta o crea una nueva
             </CardDescription>
           </CardHeader>
           <CardContent>
             <Tabs defaultValue="login" value={activeTab} onValueChange={(value) => setActiveTab(value as "login" | "register")}>
               <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="login">Login</TabsTrigger>
-                <TabsTrigger value="register">Register</TabsTrigger>
+                <TabsTrigger value="login">Iniciar Sesión</TabsTrigger>
+                <TabsTrigger value="register">Registrarse</TabsTrigger>
               </TabsList>
 
               <Form {...form}>
@@ -66,7 +66,7 @@ export default function AuthPage() {
                     name="username"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Username</FormLabel>
+                        <FormLabel>Usuario</FormLabel>
                         <FormControl>
                           <Input {...field} />
                         </FormControl>
@@ -80,7 +80,7 @@ export default function AuthPage() {
                     name="password"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Password</FormLabel>
+                        <FormLabel>Contraseña</FormLabel>
                         <FormControl>
                           <Input type="password" {...field} />
                         </FormControl>
@@ -91,13 +91,13 @@ export default function AuthPage() {
 
                   <TabsContent value="login">
                     <Button type="submit" className="w-full">
-                      Sign In
+                      Iniciar Sesión
                     </Button>
                   </TabsContent>
 
                   <TabsContent value="register">
                     <Button type="submit" className="w-full">
-                      Create Account
+                      Crear Cuenta
                     </Button>
                   </TabsContent>
                 </form>
