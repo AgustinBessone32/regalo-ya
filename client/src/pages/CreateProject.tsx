@@ -46,6 +46,7 @@ export default function CreateProject() {
 
   const createProjectMutation = useMutation({
     mutationFn: async (data: z.infer<typeof projectSchema>) => {
+      console.log("Enviando datos al servidor:", data);
       const response = await fetch("/api/projects", {
         method: "POST",
         headers: {
@@ -59,8 +60,9 @@ export default function CreateProject() {
       });
 
       if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || "Error al crear el proyecto");
+        const errorData = await response.json();
+        console.error("Error del servidor:", errorData);
+        throw new Error(errorData.message || "Error al crear el proyecto");
       }
 
       return response.json();
@@ -80,6 +82,24 @@ export default function CreateProject() {
       });
     },
   });
+
+  const handleSubmit = async () => {
+    const values = form.getValues();
+    console.log("Valores del formulario:", values);
+
+    const validationResult = projectSchema.safeParse(values);
+    if (!validationResult.success) {
+      console.error("Error de validación:", validationResult.error);
+      toast({
+        variant: "destructive",
+        title: "Error de validación",
+        description: "Por favor revisa los campos del formulario",
+      });
+      return;
+    }
+
+    createProjectMutation.mutate(validationResult.data);
+  };
 
   const steps = [
     {
@@ -172,7 +192,14 @@ export default function CreateProject() {
                 <FormItem>
                   <FormLabel>Monto Objetivo ($)</FormLabel>
                   <FormControl>
-                    <Input type="number" min="1" step="1" placeholder="0" {...field} />
+                    <Input
+                      type="number"
+                      min="1"
+                      step="1"
+                      placeholder="0"
+                      {...field}
+                      onChange={(e) => field.onChange(Number(e.target.value))}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -194,7 +221,7 @@ export default function CreateProject() {
         <CardContent className="pt-6">
           <WizardForm
             steps={steps}
-            onComplete={() => createProjectMutation.mutate(form.getValues())}
+            onComplete={handleSubmit}
             isSubmitting={createProjectMutation.isPending}
           />
         </CardContent>
