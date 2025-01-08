@@ -1,4 +1,4 @@
-import { relations, pgTable, text, serial, integer, boolean, timestamp } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, timestamp, relations } from "drizzle-orm/pg-core";
 import { createInsertSchema, createSelectSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -57,43 +57,44 @@ export const shares = pgTable("shares", {
   created_at: timestamp("created_at").defaultNow(),
 });
 
-// Relations
+// Definir las relaciones
 export const usersRelations = relations(users, ({ many }) => ({
-  projects: many(projects, {
-    fields: [users.id],
-    references: [projects.creator_id],
-  }),
-  userProjects: many(userProjects, {
-    fields: [users.id],
-    references: [userProjects.user_id],
-  }),
+  projects: many(projects, { relationName: "creator" }),
+  userProjects: many(userProjects),
+  reactions: many(reactions),
 }));
 
 export const projectsRelations = relations(projects, ({ one, many }) => ({
-  creator: one(users, {
-    fields: [projects.creator_id],
-    references: [users.id],
-  }),
-  userProjects: many(userProjects, {
-    fields: [projects.id],
-    references: [userProjects.project_id],
-  }),
-  contributions: many(contributions, {
-    fields: [projects.id],
-    references: [contributions.project_id],
-  }),
-  reactions: many(reactions, {
-    fields: [projects.id],
-    references: [reactions.project_id],
-  }),
-  shares: many(shares, {
-    fields: [projects.id],
-    references: [shares.project_id],
-  }),
+  creator: one(users, { fields: [projects.creator_id], references: [users.id] }),
+  userProjects: many(userProjects),
+  contributions: many(contributions),
+  reactions: many(reactions),
+  shares: many(shares),
 }));
 
-// Schemas for validation
-export const insertUserSchema = createInsertSchema(users);
+export const userProjectsRelations = relations(userProjects, ({ one }) => ({
+  user: one(users, { fields: [userProjects.user_id], references: [users.id] }),
+  project: one(projects, { fields: [userProjects.project_id], references: [projects.id] }),
+}));
+
+export const contributionsRelations = relations(contributions, ({ one }) => ({
+  project: one(projects, { fields: [contributions.project_id], references: [projects.id] }),
+}));
+
+export const reactionsRelations = relations(reactions, ({ one }) => ({
+  project: one(projects, { fields: [reactions.project_id], references: [projects.id] }),
+  user: one(users, { fields: [reactions.user_id], references: [users.id], relationName: "userReactions" }),
+}));
+
+export const sharesRelations = relations(shares, ({ one }) => ({
+  project: one(projects, { fields: [shares.project_id], references: [projects.id] }),
+}));
+
+// Schemas para validación
+export const insertUserSchema = createInsertSchema(users, {
+  username: z.string().min(3, "El nombre de usuario debe tener al menos 3 caracteres"),
+  password: z.string().min(6, "La contraseña debe tener al menos 6 caracteres"),
+});
 export const selectUserSchema = createSelectSchema(users);
 
 export const insertProjectSchema = createInsertSchema(projects, {

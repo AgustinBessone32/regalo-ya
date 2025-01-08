@@ -11,8 +11,8 @@ import { useUser } from "@/hooks/use-user";
 import { useState } from "react";
 
 const authSchema = z.object({
-  username: z.string().min(3).max(20),
-  password: z.string().min(6),
+  username: z.string().min(3, "El nombre de usuario debe tener al menos 3 caracteres").max(20, "El nombre de usuario no puede tener más de 20 caracteres"),
+  password: z.string().min(6, "La contraseña debe tener al menos 6 caracteres"),
 });
 
 export default function AuthPage() {
@@ -32,7 +32,7 @@ export default function AuthPage() {
       <div className="w-full max-w-md space-y-8">
         <div className="flex flex-col items-center gap-2">
           <Gift className="h-12 w-12 text-primary" />
-          <h1 className="text-2xl font-semibold text-center">BirthdayGift</h1>
+          <h1 className="text-2xl font-semibold text-center">RegaloFácil</h1>
           <p className="text-sm text-muted-foreground text-center">
             Simplifica la recolección de regalos de cumpleaños
           </p>
@@ -40,7 +40,7 @@ export default function AuthPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Bienvenido</CardTitle>
+            <CardTitle>¡Bienvenido!</CardTitle>
             <CardDescription>
               Inicia sesión en tu cuenta o crea una nueva
             </CardDescription>
@@ -66,9 +66,9 @@ export default function AuthPage() {
                     name="username"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Usuario</FormLabel>
+                        <FormLabel>Nombre de Usuario</FormLabel>
                         <FormControl>
-                          <Input {...field} />
+                          <Input placeholder="Tu nombre de usuario" {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -82,7 +82,7 @@ export default function AuthPage() {
                       <FormItem>
                         <FormLabel>Contraseña</FormLabel>
                         <FormControl>
-                          <Input type="password" {...field} />
+                          <Input type="password" placeholder="Tu contraseña" {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
