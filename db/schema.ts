@@ -42,7 +42,7 @@ export const insertProjectSchema = z.object({
   image_url: z.string().optional().nullable(),
   target_amount: z.number().min(1, "El monto objetivo debe ser mayor a 0"),
   location: z.string().optional().nullable(),
-  event_date: z.string().optional().nullable(),
+  event_date: z.date().optional().nullable(),
   is_public: z.boolean().default(false),
   creator_id: z.number(),
   invitation_token: z.string(),

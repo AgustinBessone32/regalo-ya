@@ -62,21 +62,26 @@ export function registerRoutes(app: Express): Server {
         creator_id: user.id,
         invitation_token: nanoid(),
         event_date: req.body.event_date ? new Date(req.body.event_date) : null,
+        target_amount: Number(req.body.target_amount),
       };
 
-      const result = insertProjectSchema.safeParse(projectData);
-      if (!result.success) {
+      console.log("Project data before validation:", projectData);
+
+      const validationResult = insertProjectSchema.safeParse(projectData);
+      if (!validationResult.success) {
+        console.error("Validation errors:", validationResult.error);
         return res.status(400).json({
           message: "Datos inválidos",
-          errors: result.error.issues,
+          errors: validationResult.error.errors,
         });
       }
 
       const [newProject] = await db
         .insert(projects)
-        .values(result.data)
+        .values(validationResult.data)
         .returning();
 
+      console.log("Created project:", newProject);
       res.json(newProject);
     } catch (error: any) {
       console.error("Error creating project:", error);
