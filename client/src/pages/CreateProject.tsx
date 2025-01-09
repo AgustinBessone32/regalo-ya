@@ -9,13 +9,16 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useToast } from "@/hooks/use-toast";
 import { WizardForm } from "@/components/WizardForm";
 import { useUser } from "@/hooks/use-user";
+import { UploadButton } from "@/components/ui/upload-button";
 
 const projectSchema = z.object({
   title: z.string().min(3, "El título debe tener al menos 3 caracteres"),
   description: z.string().min(10, "La descripción debe tener al menos 10 caracteres"),
+  image_url: z.string().optional(),
   target_amount: z.coerce
     .number()
     .int("El monto debe ser un número entero")
@@ -23,6 +26,10 @@ const projectSchema = z.object({
   location: z.string().optional(),
   event_date: z.string().optional(),
   is_public: z.boolean().default(false),
+  payment_method: z.enum(["cbu", "efectivo"], {
+    required_error: "Debes seleccionar un método de pago"
+  }),
+  payment_details: z.string().min(1, "Debes proporcionar los detalles del pago"),
 });
 
 export default function CreateProject() {
@@ -41,10 +48,13 @@ export default function CreateProject() {
     defaultValues: {
       title: "",
       description: "",
+      image_url: "",
       target_amount: undefined,
       location: "",
       event_date: "",
       is_public: false,
+      payment_method: undefined,
+      payment_details: "",
     },
   });
 
@@ -72,7 +82,6 @@ export default function CreateProject() {
       return response.json();
     },
     onSuccess: (data) => {
-      // Invalidar la caché de proyectos para que se actualice la lista
       queryClient.invalidateQueries({ queryKey: ['/api/projects'] });
       toast({
         title: "¡Éxito!",
@@ -99,7 +108,7 @@ export default function CreateProject() {
       toast({
         variant: "destructive",
         title: "Error de validación",
-        description: "Por favor revisa los campos del formulario. El monto objetivo debe ser un número entero mayor a 0.",
+        description: "Por favor revisa los campos del formulario.",
       });
       return;
     }
@@ -139,6 +148,57 @@ export default function CreateProject() {
                       placeholder="Cuéntanos sobre la celebración y los planes para el regalo..."
                       {...field}
                     />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="image_url"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Imagen del Proyecto (Opcional)</FormLabel>
+                  <FormControl>
+                    <div className="flex flex-col gap-2">
+                      <UploadButton
+                        endpoint="imageUploader"
+                        onClientUploadComplete={(res) => {
+                          if (res?.[0]) {
+                            field.onChange(res[0].url);
+                            toast({
+                              title: "Imagen subida",
+                              description: "La imagen se ha subido correctamente",
+                            });
+                          }
+                        }}
+                        onUploadError={(error: Error) => {
+                          toast({
+                            variant: "destructive",
+                            title: "Error",
+                            description: error.message,
+                          });
+                        }}
+                      />
+                      {field.value && (
+                        <div className="relative w-32 h-32">
+                          <img
+                            src={field.value}
+                            alt="Preview"
+                            className="w-full h-full object-cover rounded-lg"
+                          />
+                          <Button
+                            variant="destructive"
+                            size="icon"
+                            className="absolute top-1 right-1"
+                            onClick={() => field.onChange("")}
+                          >
+                            ×
+                          </Button>
+                        </div>
+                      )}
+                    </div>
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -186,8 +246,8 @@ export default function CreateProject() {
       ),
     },
     {
-      title: "Meta",
-      description: "Establece tu meta de recolección",
+      title: "Meta y Método de Pago",
+      description: "Establece tu meta de recolección y cómo recibirás el dinero",
       content: (
         <Form {...form}>
           <form className="space-y-4">
@@ -206,7 +266,6 @@ export default function CreateProject() {
                       {...field}
                       onChange={(e) => {
                         const value = e.target.value;
-                        // Solo permitir números enteros
                         const intValue = parseInt(value);
                         if (value === "" || isNaN(intValue)) {
                           field.onChange(undefined);
@@ -214,6 +273,66 @@ export default function CreateProject() {
                           field.onChange(intValue);
                         }
                       }}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="payment_method"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Método de Pago</FormLabel>
+                  <FormControl>
+                    <RadioGroup
+                      onValueChange={field.onChange}
+                      value={field.value}
+                      className="flex flex-col gap-2"
+                    >
+                      <FormItem className="flex items-center space-x-3 space-y-0">
+                        <FormControl>
+                          <RadioGroupItem value="cbu" />
+                        </FormControl>
+                        <FormLabel className="font-normal">
+                          CBU
+                        </FormLabel>
+                      </FormItem>
+                      <FormItem className="flex items-center space-x-3 space-y-0">
+                        <FormControl>
+                          <RadioGroupItem value="efectivo" />
+                        </FormControl>
+                        <FormLabel className="font-normal">
+                          Efectivo
+                        </FormLabel>
+                      </FormItem>
+                    </RadioGroup>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="payment_details"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>
+                    {field.value === "cbu"
+                      ? "Número de CBU"
+                      : "Detalles para la entrega del efectivo"}
+                  </FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder={
+                        field.value === "cbu"
+                          ? "Ingresa tu CBU"
+                          : "Especifica cómo y dónde se entregará el efectivo"
+                      }
+                      {...field}
                     />
                   </FormControl>
                   <FormMessage />

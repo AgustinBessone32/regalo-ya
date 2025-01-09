@@ -25,6 +25,7 @@ export const projects = pgTable("projects", {
   id: serial("id").primaryKey(),
   title: text("title").notNull(),
   description: text("description"),
+  image_url: text("image_url"),
   target_amount: integer("target_amount").notNull(),
   current_amount: integer("current_amount").default(0),
   event_date: timestamp("event_date"),
@@ -32,6 +33,8 @@ export const projects = pgTable("projects", {
   creator_id: integer("creator_id").references(() => users.id).notNull(),
   is_public: boolean("is_public").default(false),
   invitation_token: text("invitation_token").notNull(),
+  payment_method: text("payment_method", { enum: ["cbu", "efectivo"] }).notNull(),
+  payment_details: text("payment_details"),
   created_at: timestamp("created_at").defaultNow(),
 });
 
@@ -39,12 +42,17 @@ export const projects = pgTable("projects", {
 export const insertProjectSchema = z.object({
   title: z.string().min(3, "El título debe tener al menos 3 caracteres"),
   description: z.string().min(10, "La descripción debe tener al menos 10 caracteres"),
+  image_url: z.string().optional().nullable(),
   target_amount: z.number().min(1, "El monto objetivo debe ser mayor a 0"),
   location: z.string().optional().nullable(),
   event_date: z.string().optional().nullable(),
   is_public: z.boolean().default(false),
   creator_id: z.number(),
   invitation_token: z.string(),
+  payment_method: z.enum(["cbu", "efectivo"], {
+    required_error: "Debes seleccionar un método de pago",
+  }),
+  payment_details: z.string().min(1, "Debes proporcionar los detalles del pago"),
 });
 
 export type Project = typeof projects.$inferSelect;
