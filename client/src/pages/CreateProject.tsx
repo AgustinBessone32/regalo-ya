@@ -14,10 +14,11 @@ import { useToast } from "@/hooks/use-toast";
 import { WizardForm } from "@/components/WizardForm";
 import { useUser } from "@/hooks/use-user";
 import { UploadButton } from "@/components/ui/upload-button";
+import { Loader2 } from "lucide-react";
 
 const projectSchema = z.object({
   title: z.string().min(3, "El título debe tener al menos 3 caracteres"),
-  description: z.string().min(10, "La descripción debe tener al menos 10 caracteres y explicar el propósito del proyecto"),
+  description: z.string().min(10, "La descripción debe tener al menos 10 caracteres"),
   image_url: z.string().optional(),
   target_amount: z.coerce
     .number()
@@ -32,11 +33,20 @@ const projectSchema = z.object({
   payment_details: z.string().min(1, "Debes proporcionar los detalles del pago"),
 });
 
+type ImageUploadState = {
+  isUploading: boolean;
+  preview: string | null;
+};
+
 export default function CreateProject() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const { user } = useUser();
   const queryClient = useQueryClient();
+  const [imageUpload, setImageUpload] = useState<ImageUploadState>({
+    isUploading: false,
+    preview: null
+  });
 
   if (!user) {
     setLocation("/");
@@ -60,22 +70,17 @@ export default function CreateProject() {
 
   const createProjectMutation = useMutation({
     mutationFn: async (data: z.infer<typeof projectSchema>) => {
-      console.log("Enviando datos al servidor:", data);
       const response = await fetch("/api/projects", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          ...data,
-          target_amount: Number(data.target_amount),
-        }),
+        body: JSON.stringify(data),
         credentials: "include",
       });
 
       if (!response.ok) {
         const errorData = await response.json();
-        console.error("Error del servidor:", errorData);
         throw new Error(errorData.message || "Error al crear el proyecto");
       }
 
@@ -98,22 +103,20 @@ export default function CreateProject() {
     },
   });
 
-  const handleSubmit = async () => {
+  const handleSubmit = () => {
     const values = form.getValues();
-    console.log("Valores del formulario:", values);
+    const result = projectSchema.safeParse(values);
 
-    const validationResult = projectSchema.safeParse(values);
-    if (!validationResult.success) {
-      console.error("Error de validación:", validationResult.error);
+    if (!result.success) {
       toast({
         variant: "destructive",
         title: "Error de validación",
-        description: "Por favor revisa los campos del formulario.",
+        description: "Por favor revisa los campos del formulario",
       });
       return;
     }
 
-    createProjectMutation.mutate(validationResult.data);
+    createProjectMutation.mutate(result.data);
   };
 
   const steps = [
@@ -145,7 +148,7 @@ export default function CreateProject() {
                   <FormLabel>Descripción</FormLabel>
                   <FormControl>
                     <Textarea
-                      placeholder="Cuéntanos sobre la celebración y los planes para el regalo..."
+                      placeholder="Cuéntanos sobre la celebración y los planes para el regalo (mínimo 10 caracteres)"
                       {...field}
                     />
                   </FormControl>
@@ -162,37 +165,60 @@ export default function CreateProject() {
                   <FormLabel>Imagen del Proyecto (Opcional)</FormLabel>
                   <FormControl>
                     <div className="flex flex-col gap-2">
-                      <UploadButton
-                        endpoint="imageUploader"
-                        onClientUploadComplete={(res) => {
-                          if (res?.[0]) {
-                            field.onChange(res[0].url);
-                            toast({
-                              title: "Imagen subida",
-                              description: "La imagen se ha subido correctamente",
+                      {imageUpload.isUploading ? (
+                        <div className="flex items-center justify-center p-4 border-2 border-dashed rounded-lg">
+                          <div className="flex flex-col items-center gap-2">
+                            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                            <p className="text-sm text-muted-foreground">Subiendo imagen...</p>
+                          </div>
+                        </div>
+                      ) : (
+                        <UploadButton
+                          endpoint="imageUploader"
+                          onUploadBegin={() => {
+                            setImageUpload(prev => ({ ...prev, isUploading: true }));
+                          }}
+                          onClientUploadComplete={(res) => {
+                            setImageUpload({
+                              isUploading: false,
+                              preview: res?.[0]?.url || null
                             });
-                          }
-                        }}
-                        onUploadError={(error: Error) => {
-                          toast({
-                            variant: "destructive",
-                            title: "Error",
-                            description: error.message,
-                          });
-                        }}
-                      />
-                      {field.value && (
+                            if (res?.[0]) {
+                              field.onChange(res[0].url);
+                              toast({
+                                title: "Imagen subida",
+                                description: "La imagen se ha subido correctamente",
+                              });
+                            }
+                          }}
+                          onUploadError={(error: Error) => {
+                            setImageUpload({
+                              isUploading: false,
+                              preview: null
+                            });
+                            toast({
+                              variant: "destructive",
+                              title: "Error",
+                              description: error.message,
+                            });
+                          }}
+                        />
+                      )}
+                      {imageUpload.preview && !imageUpload.isUploading && (
                         <div className="relative w-32 h-32">
                           <img
-                            src={field.value}
+                            src={imageUpload.preview}
                             alt="Preview"
                             className="w-full h-full object-cover rounded-lg"
                           />
                           <Button
                             variant="destructive"
                             size="icon"
-                            className="absolute top-1 right-1"
-                            onClick={() => field.onChange("")}
+                            className="absolute top-1 right-1 h-6 w-6"
+                            onClick={() => {
+                              field.onChange("");
+                              setImageUpload(prev => ({ ...prev, preview: null }));
+                            }}
                           >
                             ×
                           </Button>
@@ -321,14 +347,14 @@ export default function CreateProject() {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>
-                    {field.value === "cbu"
+                    {form.watch("payment_method") === "cbu"
                       ? "Número de CBU"
                       : "Detalles para la entrega del efectivo"}
                   </FormLabel>
                   <FormControl>
                     <Input
                       placeholder={
-                        field.value === "cbu"
+                        form.watch("payment_method") === "cbu"
                           ? "Ingresa tu CBU"
                           : "Especifica cómo y dónde se entregará el efectivo"
                       }

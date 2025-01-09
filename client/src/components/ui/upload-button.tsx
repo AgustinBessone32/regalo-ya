@@ -9,12 +9,14 @@ type UploadButtonProps = {
   endpoint: keyof OurFileRouter;
   onClientUploadComplete?: (res: any) => void;
   onUploadError?: (error: Error) => void;
+  onUploadBegin?: () => void;
 };
 
 export function UploadButton({
   endpoint,
   onClientUploadComplete,
-  onUploadError
+  onUploadError,
+  onUploadBegin
 }: UploadButtonProps) {
   const { startUpload, permittedFileInfo } = useUploadThing(endpoint, {
     onClientUploadComplete,
@@ -27,12 +29,13 @@ export function UploadButton({
       if (!files?.length) return;
 
       try {
+        onUploadBegin?.();
         await startUpload(Array.from(files));
       } catch (err) {
         onUploadError?.(err as Error);
       }
     },
-    [startUpload, onUploadError]
+    [startUpload, onUploadError, onUploadBegin]
   );
 
   return (
