@@ -47,6 +47,7 @@
     "@types/multer": "^1.4.12",
     "@types/pg": "^8.11.10",
     "@uploadthing/react": "^6.8.0",
+    "@uploadthing/shared": "^7.1.5",
     "canvas-confetti": "^1.9.3",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",
