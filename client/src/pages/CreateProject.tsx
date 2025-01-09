@@ -20,13 +20,15 @@ const projectSchema = z.object({
   title: z.string().min(3, "El título debe tener al menos 3 caracteres"),
   description: z.string().min(10, "La descripción debe tener al menos 10 caracteres"),
   image_url: z.string().optional(),
-  target_amount: z.coerce.number().min(1, "El monto objetivo debe ser mayor a 0"),
+  target_amount: z.number().min(1, "El monto objetivo debe ser mayor a 0"),
   location: z.string().optional(),
   event_date: z.string().optional(),
   is_public: z.boolean().default(false),
   payment_method: z.enum(["cbu", "efectivo"]),
   payment_details: z.string().min(1, "Debes proporcionar los detalles del pago"),
 });
+
+type FormData = z.infer<typeof projectSchema>;
 
 type ImageUploadState = {
   isUploading: boolean;
@@ -43,7 +45,7 @@ export default function CreateProject() {
     preview: null,
   });
 
-  const form = useForm<z.infer<typeof projectSchema>>({
+  const form = useForm<FormData>({
     resolver: zodResolver(projectSchema),
     defaultValues: {
       title: "",
@@ -53,13 +55,13 @@ export default function CreateProject() {
       location: "",
       event_date: "",
       is_public: false,
-      payment_method: undefined,
+      payment_method: "cbu",
       payment_details: "",
     },
   });
 
   const createProjectMutation = useMutation({
-    mutationFn: async (data: z.infer<typeof projectSchema>) => {
+    mutationFn: async (data: FormData) => {
       const response = await fetch("/api/projects", {
         method: "POST",
         headers: {
@@ -70,8 +72,8 @@ export default function CreateProject() {
       });
 
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || "Error al crear el proyecto");
+        const error = await response.text();
+        throw new Error(error);
       }
 
       return response.json();
@@ -95,19 +97,19 @@ export default function CreateProject() {
 
   const handleSubmit = () => {
     const values = form.getValues();
-    const result = projectSchema.safeParse({
+    const formData = {
       ...values,
       target_amount: Number(values.target_amount),
-    });
+    };
+
+    const result = projectSchema.safeParse(formData);
 
     if (!result.success) {
       const errors = result.error.errors;
-      const errorMessages = errors.map(err => `${err.path.join('.')}: ${err.message}`).join('\n');
-
       toast({
         variant: "destructive",
         title: "Error de validación",
-        description: "Por favor revisa los siguientes campos:\n" + errorMessages,
+        description: errors.map(err => `${err.message}`).join('\n'),
       });
       return;
     }
@@ -149,7 +151,7 @@ export default function CreateProject() {
                   <FormLabel>Descripción</FormLabel>
                   <FormControl>
                     <Textarea
-                      placeholder="Cuéntanos sobre la celebración y los planes para el regalo (mínimo 10 caracteres)"
+                      placeholder="Cuéntanos sobre la celebración y los planes para el regalo"
                       {...field}
                     />
                   </FormControl>
@@ -290,6 +292,10 @@ export default function CreateProject() {
                       min="1"
                       placeholder="0"
                       {...field}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        field.onChange(value === "" ? 0 : Number(value));
+                      }}
                     />
                   </FormControl>
                   <FormMessage />
