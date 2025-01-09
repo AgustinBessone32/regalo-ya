@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useLocation } from "wouter";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { z } from "zod";
 import { Card, CardContent } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
@@ -29,6 +29,7 @@ export default function CreateProject() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const { user } = useUser();
+  const queryClient = useQueryClient();
 
   if (!user) {
     setLocation("/");
@@ -71,6 +72,8 @@ export default function CreateProject() {
       return response.json();
     },
     onSuccess: (data) => {
+      // Invalidar la caché de proyectos para que se actualice la lista
+      queryClient.invalidateQueries({ queryKey: ['/api/projects'] });
       toast({
         title: "¡Éxito!",
         description: "Proyecto creado correctamente",
