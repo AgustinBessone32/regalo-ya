@@ -22,7 +22,7 @@ export function registerRoutes(app: Express): Server {
     },
   });
 
-  app.post("/api/uploadthing", uploadthingHandler);
+  app.use("/api/uploadthing", uploadthingHandler);
 
   // Ruta de estado para verificar que el servidor está funcionando
   app.get("/api/health", (req, res) => {
