@@ -22,7 +22,7 @@ const projectSchema = z.object({
   image_url: z.string().optional(),
   target_amount: z.number().min(1, "El monto objetivo debe ser mayor a 0"),
   location: z.string().optional(),
-  event_date: z.string().optional(),
+  event_date: z.string().optional().transform(val => val || null),
   is_public: z.boolean().default(false),
   payment_method: z.enum(["cbu", "efectivo"]),
   payment_details: z.string().min(1, "Debes proporcionar los detalles del pago"),
@@ -67,7 +67,11 @@ export default function CreateProject() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(data),
+        body: JSON.stringify({
+          ...data,
+          target_amount: Number(data.target_amount),
+          event_date: data.event_date || null,
+        }),
         credentials: "include",
       });
 
@@ -100,6 +104,7 @@ export default function CreateProject() {
     const formData = {
       ...values,
       target_amount: Number(values.target_amount),
+      event_date: values.event_date || null,
     };
 
     const result = projectSchema.safeParse(formData);
@@ -109,7 +114,7 @@ export default function CreateProject() {
       toast({
         variant: "destructive",
         title: "Error de validación",
-        description: errors.map(err => `${err.message}`).join('\n'),
+        description: errors.map(err => err.message).join('\n'),
       });
       return;
     }
