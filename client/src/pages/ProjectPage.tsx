@@ -1,4 +1,4 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { useParams, useLocation } from "wouter";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -20,6 +20,8 @@ import { useNotifications } from "@/hooks/use-notifications";
 import { BudgetAnalytics } from "@/components/BudgetAnalytics";
 import { MetaTags } from "@/components/MetaTags";
 import { EmojiReaction } from "@/components/EmojiReaction";
+import { useEffect } from "react";
+import { useUser } from "@/hooks/use-user";
 
 const contributionSchema = z.object({
   amount: z.coerce.number().min(1, "Amount must be greater than 0"),
@@ -44,16 +46,18 @@ type ProjectWithDetails = Project & {
 };
 
 export default function ProjectPage() {
-  const { id } = useParams();
+  const { id } = useParams<{ id: string }>();
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { user } = useUser();
 
   // Generate the full shareable URL
   const shareableUrl = `${window.location.origin}/projects/${id}`;
 
-  const { data: project, isLoading } = useQuery<ProjectWithDetails>({
+  const { data: project, isLoading, error } = useQuery<ProjectWithDetails>({
     queryKey: [`/api/projects/${id}`],
+    enabled: !!id,
   });
 
   const form = useForm<z.infer<typeof contributionSchema>>({
@@ -116,7 +120,7 @@ export default function ProjectPage() {
   const handleNotificationToggle = async () => {
     if (permission !== 'granted') {
       const granted = await requestPermission();
-      if (granted && project.event_date) {
+      if (granted && project?.event_date) {
         scheduleNotification(
           new Date(project.event_date),
           [1, 7, 30],
@@ -144,9 +148,51 @@ export default function ProjectPage() {
     );
   }
 
+  if (error) {
+    toast({
+      variant: "destructive",
+      title: "Error",
+      description: "No se pudo cargar el proyecto",
+    });
+    return (
+      <div className="flex items-center justify-center min-h-[50vh]">
+        <Card>
+          <CardContent className="pt-6">
+            <p className="text-center text-muted-foreground">
+              No se pudo cargar el proyecto
+            </p>
+            <Button
+              className="mt-4"
+              variant="outline"
+              onClick={() => setLocation("/")}
+            >
+              Volver al inicio
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   if (!project) {
-    setLocation("/");
-    return null;
+    return (
+      <div className="flex items-center justify-center min-h-[50vh]">
+        <Card>
+          <CardContent className="pt-6">
+            <p className="text-center text-muted-foreground">
+              Proyecto no encontrado
+            </p>
+            <Button
+              className="mt-4"
+              variant="outline"
+              onClick={() => setLocation("/")}
+            >
+              Volver al inicio
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
   }
 
   const currentAmount = project.current_amount ?? 0;
