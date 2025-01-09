@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { CalendarIcon, MapPinIcon } from "lucide-react";
 import { format } from "date-fns";
 import { es } from 'date-fns/locale';
-import { Link } from "wouter";
+import { useLocation } from "wouter";
 import type { Project } from "@db/schema";
 import { CountdownTimer } from "./CountdownTimer";
 import { ShareButton } from "./ShareButton";
@@ -16,6 +16,7 @@ type ProjectCardProps = {
 };
 
 export default function ProjectCard({ project }: ProjectCardProps) {
+  const [, setLocation] = useLocation();
   const currentAmount = project.current_amount ?? 0;
   const progress = (currentAmount / (project.target_amount || 1)) * 100;
 
@@ -61,9 +62,9 @@ export default function ProjectCard({ project }: ProjectCardProps) {
         </div>
       </CardContent>
       <CardFooter className="flex justify-between gap-2">
-        <Link href={`/projects/${project.id}`}>
-          <Button>Ver Proyecto</Button>
-        </Link>
+        <Button onClick={() => setLocation(`/projects/${project.id}`)}>
+          Ver Proyecto
+        </Button>
 
         <ShareButton
           title={project.title}
