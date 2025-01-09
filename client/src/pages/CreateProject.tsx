@@ -20,15 +20,12 @@ const projectSchema = z.object({
   title: z.string().min(3, "El título debe tener al menos 3 caracteres"),
   description: z.string().min(10, "La descripción debe tener al menos 10 caracteres"),
   image_url: z.string().optional(),
-  target_amount: z.coerce
-    .number()
-    .int("El monto debe ser un número entero")
-    .min(1, "El monto objetivo debe ser mayor a 0"),
+  target_amount: z.coerce.number().min(1, "El monto objetivo debe ser mayor a 0"),
   location: z.string().optional(),
   event_date: z.string().optional(),
   is_public: z.boolean().default(false),
   payment_method: z.enum(["cbu", "efectivo"], {
-    required_error: "Debes seleccionar un método de pago"
+    required_error: "Debes seleccionar un método de pago",
   }),
   payment_details: z.string().min(1, "Debes proporcionar los detalles del pago"),
 });
@@ -45,13 +42,8 @@ export default function CreateProject() {
   const queryClient = useQueryClient();
   const [imageUpload, setImageUpload] = useState<ImageUploadState>({
     isUploading: false,
-    preview: null
+    preview: null,
   });
-
-  if (!user) {
-    setLocation("/");
-    return null;
-  }
 
   const form = useForm<z.infer<typeof projectSchema>>({
     resolver: zodResolver(projectSchema),
@@ -59,7 +51,7 @@ export default function CreateProject() {
       title: "",
       description: "",
       image_url: "",
-      target_amount: undefined,
+      target_amount: 0,
       location: "",
       event_date: "",
       is_public: false,
@@ -108,10 +100,13 @@ export default function CreateProject() {
     const result = projectSchema.safeParse(values);
 
     if (!result.success) {
+      const errors = result.error.errors;
+      const errorMessages = errors.map(err => `${err.path.join('.')}: ${err.message}`).join('\n');
+
       toast({
         variant: "destructive",
         title: "Error de validación",
-        description: "Por favor revisa los campos del formulario",
+        description: "Por favor revisa los siguientes campos:\n" + errorMessages,
       });
       return;
     }
@@ -119,13 +114,18 @@ export default function CreateProject() {
     createProjectMutation.mutate(result.data);
   };
 
+  if (!user) {
+    setLocation("/");
+    return null;
+  }
+
   const steps = [
     {
       title: "Información Básica",
       description: "Comencemos con la información básica sobre el proyecto",
       content: (
         <Form {...form}>
-          <form className="space-y-4">
+          <form className="space-y-4" onSubmit={(e) => e.preventDefault()}>
             <FormField
               control={form.control}
               name="title"
@@ -239,7 +239,7 @@ export default function CreateProject() {
       description: "¿Cuándo y dónde es la celebración?",
       content: (
         <Form {...form}>
-          <form className="space-y-4">
+          <form className="space-y-4" onSubmit={(e) => e.preventDefault()}>
             <FormField
               control={form.control}
               name="event_date"
@@ -276,7 +276,7 @@ export default function CreateProject() {
       description: "Establece tu meta de recolección y cómo recibirás el dinero",
       content: (
         <Form {...form}>
-          <form className="space-y-4">
+          <form className="space-y-4" onSubmit={(e) => e.preventDefault()}>
             <FormField
               control={form.control}
               name="target_amount"
@@ -286,18 +286,12 @@ export default function CreateProject() {
                   <FormControl>
                     <Input
                       type="number"
-                      inputMode="numeric"
                       min="1"
                       placeholder="0"
                       {...field}
                       onChange={(e) => {
                         const value = e.target.value;
-                        const intValue = parseInt(value);
-                        if (value === "" || isNaN(intValue)) {
-                          field.onChange(undefined);
-                        } else {
-                          field.onChange(intValue);
-                        }
+                        field.onChange(value ? parseInt(value) : "");
                       }}
                     />
                   </FormControl>

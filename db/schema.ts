@@ -9,7 +9,6 @@ export const users = pgTable("users", {
   created_at: timestamp("created_at").defaultNow(),
 });
 
-// Export schemas for validation
 export const insertUserSchema = createInsertSchema(users, {
   username: z.string().min(3, "El nombre de usuario debe tener al menos 3 caracteres"),
   password: z.string().min(6, "La contraseña debe tener al menos 6 caracteres"),
@@ -17,14 +16,13 @@ export const insertUserSchema = createInsertSchema(users, {
 
 export const selectUserSchema = createSelectSchema(users);
 
-// Export types
 export type User = typeof users.$inferSelect;
 export type InsertUser = typeof users.$inferInsert;
 
 export const projects = pgTable("projects", {
   id: serial("id").primaryKey(),
   title: text("title").notNull(),
-  description: text("description"),
+  description: text("description").notNull(),
   image_url: text("image_url"),
   target_amount: integer("target_amount").notNull(),
   current_amount: integer("current_amount").default(0),
@@ -34,13 +32,13 @@ export const projects = pgTable("projects", {
   is_public: boolean("is_public").default(false),
   invitation_token: text("invitation_token").notNull(),
   payment_method: text("payment_method", { enum: ["cbu", "efectivo"] }).notNull(),
-  payment_details: text("payment_details"),
+  payment_details: text("payment_details").notNull(),
   created_at: timestamp("created_at").defaultNow(),
 });
 
 export const insertProjectSchema = z.object({
   title: z.string().min(3, "El título debe tener al menos 3 caracteres"),
-  description: z.string().min(10, "La descripción debe tener al menos 10 caracteres").nullable(),
+  description: z.string().min(10, "La descripción debe tener al menos 10 caracteres"),
   image_url: z.string().optional().nullable(),
   target_amount: z.number().min(1, "El monto objetivo debe ser mayor a 0"),
   location: z.string().optional().nullable(),
@@ -56,19 +54,6 @@ export const insertProjectSchema = z.object({
 
 export type Project = typeof projects.$inferSelect;
 export type InsertProject = typeof projects.$inferInsert;
-export type UserProject = typeof userProjects.$inferSelect;
-export type Contribution = typeof contributions.$inferSelect;
-export type Reaction = typeof reactions.$inferSelect;
-export type Share = typeof shares.$inferSelect;
-
-export const userProjects = pgTable("user_projects", {
-  id: serial("id").primaryKey(),
-  user_id: integer("user_id").references(() => users.id).notNull(),
-  project_id: integer("project_id").references(() => projects.id).notNull(),
-  role: text("role", { enum: ["creator", "invited"] }).notNull(),
-  status: text("status", { enum: ["pending", "accepted"] }).notNull(),
-  created_at: timestamp("created_at").defaultNow(),
-});
 
 export const contributions = pgTable("contributions", {
   id: serial("id").primaryKey(),
@@ -79,6 +64,8 @@ export const contributions = pgTable("contributions", {
   created_at: timestamp("created_at").defaultNow(),
 });
 
+export type Contribution = typeof contributions.$inferSelect;
+
 export const reactions = pgTable("reactions", {
   id: serial("id").primaryKey(),
   project_id: integer("project_id").references(() => projects.id).notNull(),
@@ -87,9 +74,13 @@ export const reactions = pgTable("reactions", {
   created_at: timestamp("created_at").defaultNow(),
 });
 
+export type Reaction = typeof reactions.$inferSelect;
+
 export const shares = pgTable("shares", {
   id: serial("id").primaryKey(),
   project_id: integer("project_id").references(() => projects.id).notNull(),
   platform: text("platform").notNull(),
   created_at: timestamp("created_at").defaultNow(),
 });
+
+export type Share = typeof shares.$inferSelect;
