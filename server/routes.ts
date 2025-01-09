@@ -36,6 +36,47 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
+  // Ruta para obtener un proyecto específico
+  app.get("/api/projects/:id", async (req, res) => {
+    try {
+      const projectId = parseInt(req.params.id);
+      if (isNaN(projectId)) {
+        return res.status(400).send("ID de proyecto inválido");
+      }
+
+      const [project] = await db
+        .select()
+        .from(projects)
+        .where(eq(projects.id, projectId))
+        .limit(1);
+
+      if (!project) {
+        return res.status(404).send("Proyecto no encontrado");
+      }
+
+      // Por ahora, devolvemos el proyecto sin datos adicionales
+      res.json({
+        ...project,
+        creator: { username: "Usuario" }, // Esto debería obtenerse de la base de datos
+        contributions: [],
+        reactions: [],
+        shares: {
+          total: 0,
+          by_platform: []
+        },
+        avg_amount: 0,
+        median_amount: 0,
+        min_amount: 0,
+        max_amount: 0,
+        total_contributions: 0,
+        contribution_history: []
+      });
+    } catch (error: any) {
+      console.error("Error fetching project:", error);
+      res.status(500).send(error.message || "Error al obtener el proyecto");
+    }
+  });
+
   // Ruta para crear un nuevo proyecto
   app.post("/api/projects", async (req, res) => {
     try {
