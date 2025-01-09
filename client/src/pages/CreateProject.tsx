@@ -24,9 +24,7 @@ const projectSchema = z.object({
   location: z.string().optional(),
   event_date: z.string().optional(),
   is_public: z.boolean().default(false),
-  payment_method: z.enum(["cbu", "efectivo"], {
-    required_error: "Debes seleccionar un método de pago",
-  }),
+  payment_method: z.enum(["cbu", "efectivo"]),
   payment_details: z.string().min(1, "Debes proporcionar los detalles del pago"),
 });
 
@@ -97,7 +95,10 @@ export default function CreateProject() {
 
   const handleSubmit = () => {
     const values = form.getValues();
-    const result = projectSchema.safeParse(values);
+    const result = projectSchema.safeParse({
+      ...values,
+      target_amount: Number(values.target_amount),
+    });
 
     if (!result.success) {
       const errors = result.error.errors;
@@ -289,10 +290,6 @@ export default function CreateProject() {
                       min="1"
                       placeholder="0"
                       {...field}
-                      onChange={(e) => {
-                        const value = e.target.value;
-                        field.onChange(value ? parseInt(value) : "");
-                      }}
                     />
                   </FormControl>
                   <FormMessage />
