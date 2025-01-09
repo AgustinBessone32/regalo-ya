@@ -61,6 +61,7 @@ export function registerRoutes(app: Express): Server {
         ...req.body,
         creator_id: user.id,
         invitation_token: nanoid(),
+        event_date: req.body.event_date ? new Date(req.body.event_date) : null,
       };
 
       const result = insertProjectSchema.safeParse(projectData);
@@ -100,10 +101,9 @@ export function registerRoutes(app: Express): Server {
         return res.status(404).send("Proyecto no encontrado");
       }
 
-      // Por ahora, devolvemos el proyecto sin datos adicionales
       res.json({
         ...project,
-        creator: { username: "Usuario" }, // Esto debería obtenerse de la base de datos
+        creator: { username: "Usuario" },
         contributions: [],
         reactions: [],
         shares: {
@@ -122,7 +122,6 @@ export function registerRoutes(app: Express): Server {
       res.status(500).send(error.message || "Error al obtener el proyecto");
     }
   });
-
 
   const httpServer = createServer(app);
   return httpServer;
