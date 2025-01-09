@@ -38,10 +38,9 @@ export const projects = pgTable("projects", {
   created_at: timestamp("created_at").defaultNow(),
 });
 
-// Modify the project schema to match the client validation
 export const insertProjectSchema = z.object({
   title: z.string().min(3, "El título debe tener al menos 3 caracteres"),
-  description: z.string().min(10, "La descripción debe tener al menos 10 caracteres"),
+  description: z.string().min(10, "La descripción debe tener al menos 10 caracteres").nullable(),
   image_url: z.string().optional().nullable(),
   target_amount: z.number().min(1, "El monto objetivo debe ser mayor a 0"),
   location: z.string().optional().nullable(),
