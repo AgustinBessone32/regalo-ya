@@ -239,6 +239,15 @@ export default function ProjectPage() {
           <div className="space-y-6">
             <div>
               <h1 className="text-3xl font-bold mb-2">{project.title}</h1>
+              {project.image_url && (
+                <div className="relative w-full aspect-video mb-4 rounded-lg overflow-hidden">
+                  <img
+                    src={project.image_url}
+                    alt={project.title}
+                    className="object-cover w-full h-full"
+                  />
+                </div>
+              )}
               <p className="text-muted-foreground">{project.description}</p>
             </div>
 

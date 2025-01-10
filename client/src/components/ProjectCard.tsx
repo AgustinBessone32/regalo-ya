@@ -25,6 +25,16 @@ export default function ProjectCard({ project }: ProjectCardProps) {
         <CardTitle className="line-clamp-1">{project.title}</CardTitle>
       </CardHeader>
       <CardContent className="flex-1">
+        {project.image_url && (
+          <div className="relative w-full aspect-video mb-4 rounded-md overflow-hidden">
+            <img
+              src={project.image_url}
+              alt={project.title}
+              className="object-cover w-full h-full"
+            />
+          </div>
+        )}
+
         <p className="text-sm text-muted-foreground line-clamp-2 mb-4">
           {project.description}
         </p>
