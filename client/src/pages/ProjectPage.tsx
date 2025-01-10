@@ -240,11 +240,17 @@ export default function ProjectPage() {
             <div>
               <h1 className="text-3xl font-bold mb-2">{project.title}</h1>
               {project.image_url && (
-                <div className="relative w-full aspect-video mb-4 rounded-lg overflow-hidden">
+                <div className="relative w-full aspect-video mb-4 rounded-lg overflow-hidden bg-muted">
                   <img
                     src={project.image_url}
                     alt={project.title}
                     className="object-cover w-full h-full"
+                    loading="lazy"
+                    onError={(e) => {
+                      console.error('Image load error:', e);
+                      const img = e.target as HTMLImageElement;
+                      img.style.display = 'none';
+                    }}
                   />
                 </div>
               )}

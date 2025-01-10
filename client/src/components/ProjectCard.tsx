@@ -26,11 +26,17 @@ export default function ProjectCard({ project }: ProjectCardProps) {
       </CardHeader>
       <CardContent className="flex-1">
         {project.image_url && (
-          <div className="relative w-full aspect-video mb-4 rounded-md overflow-hidden">
+          <div className="relative w-full aspect-video mb-4 rounded-md overflow-hidden bg-muted">
             <img
               src={project.image_url}
               alt={project.title}
               className="object-cover w-full h-full"
+              loading="lazy"
+              onError={(e) => {
+                console.error('Image load error:', e);
+                const img = e.target as HTMLImageElement;
+                img.style.display = 'none';
+              }}
             />
           </div>
         )}
