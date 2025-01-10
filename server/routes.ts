@@ -12,7 +12,17 @@ export function registerRoutes(app: Express): Server {
   // Setup auth first so session is available for uploadthing
   setupAuth(app);
 
-  // Configure UploadThing after auth setup
+  // Configure CORS headers for all routes
+  app.use((req, res, next) => {
+    res.header('Access-Control-Allow-Origin', '*');
+    res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE');
+    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    res.header('Cross-Origin-Resource-Policy', 'cross-origin');
+    res.header('Access-Control-Allow-Credentials', 'true');
+    next();
+  });
+
+  // Configure UploadThing with proper CORS handling
   const uploadthingHandler = createUploadthingExpressHandler({
     router: ourFileRouter,
     config: {
@@ -20,15 +30,6 @@ export function registerRoutes(app: Express): Server {
       uploadthingSecret: process.env.UPLOADTHING_SECRET!,
       isDev: process.env.NODE_ENV === "development",
     },
-  });
-
-  // Register UploadThing routes with proper CORS handling
-  app.use((req, res, next) => {
-    res.header('Access-Control-Allow-Origin', req.headers.origin);
-    res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE');
-    res.header('Access-Control-Allow-Headers', 'Content-Type');
-    res.header('Access-Control-Allow-Credentials', 'true');
-    next();
   });
 
   app.use("/api/uploadthing", uploadthingHandler);
