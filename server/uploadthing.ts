@@ -18,23 +18,36 @@ const f = createUploadthing();
 export const ourFileRouter = {
   imageUploader: f({ image: { maxFileSize: "4MB", maxFileCount: 1 } })
     .middleware(async ({ req }) => {
-      console.log("Upload middleware - checking auth"); // Add logging
-      const user = req.session?.passport?.user;
-      if (!user) {
-        throw new Error("Unauthorized");
+      // Authorization check
+      if (!req.session?.passport?.user) {
+        throw new Error("Unauthorized - Please log in to upload images");
       }
 
-      return { userId: user };
+      return { userId: req.session.passport.user };
     })
     .onUploadComplete(async ({ metadata, file }) => {
-      console.log("Upload complete for userId:", metadata.userId);
-      console.log("File details:", {
-        url: file.url,
-        name: file.name,
-        size: file.size,
-      });
+      try {
+        console.log("Upload completed for user:", metadata.userId);
+        console.log("File details:", {
+          name: file.name,
+          size: file.size,
+          key: file.key,
+          url: file.url
+        });
 
-      return { url: file.url };
+        if (!file.url) {
+          throw new Error("No URL returned from upload");
+        }
+
+        return { 
+          url: file.url,
+          size: file.size,
+          name: file.name
+        };
+      } catch (error) {
+        console.error("Upload processing error:", error);
+        throw error;
+      }
     }),
 } satisfies FileRouter;
 
