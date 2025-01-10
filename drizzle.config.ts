@@ -13,5 +13,5 @@ export default defineConfig({
     connectionString: process.env.DATABASE_URL,
   },
   verbose: true,
-  strict: true,
+  strict: true
 });
