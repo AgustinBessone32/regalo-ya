@@ -9,10 +9,10 @@ import { createUploadthingExpressHandler } from "uploadthing/express";
 import { ourFileRouter } from "./uploadthing";
 
 export function registerRoutes(app: Express): Server {
-  // Configurar autenticación
+  // Setup auth first so session is available for uploadthing
   setupAuth(app);
 
-  // Configurar UploadThing
+  // Configure UploadThing after auth setup
   const uploadthingHandler = createUploadthingExpressHandler({
     router: ourFileRouter,
     config: {

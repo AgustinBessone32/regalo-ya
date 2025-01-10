@@ -187,12 +187,14 @@ export default function CreateProject() {
                             setImageUpload(prev => ({ ...prev, isUploading: true }));
                           }}
                           onClientUploadComplete={(res) => {
+                            console.log("Upload completed:", res); 
+                            const fileUrl = res?.[0]?.url;
                             setImageUpload({
                               isUploading: false,
-                              preview: res?.[0]?.url || null
+                              preview: fileUrl || null
                             });
-                            if (res?.[0]) {
-                              field.onChange(res[0].url);
+                            if (fileUrl) {
+                              field.onChange(fileUrl);
                               toast({
                                 title: "Imagen subida",
                                 description: "La imagen se ha subido correctamente",
@@ -200,6 +202,7 @@ export default function CreateProject() {
                             }
                           }}
                           onUploadError={(error: Error) => {
+                            console.error("Upload error:", error); 
                             setImageUpload({
                               isUploading: false,
                               preview: null
@@ -218,6 +221,11 @@ export default function CreateProject() {
                             src={imageUpload.preview}
                             alt="Preview"
                             className="w-full h-full object-cover rounded-lg"
+                            onError={(e) => {
+                              console.error("Image load error:", e); 
+                              const img = e.target as HTMLImageElement;
+                              console.log("Failed URL:", img.src);
+                            }}
                           />
                           <Button
                             variant="destructive"
