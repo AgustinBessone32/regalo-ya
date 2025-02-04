@@ -33,6 +33,9 @@ export const projects = pgTable("projects", {
   invitation_token: text("invitation_token").notNull(),
   payment_method: text("payment_method", { enum: ["cbu", "efectivo"] }).notNull(),
   payment_details: text("payment_details").notNull(),
+  fixed_amount_1: integer("fixed_amount_1"),
+  fixed_amount_2: integer("fixed_amount_2"),
+  fixed_amount_3: integer("fixed_amount_3"),
   created_at: timestamp("created_at").defaultNow(),
 });
 

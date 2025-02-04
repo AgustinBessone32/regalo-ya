@@ -334,9 +334,42 @@ export default function ProjectPage() {
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Amount ($)</FormLabel>
-                          <FormControl>
-                            <Input type="number" {...field} />
-                          </FormControl>
+                          <div className="space-y-4">
+                            {project.fixed_amount_1 || project.fixed_amount_2 || project.fixed_amount_3 ? (
+                              <div className="flex gap-2 flex-wrap">
+                                {project.fixed_amount_1 && (
+                                  <Button
+                                    type="button"
+                                    variant="outline"
+                                    onClick={() => field.onChange(project.fixed_amount_1)}
+                                  >
+                                    ${project.fixed_amount_1}
+                                  </Button>
+                                )}
+                                {project.fixed_amount_2 && (
+                                  <Button
+                                    type="button"
+                                    variant="outline"
+                                    onClick={() => field.onChange(project.fixed_amount_2)}
+                                  >
+                                    ${project.fixed_amount_2}
+                                  </Button>
+                                )}
+                                {project.fixed_amount_3 && (
+                                  <Button
+                                    type="button"
+                                    variant="outline"
+                                    onClick={() => field.onChange(project.fixed_amount_3)}
+                                  >
+                                    ${project.fixed_amount_3}
+                                  </Button>
+                                )}
+                              </div>
+                            ) : null}
+                            <FormControl>
+                              <Input type="number" {...field} placeholder="Enter custom amount" />
+                            </FormControl>
+                          </div>
                           <FormMessage />
                         </FormItem>
                       )}
