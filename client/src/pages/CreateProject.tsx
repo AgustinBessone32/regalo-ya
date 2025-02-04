@@ -193,13 +193,11 @@ export default function CreateProject() {
                               isUploading: false,
                               preview: fileUrl || null
                             });
-                            if (fileUrl) {
-                              field.onChange(fileUrl);
-                              toast({
-                                title: "Imagen subida",
-                                description: "La imagen se ha subido correctamente",
-                              });
-                            }
+                            field.onChange(fileUrl);
+                            toast({
+                              title: "Imagen subida",
+                              description: "La imagen se ha subido correctamente",
+                            });
                           }}
                           onUploadError={(error: Error) => {
                             console.error("Upload error:", error); 

@@ -73,6 +73,7 @@ export function registerRoutes(app: Express): Server {
         invitation_token: nanoid(),
         event_date: req.body.event_date ? new Date(req.body.event_date) : null,
         target_amount: Number(req.body.target_amount),
+        image_url: req.body.image_url || '',
       };
 
       console.log("Project data before validation:", projectData);
