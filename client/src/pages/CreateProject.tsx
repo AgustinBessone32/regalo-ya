@@ -274,66 +274,6 @@ export default function CreateProject() {
               )}
             />
 
-            <div className="space-y-4">
-              <h3 className="text-sm font-medium">Montos Sugeridos (Opcional)</h3>
-              <div className="grid grid-cols-3 gap-4">
-                <FormField
-                  control={form.control}
-                  name="fixed_amount_1"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Monto 1</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="number"
-                          placeholder="0"
-                          {...field}
-                          onChange={(e) => field.onChange(e.target.value === "" ? undefined : Number(e.target.value))}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="fixed_amount_2"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Monto 2</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="number"
-                          placeholder="0"
-                          {...field}
-                          onChange={(e) => field.onChange(e.target.value === "" ? undefined : Number(e.target.value))}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="fixed_amount_3"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Monto 3</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="number"
-                          placeholder="0"
-                          {...field}
-                          onChange={(e) => field.onChange(e.target.value === "" ? undefined : Number(e.target.value))}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-            </div>
-
             <FormField
               control={form.control}
               name="location"
@@ -439,6 +379,66 @@ export default function CreateProject() {
                 </FormItem>
               )}
             />
+
+            <div className="space-y-4">
+              <h3 className="text-sm font-medium">Montos Sugeridos (Opcional)</h3>
+              <div className="grid grid-cols-3 gap-4">
+                <FormField
+                  control={form.control}
+                  name="fixed_amount_1"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Monto 1</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="number"
+                          placeholder="0"
+                          {...field}
+                          onChange={(e) => field.onChange(e.target.value === "" ? undefined : Number(e.target.value))}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="fixed_amount_2"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Monto 2</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="number"
+                          placeholder="0"
+                          {...field}
+                          onChange={(e) => field.onChange(e.target.value === "" ? undefined : Number(e.target.value))}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="fixed_amount_3"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Monto 3</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="number"
+                          placeholder="0"
+                          {...field}
+                          onChange={(e) => field.onChange(e.target.value === "" ? undefined : Number(e.target.value))}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+            </div>
           </form>
         </Form>
       ),
