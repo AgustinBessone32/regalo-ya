@@ -4,7 +4,7 @@ import { setupAuth } from "./auth";
 import { db } from "@db";
 import { projects, insertProjectSchema } from "@db/schema";
 import { nanoid } from 'nanoid';
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import { createUploadthingExpressHandler } from "uploadthing/express";
 import { ourFileRouter } from "./uploadthing";
 
@@ -136,6 +136,55 @@ export function registerRoutes(app: Express): Server {
     } catch (error: any) {
       console.error("Error fetching project:", error);
       res.status(500).send(error.message || "Error fetching project");
+    }
+  });
+
+  app.post("/api/projects/:id/contribute", async (req, res) => {
+    try {
+      if (!req.isAuthenticated()) {
+        return res.status(401).send("You must be logged in to contribute");
+      }
+
+      const projectId = parseInt(req.params.id);
+      if (isNaN(projectId)) {
+        return res.status(400).json({ error: "Invalid project ID" });
+      }
+
+      const { amount, contributor_name, message } = req.body;
+
+      if (!amount || !contributor_name) {
+        return res.status(400).json({ 
+          error: "Amount and contributor name are required" 
+        });
+      }
+
+      // Update the project's current amount
+      const [updatedProject] = await db
+        .update(projects)
+        .set({
+          current_amount: sql`${projects.current_amount} + ${amount}`
+        })
+        .where(eq(projects.id, projectId))
+        .returning();
+
+      if (!updatedProject) {
+        return res.status(404).json({ error: "Project not found" });
+      }
+
+      // Return the updated project
+      res.json({
+        amount,
+        contributor_name,
+        message,
+        project_id: projectId,
+        created_at: new Date().toISOString()
+      });
+
+    } catch (error: any) {
+      console.error("Error processing contribution:", error);
+      res.status(500).json({ 
+        error: error.message || "Error processing contribution" 
+      });
     }
   });
 
