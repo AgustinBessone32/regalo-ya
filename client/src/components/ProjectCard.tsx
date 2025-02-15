@@ -25,7 +25,7 @@ export default function ProjectCard({ project }: ProjectCardProps) {
         <CardTitle className="line-clamp-1">{project.title}</CardTitle>
       </CardHeader>
       <CardContent className="flex-1">
-        {project.image_url && (
+        {project.image_url && project.image_url.trim() !== '' && (
           <div className="relative w-full aspect-video mb-4 rounded-md overflow-hidden bg-muted">
             <img
               src={project.image_url}
@@ -33,9 +33,8 @@ export default function ProjectCard({ project }: ProjectCardProps) {
               className="object-cover w-full h-full"
               loading="lazy"
               onError={(e) => {
-                console.error('Image load error:', e);
                 const img = e.target as HTMLImageElement;
-                img.style.display = 'none';
+                img.src = '/placeholder-project.png'; // Fallback to a placeholder image
               }}
             />
           </div>
@@ -77,9 +76,14 @@ export default function ProjectCard({ project }: ProjectCardProps) {
         </div>
       </CardContent>
       <CardFooter className="flex justify-between gap-2">
-        <Link href={`/projects/${project.id}`}>
-          <Button className="w-full">Ver Proyecto</Button>
-        </Link>
+        <Button
+          className="w-full"
+          asChild
+        >
+          <Link href={`/projects/${project.id}`}>
+            Ver Proyecto
+          </Link>
+        </Button>
 
         <ShareButton
           title={project.title}

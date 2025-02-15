@@ -53,7 +53,7 @@ export function registerRoutes(app: Express): Server {
         .select()
         .from(projects)
         .where(eq(projects.creator_id, user.id))
-        .orderBy(projects.created_at);
+        .orderBy(sql`${projects.created_at} DESC`);
 
       // Get all projects where user has contributed
       const contributedProjects = await db
@@ -70,7 +70,7 @@ export function registerRoutes(app: Express): Server {
           )
         )
         .groupBy(projects.id)
-        .orderBy(projects.created_at);
+        .orderBy(sql`${projects.created_at} DESC`);
 
       // Combine and deduplicate projects
       const combinedProjects = [
@@ -90,12 +90,12 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
-  // Get single project (public access if shared)
+  // Get single project (public access)
   app.get("/api/projects/:id", async (req, res) => {
     try {
       const projectId = parseInt(req.params.id);
       if (isNaN(projectId)) {
-        return res.status(400).send("Invalid project ID");
+        return res.status(400).json({ error: "Invalid project ID" });
       }
 
       const [project] = await db
@@ -105,7 +105,7 @@ export function registerRoutes(app: Express): Server {
         .limit(1);
 
       if (!project) {
-        return res.status(404).send("Project not found");
+        return res.status(404).json({ error: "Project not found" });
       }
 
       // Get project details including contributions
@@ -122,7 +122,6 @@ export function registerRoutes(app: Express): Server {
         .where(eq(users.id, project.creator_id))
         .limit(1);
 
-      // Always allow viewing the project details
       res.json({
         ...project,
         creator: { username: creator?.username || "Unknown User" },
@@ -133,7 +132,7 @@ export function registerRoutes(app: Express): Server {
           by_platform: []
         },
         avg_amount: projectContributions.reduce((sum, c) => sum + c.amount, 0) / projectContributions.length || 0,
-        median_amount: 0, // TODO: Implement proper median calculation
+        median_amount: 0,
         min_amount: Math.min(...projectContributions.map(c => c.amount), 0),
         max_amount: Math.max(...projectContributions.map(c => c.amount), 0),
         total_contributions: projectContributions.length,
@@ -141,7 +140,7 @@ export function registerRoutes(app: Express): Server {
       });
     } catch (error: any) {
       console.error("Error fetching project:", error);
-      res.status(500).send(error.message || "Error fetching project");
+      res.status(500).json({ error: error.message || "Error fetching project" });
     }
   });
 
