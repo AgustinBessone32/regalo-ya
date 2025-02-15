@@ -55,8 +55,8 @@ export default function HomePage() {
       <Tabs defaultValue="all" className="w-full">
         <TabsList className="grid w-full grid-cols-3 max-w-[400px]">
           <TabsTrigger value="all">All Projects</TabsTrigger>
-          <TabsTrigger value="my">My Projects</TabsTrigger>
-          <TabsTrigger value="contributed">Contributing</TabsTrigger>
+          <TabsTrigger value="my">My Projects ({myProjects.length})</TabsTrigger>
+          <TabsTrigger value="contributed">Contributing ({contributedProjects.length})</TabsTrigger>
         </TabsList>
 
         <TabsContent value="all" className="mt-6">
