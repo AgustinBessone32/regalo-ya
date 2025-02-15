@@ -2,7 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { setupAuth } from "./auth";
 import { db } from "@db";
-import { projects, insertProjectSchema, contributions, users } from "@db/schema"; // Added users import
+import { projects, insertProjectSchema, contributions, users } from "@db/schema";
 import { nanoid } from 'nanoid';
 import { eq, sql, and, or } from "drizzle-orm";
 import { createUploadthingExpressHandler } from "uploadthing/express";
@@ -74,13 +74,27 @@ export function registerRoutes(app: Express): Server {
 
       // Combine and deduplicate projects
       const combinedProjects = [
-        ...userProjects.map(project => ({ project, contribution_count: 0 })),
-        ...contributedProjects
+        ...userProjects.map(project => ({ 
+          project, 
+          contribution_count: 0,
+          contributions: [] 
+        })),
+        ...contributedProjects.map(item => ({
+          ...item,
+          contributions: []
+        }))
       ];
 
       // Remove duplicates based on project ID
       const uniqueProjects = Array.from(
-        new Map(combinedProjects.map(item => [item.project.id, item])).values()
+        new Map(combinedProjects.map(item => [
+          item.project.id, 
+          {
+            ...item.project,
+            contribution_count: item.contribution_count,
+            contributions: []
+          }
+        ])).values()
       );
 
       res.json(uniqueProjects);
@@ -215,7 +229,7 @@ export function registerRoutes(app: Express): Server {
         .values({
           amount,
           message,
-          contributor_name: name, // Use the provided name instead of username
+          contributor_name: name, 
           project_id: projectId,
         })
         .returning();

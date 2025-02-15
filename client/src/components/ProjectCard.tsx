@@ -10,9 +10,7 @@ import { CountdownTimer } from "./CountdownTimer";
 import { ShareButton } from "./ShareButton";
 
 type ProjectCardProps = {
-  project: Project & {
-    contributions: { amount: number }[];
-  };
+  project: Project;
 };
 
 export default function ProjectCard({ project }: ProjectCardProps) {
@@ -34,7 +32,7 @@ export default function ProjectCard({ project }: ProjectCardProps) {
               loading="lazy"
               onError={(e) => {
                 const img = e.target as HTMLImageElement;
-                img.src = '/placeholder-project.png'; // Fallback to a placeholder image
+                img.style.display = 'none';
               }}
             />
           </div>
@@ -76,7 +74,7 @@ export default function ProjectCard({ project }: ProjectCardProps) {
         </div>
       </CardContent>
       <CardFooter className="flex justify-between gap-2">
-        <Button
+        <Button 
           className="w-full"
           asChild
         >

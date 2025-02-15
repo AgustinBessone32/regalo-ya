@@ -1,19 +1,21 @@
 import { useQuery } from "@tanstack/react-query";
+import { Link } from "wouter";
 import ProjectCard from "@/components/ProjectCard";
-import { Loader2 } from "lucide-react";
+import { Loader2, Plus } from "lucide-react";
 import type { Project } from "@db/schema";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Button } from "@/components/ui/button";
 import { useUser } from "@/hooks/use-user";
 
-type ProjectWithDetails = Project & { 
-  contributions: { amount: number }[];
-  contribution_count?: number;
+type ProjectWithDetails = Project & {
+  contribution_count: number;
 };
 
 export default function HomePage() {
   const { user } = useUser();
   const { data: projects, isLoading } = useQuery<ProjectWithDetails[]>({
     queryKey: ["/api/projects"],
+    enabled: !!user,
   });
 
   if (isLoading) {
@@ -24,19 +26,30 @@ export default function HomePage() {
     );
   }
 
-  // Filter projects based on ownership and contributions
-  const myProjects = projects?.filter(project => project.creator_id === user?.id) || [];
-  const contributedProjects = projects?.filter(
-    project => project.creator_id !== user?.id && project.contribution_count && project.contribution_count > 0
-  ) || [];
+  if (!projects) {
+    return null;
+  }
+
+  const myProjects = projects.filter(p => p.creator_id === user?.id);
+  const contributedProjects = projects.filter(p => 
+    p.creator_id !== user?.id && p.contribution_count > 0
+  );
 
   return (
     <div className="space-y-8">
-      <div>
-        <h1 className="text-3xl font-bold">Birthday Projects</h1>
-        <p className="text-muted-foreground">
-          Browse and contribute to birthday gift collections
-        </p>
+      <div className="flex justify-between items-center">
+        <div>
+          <h1 className="text-3xl font-bold">Projects</h1>
+          <p className="text-muted-foreground">
+            Browse and contribute to birthday gift collections
+          </p>
+        </div>
+        <Link href="/create">
+          <Button>
+            <Plus className="mr-2 h-4 w-4" />
+            Create Project
+          </Button>
+        </Link>
       </div>
 
       <Tabs defaultValue="all" className="w-full">
@@ -47,13 +60,13 @@ export default function HomePage() {
         </TabsList>
 
         <TabsContent value="all" className="mt-6">
-          {projects?.length === 0 ? (
+          {projects.length === 0 ? (
             <div className="text-center text-muted-foreground py-8">
               No projects found. Create one to get started!
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {projects?.map((project) => (
+              {projects.map((project) => (
                 <ProjectCard key={project.id} project={project} />
               ))}
             </div>
