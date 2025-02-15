@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "wouter";
 import ProjectCard from "@/components/ProjectCard";
-import { Loader2, Plus } from "lucide-react";
+import { Loader2, Plus, Star, Heart } from "lucide-react";
 import type { Project } from "@db/schema";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
@@ -52,55 +52,74 @@ export default function HomePage() {
         </Link>
       </div>
 
-      <Tabs defaultValue="all" className="w-full">
-        <TabsList className="grid w-full grid-cols-3 max-w-[400px]">
-          <TabsTrigger value="all">All Projects</TabsTrigger>
-          <TabsTrigger value="my">My Projects ({myProjects.length})</TabsTrigger>
-          <TabsTrigger value="contributed">Contributing ({contributedProjects.length})</TabsTrigger>
-        </TabsList>
+      <div className="bg-card rounded-lg p-4 border">
+        <Tabs defaultValue="all" className="w-full">
+          <TabsList className="grid w-full grid-cols-3 max-w-[400px] mb-6">
+            <TabsTrigger value="all" className="flex items-center gap-2">
+              All Projects
+              <span className="px-2 py-0.5 text-xs bg-primary/10 rounded-full">
+                {projects.length}
+              </span>
+            </TabsTrigger>
+            <TabsTrigger value="my" className="flex items-center gap-2">
+              <Star className="w-4 h-4" />
+              My Projects
+              <span className="px-2 py-0.5 text-xs bg-primary/10 rounded-full">
+                {myProjects.length}
+              </span>
+            </TabsTrigger>
+            <TabsTrigger value="contributed" className="flex items-center gap-2">
+              <Heart className="w-4 h-4" />
+              Contributing
+              <span className="px-2 py-0.5 text-xs bg-primary/10 rounded-full">
+                {contributedProjects.length}
+              </span>
+            </TabsTrigger>
+          </TabsList>
 
-        <TabsContent value="all" className="mt-6">
-          {projects.length === 0 ? (
-            <div className="text-center text-muted-foreground py-8">
-              No projects found. Create one to get started!
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {projects.map((project) => (
-                <ProjectCard key={project.id} project={project} />
-              ))}
-            </div>
-          )}
-        </TabsContent>
+          <TabsContent value="all">
+            {projects.length === 0 ? (
+              <div className="text-center text-muted-foreground py-8">
+                No projects found. Create one to get started!
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {projects.map((project) => (
+                  <ProjectCard key={project.id} project={project} />
+                ))}
+              </div>
+            )}
+          </TabsContent>
 
-        <TabsContent value="my" className="mt-6">
-          {myProjects.length === 0 ? (
-            <div className="text-center text-muted-foreground py-8">
-              You haven't created any projects yet.
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {myProjects.map((project) => (
-                <ProjectCard key={project.id} project={project} />
-              ))}
-            </div>
-          )}
-        </TabsContent>
+          <TabsContent value="my">
+            {myProjects.length === 0 ? (
+              <div className="text-center text-muted-foreground py-8">
+                You haven't created any projects yet.
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {myProjects.map((project) => (
+                  <ProjectCard key={project.id} project={project} />
+                ))}
+              </div>
+            )}
+          </TabsContent>
 
-        <TabsContent value="contributed" className="mt-6">
-          {contributedProjects.length === 0 ? (
-            <div className="text-center text-muted-foreground py-8">
-              You haven't contributed to any projects yet.
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {contributedProjects.map((project) => (
-                <ProjectCard key={project.id} project={project} />
-              ))}
-            </div>
-          )}
-        </TabsContent>
-      </Tabs>
+          <TabsContent value="contributed">
+            {contributedProjects.length === 0 ? (
+              <div className="text-center text-muted-foreground py-8">
+                You haven't contributed to any projects yet.
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {contributedProjects.map((project) => (
+                  <ProjectCard key={project.id} project={project} />
+                ))}
+              </div>
+            )}
+          </TabsContent>
+        </Tabs>
+      </div>
     </div>
   );
 }
