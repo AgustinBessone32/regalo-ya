@@ -13,6 +13,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { useConfetti } from "@/hooks/use-confetti";
+import { useUser } from "@/hooks/use-user";
 import type { Project, Contribution } from "@db/schema";
 import { CountdownTimer } from "@/components/CountdownTimer";
 import { ShareButton } from "@/components/ShareButton";
@@ -21,11 +22,9 @@ import { BudgetAnalytics } from "@/components/BudgetAnalytics";
 import { MetaTags } from "@/components/MetaTags";
 import { EmojiReaction } from "@/components/EmojiReaction";
 import { useEffect } from "react";
-import { useUser } from "@/hooks/use-user";
 
 const contributionSchema = z.object({
   amount: z.coerce.number().min(1, "Amount must be greater than 0"),
-  contributorName: z.string().min(2, "Name must be at least 2 characters"),
   message: z.string().optional(),
 });
 
@@ -64,7 +63,6 @@ export default function ProjectPage() {
     resolver: zodResolver(contributionSchema),
     defaultValues: {
       amount: 0,
-      contributorName: "",
       message: "",
     },
   });
@@ -75,11 +73,8 @@ export default function ProjectPage() {
       const response = await fetch(`/api/projects/${id}/contribute`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          amount: data.amount,
-          message: data.message,
-        }),
-        credentials: 'include', // Important for authentication
+        body: JSON.stringify(data),
+        credentials: 'include',
       });
 
       if (!response.ok) {
@@ -108,13 +103,34 @@ export default function ProjectPage() {
       }
     },
     onError: (error: Error) => {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: error.message,
-      });
+      if (error.message.includes("must be logged in")) {
+        // Redirect to auth page if not logged in
+        toast({
+          title: "Authentication Required",
+          description: "Please log in or register to contribute to this project",
+        });
+        setLocation("/auth");
+      } else {
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: error.message,
+        });
+      }
     },
   });
+
+  const handleContribute = async (data: z.infer<typeof contributionSchema>) => {
+    if (!user) {
+      toast({
+        title: "Authentication Required",
+        description: "Please log in or register to contribute to this project",
+      });
+      setLocation("/auth");
+      return;
+    }
+    contributeMutation.mutate(data);
+  };
 
   const { permission, requestPermission, scheduleNotification } = useNotifications();
 
@@ -326,7 +342,7 @@ export default function ProjectPage() {
               <CardContent>
                 <Form {...form}>
                   <form
-                    onSubmit={form.handleSubmit((data) => contributeMutation.mutate(data))}
+                    onSubmit={form.handleSubmit(handleContribute)}
                     className="space-y-4"
                   >
                     <FormField
@@ -337,20 +353,6 @@ export default function ProjectPage() {
                           <FormLabel>Amount ($)</FormLabel>
                           <FormControl>
                             <Input type="number" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={form.control}
-                      name="contributorName"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Your Name</FormLabel>
-                          <FormControl>
-                            <Input {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -379,7 +381,7 @@ export default function ProjectPage() {
                       {contributeMutation.isPending && (
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                       )}
-                      Contribute
+                      {user ? 'Contribute' : 'Sign in to Contribute'}
                     </Button>
                   </form>
                 </Form>
