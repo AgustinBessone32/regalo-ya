@@ -70,6 +70,11 @@ export default function ProjectPage() {
   const { fire: fireConfetti } = useConfetti();
   const contributeMutation = useMutation({
     mutationFn: async (data: z.infer<typeof contributionSchema>) => {
+      if (!user) {
+        setLocation("/auth");
+        throw new Error("Authentication required");
+      }
+
       const response = await fetch(`/api/projects/${id}/contribute`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -103,13 +108,11 @@ export default function ProjectPage() {
       }
     },
     onError: (error: Error) => {
-      if (error.message.includes("must be logged in")) {
-        // Redirect to auth page if not logged in
+      if (error.message === "Authentication required") {
         toast({
           title: "Authentication Required",
           description: "Please log in or register to contribute to this project",
         });
-        setLocation("/auth");
       } else {
         toast({
           variant: "destructive",
@@ -121,14 +124,6 @@ export default function ProjectPage() {
   });
 
   const handleContribute = async (data: z.infer<typeof contributionSchema>) => {
-    if (!user) {
-      toast({
-        title: "Authentication Required",
-        description: "Please log in or register to contribute to this project",
-      });
-      setLocation("/auth");
-      return;
-    }
     contributeMutation.mutate(data);
   };
 
