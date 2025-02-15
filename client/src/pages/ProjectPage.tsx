@@ -24,6 +24,7 @@ import { EmojiReaction } from "@/components/EmojiReaction";
 import { useEffect } from "react";
 
 const contributionSchema = z.object({
+  name: z.string().min(1, "Name is required"),
   amount: z.coerce.number().min(1, "Amount must be greater than 0"),
   message: z.string().optional(),
 });
@@ -62,6 +63,7 @@ export default function ProjectPage() {
   const form = useForm<z.infer<typeof contributionSchema>>({
     resolver: zodResolver(contributionSchema),
     defaultValues: {
+      name: "",
       amount: 0,
       message: "",
     },
@@ -340,6 +342,20 @@ export default function ProjectPage() {
                     onSubmit={form.handleSubmit(handleContribute)}
                     className="space-y-4"
                   >
+                    <FormField
+                      control={form.control}
+                      name="name"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Your Name</FormLabel>
+                          <FormControl>
+                            <Input {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
                     <FormField
                       control={form.control}
                       name="amount"

@@ -197,10 +197,16 @@ export function registerRoutes(app: Express): Server {
         return res.status(400).json({ error: "Invalid project ID" });
       }
 
-      const { amount, message } = req.body;
+      const { amount, message, name } = req.body;
       if (!amount) {
         return res.status(400).json({ 
           error: "Amount is required" 
+        });
+      }
+
+      if (!name) {
+        return res.status(400).json({
+          error: "Name is required"
         });
       }
 
@@ -210,7 +216,7 @@ export function registerRoutes(app: Express): Server {
         .values({
           amount,
           message,
-          contributor_name: user.username,
+          contributor_name: name, // Use the provided name instead of username
           project_id: projectId,
         })
         .returning();
