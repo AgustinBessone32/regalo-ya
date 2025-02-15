@@ -8,11 +8,17 @@ import { useUser } from "./hooks/use-user";
 import { Button } from "./components/ui/button";
 import { useQuery } from "@tanstack/react-query";
 import ProjectCard from "./components/ProjectCard";
+import type { Project } from "@db/schema";
+
+type ProjectWithContributions = Project & {
+  contribution_count: number;
+  contributions: { amount: number }[];
+};
 
 function App() {
   const { user, isLoading } = useUser();
 
-  const { data: projects = [], isLoading: isLoadingProjects } = useQuery({
+  const { data: projects = [], isLoading: isLoadingProjects } = useQuery<ProjectWithContributions[]>({
     queryKey: ['/api/projects'],
     enabled: !!user,
   });
