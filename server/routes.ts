@@ -2,7 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { setupAuth } from "./auth";
 import { db } from "@db";
-import { projects, insertProjectSchema, contributions } from "@db/schema";
+import { projects, insertProjectSchema, contributions, users } from "@db/schema"; // Added users import
 import { nanoid } from 'nanoid';
 import { eq, sql, and, or } from "drizzle-orm";
 import { createUploadthingExpressHandler } from "uploadthing/express";
@@ -48,27 +48,42 @@ export function registerRoutes(app: Express): Server {
 
       const user = req.user as any;
 
-      // Get projects where user is creator or contributor
+      // Get all projects created by the user
       const userProjects = await db
+        .select()
+        .from(projects)
+        .where(eq(projects.creator_id, user.id))
+        .orderBy(projects.created_at);
+
+      // Get all projects where user has contributed
+      const contributedProjects = await db
         .select({
           project: projects,
           contribution_count: sql<number>`count(${contributions.id})::int`,
         })
         .from(projects)
-        .leftJoin(
+        .innerJoin(
           contributions,
-          eq(contributions.project_id, projects.id)
-        )
-        .where(
-          or(
-            eq(projects.creator_id, user.id),
+          and(
+            eq(contributions.project_id, projects.id),
             eq(contributions.contributor_name, user.username)
           )
         )
         .groupBy(projects.id)
         .orderBy(projects.created_at);
 
-      res.json(userProjects);
+      // Combine and deduplicate projects
+      const combinedProjects = [
+        ...userProjects.map(project => ({ project, contribution_count: 0 })),
+        ...contributedProjects
+      ];
+
+      // Remove duplicates based on project ID
+      const uniqueProjects = Array.from(
+        new Map(combinedProjects.map(item => [item.project.id, item])).values()
+      );
+
+      res.json(uniqueProjects);
     } catch (error: any) {
       console.error("Error fetching projects:", error);
       res.status(500).send(error.message || "Error fetching projects");
@@ -93,25 +108,6 @@ export function registerRoutes(app: Express): Server {
         return res.status(404).send("Project not found");
       }
 
-      // Check if user has access to this project
-      if (!project.is_public && req.isAuthenticated()) {
-        const user = req.user as any;
-        const [contribution] = await db
-          .select()
-          .from(contributions)
-          .where(
-            and(
-              eq(contributions.project_id, projectId),
-              eq(contributions.contributor_name, user.username)
-            )
-          )
-          .limit(1);
-
-        if (project.creator_id !== user.id && !contribution) {
-          return res.status(403).send("You don't have access to this project");
-        }
-      }
-
       // Get project details including contributions
       const projectContributions = await db
         .select()
@@ -119,21 +115,29 @@ export function registerRoutes(app: Express): Server {
         .where(eq(contributions.project_id, projectId))
         .orderBy(sql`${contributions.created_at} DESC`);
 
+      // Get creator username
+      const [creator] = await db
+        .select()
+        .from(users)
+        .where(eq(users.id, project.creator_id))
+        .limit(1);
+
+      // Always allow viewing the project details
       res.json({
         ...project,
-        creator: { username: "User" }, // TODO: Get actual creator username
+        creator: { username: creator?.username || "Unknown User" },
         contributions: projectContributions,
         reactions: [],
         shares: {
           total: 0,
           by_platform: []
         },
-        avg_amount: 0,
-        median_amount: 0,
-        min_amount: 0,
-        max_amount: 0,
+        avg_amount: projectContributions.reduce((sum, c) => sum + c.amount, 0) / projectContributions.length || 0,
+        median_amount: 0, // TODO: Implement proper median calculation
+        min_amount: Math.min(...projectContributions.map(c => c.amount), 0),
+        max_amount: Math.max(...projectContributions.map(c => c.amount), 0),
         total_contributions: projectContributions.length,
-        contribution_history: []
+        contribution_history: projectContributions.map(c => c.amount)
       });
     } catch (error: any) {
       console.error("Error fetching project:", error);
