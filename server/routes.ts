@@ -2,9 +2,9 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { setupAuth } from "./auth";
 import { db } from "@db";
-import { projects, insertProjectSchema } from "@db/schema";
+import { projects, insertProjectSchema, contributions } from "@db/schema";
 import { nanoid } from 'nanoid';
-import { eq, sql } from "drizzle-orm";
+import { eq, sql, and, or } from "drizzle-orm";
 import { createUploadthingExpressHandler } from "uploadthing/express";
 import { ourFileRouter } from "./uploadthing";
 
@@ -39,7 +39,7 @@ export function registerRoutes(app: Express): Server {
     res.json({ status: "ok", time: new Date().toISOString() });
   });
 
-  // Project routes
+  // Get list of projects (filtered by user access)
   app.get("/api/projects", async (req, res) => {
     try {
       if (!req.isAuthenticated()) {
@@ -47,10 +47,25 @@ export function registerRoutes(app: Express): Server {
       }
 
       const user = req.user as any;
+
+      // Get projects where user is creator or contributor
       const userProjects = await db
-        .select()
+        .select({
+          project: projects,
+          contribution_count: sql<number>`count(${contributions.id})::int`,
+        })
         .from(projects)
-        .where(eq(projects.creator_id, user.id))
+        .leftJoin(
+          contributions,
+          eq(contributions.project_id, projects.id)
+        )
+        .where(
+          or(
+            eq(projects.creator_id, user.id),
+            eq(contributions.contributor_name, user.username)
+          )
+        )
+        .groupBy(projects.id)
         .orderBy(projects.created_at);
 
       res.json(userProjects);
@@ -60,46 +75,7 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
-  app.post("/api/projects", async (req, res) => {
-    try {
-      if (!req.isAuthenticated()) {
-        return res.status(401).send("You must be logged in to create a project");
-      }
-
-      const user = req.user as any;
-      const projectData = {
-        ...req.body,
-        creator_id: user.id,
-        invitation_token: nanoid(),
-        event_date: req.body.event_date ? new Date(req.body.event_date) : null,
-        target_amount: Number(req.body.target_amount),
-        image_url: req.body.image_url || '',
-      };
-
-      console.log("Project data before validation:", projectData);
-
-      const validationResult = insertProjectSchema.safeParse(projectData);
-      if (!validationResult.success) {
-        console.error("Validation errors:", validationResult.error);
-        return res.status(400).json({
-          message: "Invalid data",
-          errors: validationResult.error.errors,
-        });
-      }
-
-      const [newProject] = await db
-        .insert(projects)
-        .values(validationResult.data)
-        .returning();
-
-      console.log("Created project:", newProject);
-      res.json(newProject);
-    } catch (error: any) {
-      console.error("Error creating project:", error);
-      res.status(500).send(error.message || "Error creating project");
-    }
-  });
-
+  // Get single project (public access if shared)
   app.get("/api/projects/:id", async (req, res) => {
     try {
       const projectId = parseInt(req.params.id);
@@ -117,10 +93,36 @@ export function registerRoutes(app: Express): Server {
         return res.status(404).send("Project not found");
       }
 
+      // Check if user has access to this project
+      if (!project.is_public && req.isAuthenticated()) {
+        const user = req.user as any;
+        const [contribution] = await db
+          .select()
+          .from(contributions)
+          .where(
+            and(
+              eq(contributions.project_id, projectId),
+              eq(contributions.contributor_name, user.username)
+            )
+          )
+          .limit(1);
+
+        if (project.creator_id !== user.id && !contribution) {
+          return res.status(403).send("You don't have access to this project");
+        }
+      }
+
+      // Get project details including contributions
+      const projectContributions = await db
+        .select()
+        .from(contributions)
+        .where(eq(contributions.project_id, projectId))
+        .orderBy(sql`${contributions.created_at} DESC`);
+
       res.json({
         ...project,
-        creator: { username: "User" },
-        contributions: [],
+        creator: { username: "User" }, // TODO: Get actual creator username
+        contributions: projectContributions,
         reactions: [],
         shares: {
           total: 0,
@@ -130,7 +132,7 @@ export function registerRoutes(app: Express): Server {
         median_amount: 0,
         min_amount: 0,
         max_amount: 0,
-        total_contributions: 0,
+        total_contributions: projectContributions.length,
         contribution_history: []
       });
     } catch (error: any) {
@@ -139,26 +141,77 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
+  // Create project (requires authentication)
+  app.post("/api/projects", async (req, res) => {
+    try {
+      if (!req.isAuthenticated()) {
+        return res.status(401).send("You must be logged in to create a project");
+      }
+
+      const user = req.user as any;
+      const projectData = {
+        ...req.body,
+        creator_id: user.id,
+        invitation_token: nanoid(),
+        event_date: req.body.event_date ? new Date(req.body.event_date) : null,
+        target_amount: Number(req.body.target_amount),
+        image_url: req.body.image_url || '',
+      };
+
+      const validationResult = insertProjectSchema.safeParse(projectData);
+      if (!validationResult.success) {
+        return res.status(400).json({
+          message: "Invalid data",
+          errors: validationResult.error.errors,
+        });
+      }
+
+      const [newProject] = await db
+        .insert(projects)
+        .values(validationResult.data)
+        .returning();
+
+      res.json(newProject);
+    } catch (error: any) {
+      console.error("Error creating project:", error);
+      res.status(500).send(error.message || "Error creating project");
+    }
+  });
+
+  // Contribute to project (requires authentication)
   app.post("/api/projects/:id/contribute", async (req, res) => {
     try {
       if (!req.isAuthenticated()) {
-        return res.status(401).send("You must be logged in to contribute");
+        return res.status(401).json({ 
+          error: "You must be logged in to contribute" 
+        });
       }
 
+      const user = req.user as any;
       const projectId = parseInt(req.params.id);
       if (isNaN(projectId)) {
         return res.status(400).json({ error: "Invalid project ID" });
       }
 
-      const { amount, contributor_name, message } = req.body;
-
-      if (!amount || !contributor_name) {
+      const { amount, message } = req.body;
+      if (!amount) {
         return res.status(400).json({ 
-          error: "Amount and contributor name are required" 
+          error: "Amount is required" 
         });
       }
 
-      // Update the project's current amount
+      // Create contribution record
+      const [contribution] = await db
+        .insert(contributions)
+        .values({
+          amount,
+          message,
+          contributor_name: user.username,
+          project_id: projectId,
+        })
+        .returning();
+
+      // Update project's current amount
       const [updatedProject] = await db
         .update(projects)
         .set({
@@ -171,15 +224,7 @@ export function registerRoutes(app: Express): Server {
         return res.status(404).json({ error: "Project not found" });
       }
 
-      // Return the updated project
-      res.json({
-        amount,
-        contributor_name,
-        message,
-        project_id: projectId,
-        created_at: new Date().toISOString()
-      });
-
+      res.json(contribution);
     } catch (error: any) {
       console.error("Error processing contribution:", error);
       res.status(500).json({ 

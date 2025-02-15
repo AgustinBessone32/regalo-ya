@@ -77,13 +77,14 @@ export default function ProjectPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           amount: data.amount,
-          contributor_name: data.contributorName,
           message: data.message,
         }),
+        credentials: 'include', // Important for authentication
       });
 
       if (!response.ok) {
-        throw new Error(await response.text());
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to contribute');
       }
 
       return response.json();
