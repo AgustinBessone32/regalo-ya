@@ -7,6 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { useUser } from "@/hooks/use-user";
 import { useToast } from "@/hooks/use-toast";
+import { useEffect } from "react";
 
 type ProjectWithDetails = Project & {
   contribution_count: number;
@@ -29,7 +30,19 @@ export default function HomePage() {
       return response.json();
     },
     enabled: !!user,
+    retry: 1
   });
+
+  // Handle error state with useEffect to avoid render-time side effects
+  useEffect(() => {
+    if (error) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: error instanceof Error ? error.message : "Error al cargar los proyectos"
+      });
+    }
+  }, [error, toast]);
 
   if (isLoading) {
     return (
@@ -39,51 +52,45 @@ export default function HomePage() {
     );
   }
 
-  if (error) {
-    toast({
-      variant: "destructive",
-      title: "Error",
-      description: error instanceof Error ? error.message : "Error al cargar los proyectos"
-    });
-    return (
-      <div className="flex flex-col items-center justify-center min-h-[50vh] gap-4">
-        <p className="text-muted-foreground">No se pudieron cargar los proyectos</p>
-        <Button onClick={() => window.location.reload()}>
-          Intentar de nuevo
-        </Button>
-      </div>
-    );
-  }
-
-  if (!projects) {
-    return (
-      <div className="space-y-8">
-        <div className="flex justify-between items-center">
-          <div>
-            <h1 className="text-3xl font-bold">RegaloYa</h1>
-            <p className="text-muted-foreground">
-              Crea y gestiona colecciones de regalos colaborativos
-            </p>
-          </div>
-          <Link href="/create">
-            <Button>
-              <Plus className="mr-2 h-4 w-4" />
-              Crear Proyecto
-            </Button>
-          </Link>
+  const EmptyState = () => (
+    <div className="space-y-8">
+      <div className="flex justify-between items-center">
+        <div>
+          <h1 className="text-3xl font-bold">RegaloYa</h1>
+          <p className="text-muted-foreground">
+            Crea y gestiona colecciones de regalos colaborativos
+          </p>
         </div>
+        <Link href="/create">
+          <Button>
+            <Plus className="mr-2 h-4 w-4" />
+            Crear Proyecto
+          </Button>
+        </Link>
+      </div>
 
-        <div className="flex flex-col items-center justify-center min-h-[40vh] gap-4">
-          <p className="text-muted-foreground">No hay proyectos disponibles</p>
+      <div className="flex flex-col items-center justify-center min-h-[40vh] gap-4">
+        <p className="text-muted-foreground">
+          {error ? "No se pudieron cargar los proyectos" : "No hay proyectos disponibles"}
+        </p>
+        {error ? (
+          <Button onClick={() => window.location.reload()}>
+            Intentar de nuevo
+          </Button>
+        ) : (
           <Link href="/create">
             <Button>
               <Plus className="mr-2 h-4 w-4" />
               Crear tu primer proyecto
             </Button>
           </Link>
-        </div>
+        )}
       </div>
-    );
+    </div>
+  );
+
+  if (!projects) {
+    return <EmptyState />;
   }
 
   const myProjects = projects.filter(p => p.creator_id === user?.id);
