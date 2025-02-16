@@ -12,7 +12,7 @@ export function ShareButton({ title, description, url }: ShareButtonProps) {
   const { toast } = useToast();
 
   const shareUrl = encodeURIComponent(url);
-  const shareTitle = encodeURIComponent(`${title} on RegaloYa`);
+  const shareTitle = encodeURIComponent(`${title} en RegaloYa`);
   const shareDescription = encodeURIComponent(description || '');
 
   const handleShare = async () => {
@@ -28,7 +28,7 @@ export function ShareButton({ title, description, url }: ShareButtonProps) {
           toast({
             variant: "destructive",
             title: "Error",
-            description: "Error sharing project",
+            description: "Error al compartir el proyecto",
           });
         }
       }
@@ -37,14 +37,14 @@ export function ShareButton({ title, description, url }: ShareButtonProps) {
       try {
         await navigator.clipboard.writeText(url);
         toast({
-          title: "Success!",
-          description: "Link copied to clipboard!",
+          title: "¡Éxito!",
+          description: "¡Enlace copiado al portapapeles!",
         });
       } catch (error) {
         toast({
           variant: "destructive",
           title: "Error",
-          description: "Error copying link",
+          description: "Error al copiar el enlace",
         });
       }
     }
@@ -68,7 +68,7 @@ export function ShareButton({ title, description, url }: ShareButtonProps) {
         onClick={handleShare}
       >
         <Share2 className="h-4 w-4" />
-        Share
+        Compartir
       </Button>
 
       <Button

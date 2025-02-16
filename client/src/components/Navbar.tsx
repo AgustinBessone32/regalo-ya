@@ -20,7 +20,7 @@ export default function Navbar() {
           <Link href="/create">
             <Button variant="outline" size="sm" className="gap-2">
               <Plus className="h-4 w-4" />
-              New Project
+              Nuevo Proyecto
             </Button>
           </Link>
 
@@ -35,7 +35,7 @@ export default function Navbar() {
               className="gap-2"
             >
               <LogOut className="h-4 w-4" />
-              Logout
+              Cerrar Sesión
             </Button>
           </div>
         </div>

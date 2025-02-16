@@ -41,13 +41,13 @@ export default function HomePage() {
         <div>
           <h1 className="text-3xl font-bold">RegaloYa</h1>
           <p className="text-muted-foreground">
-            Create and manage collaborative gift collections
+            Crea y gestiona colecciones de regalos colaborativos
           </p>
         </div>
         <Link href="/create">
           <Button>
             <Plus className="mr-2 h-4 w-4" />
-            Create Project
+            Crear Proyecto
           </Button>
         </Link>
       </div>
@@ -56,21 +56,21 @@ export default function HomePage() {
         <Tabs defaultValue="all" className="w-full">
           <TabsList className="grid w-full grid-cols-3 max-w-[400px] mb-6">
             <TabsTrigger value="all" className="flex items-center gap-2">
-              All Projects
+              Todos los Proyectos
               <span className="px-2 py-0.5 text-xs bg-primary/10 rounded-full">
                 {projects.length}
               </span>
             </TabsTrigger>
             <TabsTrigger value="my" className="flex items-center gap-2">
               <Star className="w-4 h-4" />
-              My Projects
+              Mis Proyectos
               <span className="px-2 py-0.5 text-xs bg-primary/10 rounded-full">
                 {myProjects.length}
               </span>
             </TabsTrigger>
             <TabsTrigger value="contributed" className="flex items-center gap-2">
               <Heart className="w-4 h-4" />
-              Contributing
+              Contribuyendo
               <span className="px-2 py-0.5 text-xs bg-primary/10 rounded-full">
                 {contributedProjects.length}
               </span>
@@ -80,7 +80,7 @@ export default function HomePage() {
           <TabsContent value="all">
             {projects.length === 0 ? (
               <div className="text-center text-muted-foreground py-8">
-                No projects found. Create one to get started!
+                No hay proyectos. ¡Crea uno para comenzar!
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -94,7 +94,7 @@ export default function HomePage() {
           <TabsContent value="my">
             {myProjects.length === 0 ? (
               <div className="text-center text-muted-foreground py-8">
-                You haven't created any projects yet.
+                Aún no has creado ningún proyecto.
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -108,7 +108,7 @@ export default function HomePage() {
           <TabsContent value="contributed">
             {contributedProjects.length === 0 ? (
               <div className="text-center text-muted-foreground py-8">
-                You haven't contributed to any projects yet.
+                Aún no has contribuido a ningún proyecto.
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
