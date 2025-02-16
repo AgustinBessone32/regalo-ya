@@ -24,8 +24,8 @@ import { EmojiReaction } from "@/components/EmojiReaction";
 import { useEffect } from "react";
 
 const contributionSchema = z.object({
-  name: z.string().min(1, "Name is required"),
-  amount: z.coerce.number().min(1, "Amount must be greater than 0"),
+  name: z.string().min(1, "El nombre es requerido"),
+  amount: z.coerce.number().min(1, "El monto debe ser mayor a 0"),
   message: z.string().optional(),
 });
 
@@ -74,7 +74,7 @@ export default function ProjectPage() {
     mutationFn: async (data: z.infer<typeof contributionSchema>) => {
       if (!user) {
         setLocation("/auth");
-        throw new Error("Authentication required");
+        throw new Error("Se requiere autenticación");
       }
 
       const response = await fetch(`/api/projects/${id}/contribute`, {
@@ -86,7 +86,7 @@ export default function ProjectPage() {
 
       if (!response.ok) {
         const error = await response.json();
-        throw new Error(error.error || 'Failed to contribute');
+        throw new Error(error.error || 'Error al realizar la contribución');
       }
 
       return response.json();
@@ -95,8 +95,8 @@ export default function ProjectPage() {
       queryClient.invalidateQueries({ queryKey: [`/api/projects/${id}`] });
       form.reset();
       toast({
-        title: "Success",
-        description: "Thank you for your contribution!",
+        title: "¡Éxito!",
+        description: "¡Gracias por tu contribución!",
       });
 
       // Check if this contribution reached the goal
@@ -104,16 +104,16 @@ export default function ProjectPage() {
       if (project?.target_amount && newTotal >= project.target_amount) {
         fireConfetti();
         toast({
-          title: "🎉 Goal Reached!",
-          description: "Congratulations! The project has reached its funding goal!",
+          title: "🎉 ¡Meta Alcanzada!",
+          description: "¡Felicitaciones! ¡El proyecto ha alcanzado su meta de financiamiento!",
         });
       }
     },
     onError: (error: Error) => {
-      if (error.message === "Authentication required") {
+      if (error.message === "Se requiere autenticación") {
         toast({
-          title: "Authentication Required",
-          description: "Please log in or register to contribute to this project",
+          title: "Autenticación Requerida",
+          description: "Por favor, inicia sesión o regístrate para contribuir a este proyecto",
         });
       } else {
         toast({
@@ -141,15 +141,15 @@ export default function ProjectPage() {
           project.title
         );
         toast({
-          title: "Notifications enabled",
-          description: "You will receive reminders about this event",
+          title: "Notificaciones activadas",
+          description: "Recibirás recordatorios sobre este evento",
         });
       }
     } else {
       toast({
         variant: "destructive",
-        title: "Notifications disabled",
-        description: "You can re-enable notifications from your browser settings",
+        title: "Notificaciones desactivadas",
+        description: "Puedes reactivar las notificaciones desde la configuración de tu navegador",
       });
     }
   };
