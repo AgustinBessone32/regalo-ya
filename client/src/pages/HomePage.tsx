@@ -39,9 +39,9 @@ export default function HomePage() {
     <div className="space-y-8">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold">Projects</h1>
+          <h1 className="text-3xl font-bold">RegaloYa</h1>
           <p className="text-muted-foreground">
-            Browse and contribute to birthday gift collections
+            Create and manage collaborative gift collections
           </p>
         </div>
         <Link href="/create">

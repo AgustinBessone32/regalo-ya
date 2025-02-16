@@ -215,7 +215,7 @@ export default function ProjectPage() {
   return (
     <>
       <MetaTags
-        title={`${project.title} - Birthday Gift Collection`}
+        title={`${project.title} - RegaloYa`}
         description={project.description || ''}
         url={shareableUrl}
         image={project.image_url || undefined}
