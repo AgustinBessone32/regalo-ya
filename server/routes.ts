@@ -43,7 +43,7 @@ export function registerRoutes(app: Express): Server {
   app.get("/api/projects", async (req, res) => {
     try {
       if (!req.isAuthenticated()) {
-        return res.status(401).send("You must be logged in to view projects");
+        return res.status(401).json({ error: "You must be logged in to view projects" });
       }
 
       const user = req.user as any;
@@ -62,11 +62,11 @@ export function registerRoutes(app: Express): Server {
           contribution_count: sql<number>`count(${contributions.id})::int`,
         })
         .from(projects)
-        .innerJoin(
+        .leftJoin(
           contributions,
           and(
             eq(contributions.project_id, projects.id),
-            eq(contributions.contributor_name, user.username)
+            eq(contributions.contributor_name, user.email) // Use email instead of username
           )
         )
         .groupBy(projects.id)
@@ -74,33 +74,28 @@ export function registerRoutes(app: Express): Server {
 
       // Combine and deduplicate projects
       const combinedProjects = [
-        ...userProjects.map(project => ({ 
-          project, 
-          contribution_count: 0,
-          contributions: [] 
+        ...userProjects.map(project => ({
+          ...project,
+          contribution_count: 0
         })),
-        ...contributedProjects.map(item => ({
-          ...item,
-          contributions: []
+        ...contributedProjects.map(({ project, contribution_count }) => ({
+          ...project,
+          contribution_count: contribution_count || 0
         }))
       ];
 
       // Remove duplicates based on project ID
       const uniqueProjects = Array.from(
-        new Map(combinedProjects.map(item => [
-          item.project.id, 
-          {
-            ...item.project,
-            contribution_count: item.contribution_count,
-            contributions: []
-          }
+        new Map(combinedProjects.map(project => [
+          project.id,
+          project
         ])).values()
       );
 
       res.json(uniqueProjects);
     } catch (error: any) {
       console.error("Error fetching projects:", error);
-      res.status(500).send(error.message || "Error fetching projects");
+      res.status(500).json({ error: error.message || "Error fetching projects" });
     }
   });
 
@@ -199,8 +194,8 @@ export function registerRoutes(app: Express): Server {
   app.post("/api/projects/:id/contribute", async (req, res) => {
     try {
       if (!req.isAuthenticated()) {
-        return res.status(401).json({ 
-          error: "You must be logged in to contribute" 
+        return res.status(401).json({
+          error: "You must be logged in to contribute"
         });
       }
 
@@ -212,8 +207,8 @@ export function registerRoutes(app: Express): Server {
 
       const { amount, message, name } = req.body;
       if (!amount) {
-        return res.status(400).json({ 
-          error: "Amount is required" 
+        return res.status(400).json({
+          error: "Amount is required"
         });
       }
 
@@ -229,7 +224,7 @@ export function registerRoutes(app: Express): Server {
         .values({
           amount,
           message,
-          contributor_name: name, 
+          contributor_name: name,
           project_id: projectId,
         })
         .returning();
@@ -250,8 +245,8 @@ export function registerRoutes(app: Express): Server {
       res.json(contribution);
     } catch (error: any) {
       console.error("Error processing contribution:", error);
-      res.status(500).json({ 
-        error: error.message || "Error processing contribution" 
+      res.status(500).json({
+        error: error.message || "Error processing contribution"
       });
     }
   });
