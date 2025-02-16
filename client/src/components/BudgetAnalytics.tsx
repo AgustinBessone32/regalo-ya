@@ -42,12 +42,12 @@ export function BudgetAnalytics({
   }, [contributionHistory]);
 
   const statistics = [
-    { label: "Average", value: avgAmount },
-    { label: "Median", value: medianAmount },
-    { label: "Minimum", value: minAmount },
-    { label: "Maximum", value: maxAmount },
-    { label: "Total Contributors", value: totalContributions },
-    { label: "Growth Rate", value: `${growthRate.toFixed(1)}%` },
+    { label: "Promedio", value: avgAmount },
+    { label: "Mediana", value: medianAmount },
+    { label: "Mínimo", value: minAmount },
+    { label: "Máximo", value: maxAmount },
+    { label: "Total Contribuyentes", value: totalContributions },
+    { label: "Tasa de Crecimiento", value: `${growthRate.toFixed(1)}%` },
   ];
 
   // Prepare data for engagement visualization
@@ -61,9 +61,9 @@ export function BudgetAnalytics({
     <div className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle>Contribution Analytics</CardTitle>
+          <CardTitle>Análisis de Contribuciones</CardTitle>
           <CardDescription>
-            Track contribution patterns and project growth
+            Seguimiento de patrones de contribución y crecimiento del proyecto
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -72,8 +72,8 @@ export function BudgetAnalytics({
               <div key={label} className="text-center p-4 bg-muted rounded-lg">
                 <p className="text-sm text-muted-foreground mb-1">{label}</p>
                 <p className="text-xl font-semibold">
-                  {typeof value === 'number' && label !== "Growth Rate" 
-                    ? label === "Total Contributors" 
+                  {typeof value === 'number' && label !== "Tasa de Crecimiento" 
+                    ? label === "Total Contribuyentes" 
                       ? value 
                       : `$${value.toFixed(2)}`
                     : value}
@@ -90,8 +90,8 @@ export function BudgetAnalytics({
                   <XAxis dataKey="contribution" />
                   <YAxis />
                   <Tooltip 
-                    formatter={(value) => [`$${value}`, "Amount"]}
-                    labelFormatter={(value) => `Contribution #${value}`}
+                    formatter={(value) => [`$${value}`, "Monto"]}
+                    labelFormatter={(value) => `Contribución #${value}`}
                   />
                   <Bar dataKey="amount" fill="hsl(var(--primary))" />
                 </BarChart>
@@ -103,21 +103,21 @@ export function BudgetAnalytics({
 
       <Card>
         <CardHeader>
-          <CardTitle>Engagement Metrics</CardTitle>
+          <CardTitle>Métricas de Participación</CardTitle>
           <CardDescription>
-            Community engagement and social impact
+            Participación de la comunidad e impacto social
           </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-2 gap-4 mb-8">
             <div className="text-center p-4 bg-muted rounded-lg">
-              <p className="text-sm text-muted-foreground mb-1">Total Reactions</p>
+              <p className="text-sm text-muted-foreground mb-1">Total de Reacciones</p>
               <p className="text-xl font-semibold">
                 {reactionCounts.reduce((sum, r) => sum + r.count, 0)}
               </p>
             </div>
             <div className="text-center p-4 bg-muted rounded-lg">
-              <p className="text-sm text-muted-foreground mb-1">Total Shares</p>
+              <p className="text-sm text-muted-foreground mb-1">Total de Compartidos</p>
               <p className="text-xl font-semibold">{totalShares}</p>
             </div>
           </div>
@@ -149,7 +149,7 @@ export function BudgetAnalytics({
           {/* Reaction Distribution */}
           {reactionCounts.length > 0 && (
             <div className="mt-4">
-              <h4 className="text-sm font-medium mb-2">Reaction Distribution</h4>
+              <h4 className="text-sm font-medium mb-2">Distribución de Reacciones</h4>
               <div className="flex flex-wrap gap-2">
                 {reactionCounts.map(({ emoji, count }) => (
                   <div key={emoji} className="flex items-center gap-1 text-sm">
