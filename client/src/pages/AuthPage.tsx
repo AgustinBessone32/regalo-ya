@@ -9,6 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Gift } from "lucide-react";
 import { useUser } from "@/hooks/use-user";
 import { useState } from "react";
+import { useLocation } from "wouter";
 
 const authSchema = z.object({
   email: z.string().email("Por favor, introduce un email válido"),
@@ -18,6 +19,7 @@ const authSchema = z.object({
 export default function AuthPage() {
   const { login, register } = useUser();
   const [activeTab, setActiveTab] = useState<"login" | "register">("login");
+  const [, setLocation] = useLocation();
 
   const form = useForm<z.infer<typeof authSchema>>({
     resolver: zodResolver(authSchema),
@@ -26,6 +28,17 @@ export default function AuthPage() {
       password: "",
     },
   });
+
+  const onSubmit = async (data: z.infer<typeof authSchema>) => {
+    try {
+      const action = activeTab === "login" ? login : register;
+      await action(data);
+      // After successful authentication, redirect to home
+      setLocation("/");
+    } catch (error) {
+      console.error("Auth error:", error);
+    }
+  };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
@@ -54,11 +67,7 @@ export default function AuthPage() {
 
               <Form {...form}>
                 <form
-                  onSubmit={form.handleSubmit((data) => {
-                    if (form.formState.defaultValues === data) return;
-                    const action = activeTab === "login" ? login : register;
-                    action(data);
-                  })}
+                  onSubmit={form.handleSubmit(onSubmit)}
                   className="space-y-4 mt-4"
                 >
                   <FormField
@@ -89,17 +98,9 @@ export default function AuthPage() {
                     )}
                   />
 
-                  <TabsContent value="login" className="space-y-4">
-                    <Button type="submit" className="w-full">
-                      Iniciar Sesión
-                    </Button>
-                  </TabsContent>
-
-                  <TabsContent value="register" className="space-y-4">
-                    <Button type="submit" className="w-full">
-                      Crear Cuenta
-                    </Button>
-                  </TabsContent>
+                  <Button type="submit" className="w-full">
+                    {activeTab === "login" ? "Iniciar Sesión" : "Crear Cuenta"}
+                  </Button>
                 </form>
               </Form>
             </Tabs>

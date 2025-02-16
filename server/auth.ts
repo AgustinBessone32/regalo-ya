@@ -110,7 +110,7 @@ export function setupAuth(app: Express) {
         .limit(1);
 
       if (existingUser) {
-        return res.status(400).send("El email ya está registrado");
+        return res.status(400).json({ error: "El email ya está registrado" });
       }
 
       // Create new user
@@ -126,13 +126,14 @@ export function setupAuth(app: Express) {
       // Auto-login after registration
       req.login(newUser, (err) => {
         if (err) {
-          return res.status(500).send("Error al iniciar sesión");
+          console.error("Login error after registration:", err);
+          return res.status(500).json({ error: "Error al iniciar sesión" });
         }
-        res.json({ user: { id: newUser.id, email: newUser.email } });
+        res.json({ id: newUser.id, email: newUser.email });
       });
     } catch (error) {
       console.error("Error en el registro:", error);
-      res.status(500).send("Error en el registro");
+      res.status(500).json({ error: "Error en el registro" });
     }
   });
 
@@ -142,13 +143,13 @@ export function setupAuth(app: Express) {
         return next(err);
       }
       if (!user) {
-        return res.status(401).send(info.message);
+        return res.status(401).json({ error: info.message });
       }
       req.login(user, (err) => {
         if (err) {
           return next(err);
         }
-        res.json({ user: { id: user.id, email: user.email } });
+        res.json({ id: user.id, email: user.email });
       });
     })(req, res, next);
   });
@@ -156,7 +157,7 @@ export function setupAuth(app: Express) {
   app.post("/api/logout", (req, res) => {
     req.logout((err) => {
       if (err) {
-        return res.status(500).send("Error al cerrar sesión");
+        return res.status(500).json({ error: "Error al cerrar sesión" });
       }
       res.json({ message: "Sesión cerrada correctamente" });
     });
@@ -167,6 +168,6 @@ export function setupAuth(app: Express) {
       const user = req.user as any;
       return res.json({ id: user.id, email: user.email });
     }
-    res.status(401).send("No has iniciado sesión");
+    res.status(401).json({ error: "No has iniciado sesión" });
   });
 }
