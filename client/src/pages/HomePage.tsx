@@ -1,11 +1,12 @@
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "wouter";
 import ProjectCard from "@/components/ProjectCard";
-import { Loader2, Plus, Star, Heart } from "lucide-react";
+import { Loader2, Plus } from "lucide-react";
 import type { Project } from "@db/schema";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { useUser } from "@/hooks/use-user";
+import { useToast } from "@/hooks/use-toast";
 
 type ProjectWithDetails = Project & {
   contribution_count: number;
@@ -13,8 +14,20 @@ type ProjectWithDetails = Project & {
 
 export default function HomePage() {
   const { user } = useUser();
-  const { data: projects, isLoading } = useQuery<ProjectWithDetails[]>({
+  const { toast } = useToast();
+
+  const { data: projects, isLoading, error } = useQuery<ProjectWithDetails[]>({
     queryKey: ["/api/projects"],
+    queryFn: async () => {
+      const response = await fetch("/api/projects", {
+        credentials: "include"
+      });
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Error al cargar los proyectos");
+      }
+      return response.json();
+    },
     enabled: !!user,
   });
 
@@ -26,8 +39,51 @@ export default function HomePage() {
     );
   }
 
+  if (error) {
+    toast({
+      variant: "destructive",
+      title: "Error",
+      description: error instanceof Error ? error.message : "Error al cargar los proyectos"
+    });
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[50vh] gap-4">
+        <p className="text-muted-foreground">No se pudieron cargar los proyectos</p>
+        <Button onClick={() => window.location.reload()}>
+          Intentar de nuevo
+        </Button>
+      </div>
+    );
+  }
+
   if (!projects) {
-    return null;
+    return (
+      <div className="space-y-8">
+        <div className="flex justify-between items-center">
+          <div>
+            <h1 className="text-3xl font-bold">RegaloYa</h1>
+            <p className="text-muted-foreground">
+              Crea y gestiona colecciones de regalos colaborativos
+            </p>
+          </div>
+          <Link href="/create">
+            <Button>
+              <Plus className="mr-2 h-4 w-4" />
+              Crear Proyecto
+            </Button>
+          </Link>
+        </div>
+
+        <div className="flex flex-col items-center justify-center min-h-[40vh] gap-4">
+          <p className="text-muted-foreground">No hay proyectos disponibles</p>
+          <Link href="/create">
+            <Button>
+              <Plus className="mr-2 h-4 w-4" />
+              Crear tu primer proyecto
+            </Button>
+          </Link>
+        </div>
+      </div>
+    );
   }
 
   const myProjects = projects.filter(p => p.creator_id === user?.id);
@@ -56,20 +112,18 @@ export default function HomePage() {
         <Tabs defaultValue="all" className="w-full">
           <TabsList className="grid w-full grid-cols-3 max-w-[400px] mb-6">
             <TabsTrigger value="all" className="flex items-center gap-2">
-              Todos los Proyectos
+              Todos
               <span className="px-2 py-0.5 text-xs bg-primary/10 rounded-full">
                 {projects.length}
               </span>
             </TabsTrigger>
             <TabsTrigger value="my" className="flex items-center gap-2">
-              <Star className="w-4 h-4" />
               Mis Proyectos
               <span className="px-2 py-0.5 text-xs bg-primary/10 rounded-full">
                 {myProjects.length}
               </span>
             </TabsTrigger>
             <TabsTrigger value="contributed" className="flex items-center gap-2">
-              <Heart className="w-4 h-4" />
               Contribuyendo
               <span className="px-2 py-0.5 text-xs bg-primary/10 rounded-full">
                 {contributedProjects.length}
