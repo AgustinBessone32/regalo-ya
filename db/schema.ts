@@ -4,14 +4,14 @@ import { z } from "zod";
 
 export const users = pgTable("users", {
   id: serial("id").primaryKey(),
-  username: text("username").unique().notNull(),
+  email: text("email").unique().notNull(),
   password: text("password").notNull(),
   created_at: timestamp("created_at").defaultNow(),
 });
 
 export const insertUserSchema = createInsertSchema(users, {
-  username: z.string().min(3, "El nombre de usuario debe tener al menos 3 caracteres"),
-  password: z.string().min(6, "La contraseña debe tener al menos 6 caracteres"),
+  email: z.string().email("Por favor, introduce un email válido"),
+  password: z.string().min(1, "La contraseña es requerida"),
 });
 
 export const selectUserSchema = createSelectSchema(users);

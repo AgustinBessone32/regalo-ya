@@ -50,28 +50,34 @@ export function setupAuth(app: Express) {
   app.use(passport.session());
 
   passport.use(
-    new LocalStrategy(async (username, password, done) => {
-      try {
-        const [user] = await db
-          .select()
-          .from(users)
-          .where(eq(users.username, username))
-          .limit(1);
+    new LocalStrategy(
+      {
+        usernameField: 'email',
+        passwordField: 'password'
+      },
+      async (email, password, done) => {
+        try {
+          const [user] = await db
+            .select()
+            .from(users)
+            .where(eq(users.email, email))
+            .limit(1);
 
-        if (!user) {
-          return done(null, false, { message: "Usuario no encontrado" });
+          if (!user) {
+            return done(null, false, { message: "Email no encontrado" });
+          }
+
+          const isMatch = await crypto.compare(password, user.password);
+          if (!isMatch) {
+            return done(null, false, { message: "Contraseña incorrecta" });
+          }
+
+          return done(null, user);
+        } catch (err) {
+          return done(err);
         }
-
-        const isMatch = await crypto.compare(password, user.password);
-        if (!isMatch) {
-          return done(null, false, { message: "Contraseña incorrecta" });
-        }
-
-        return done(null, user);
-      } catch (err) {
-        return done(err);
       }
-    })
+    )
   );
 
   passport.serializeUser((user: any, done) => {
@@ -94,17 +100,17 @@ export function setupAuth(app: Express) {
   // Auth routes
   app.post("/api/register", async (req, res) => {
     try {
-      const { username, password } = req.body;
+      const { email, password } = req.body;
 
       // Check existing user
       const [existingUser] = await db
         .select()
         .from(users)
-        .where(eq(users.username, username))
+        .where(eq(users.email, email))
         .limit(1);
 
       if (existingUser) {
-        return res.status(400).send("El nombre de usuario ya existe");
+        return res.status(400).send("El email ya está registrado");
       }
 
       // Create new user
@@ -112,7 +118,7 @@ export function setupAuth(app: Express) {
       const [newUser] = await db
         .insert(users)
         .values({
-          username,
+          email,
           password: hashedPassword,
         })
         .returning();
@@ -122,7 +128,7 @@ export function setupAuth(app: Express) {
         if (err) {
           return res.status(500).send("Error al iniciar sesión");
         }
-        res.json({ user: { id: newUser.id, username: newUser.username } });
+        res.json({ user: { id: newUser.id, email: newUser.email } });
       });
     } catch (error) {
       console.error("Error en el registro:", error);
@@ -142,7 +148,7 @@ export function setupAuth(app: Express) {
         if (err) {
           return next(err);
         }
-        res.json({ user: { id: user.id, username: user.username } });
+        res.json({ user: { id: user.id, email: user.email } });
       });
     })(req, res, next);
   });
@@ -159,7 +165,7 @@ export function setupAuth(app: Express) {
   app.get("/api/user", (req, res) => {
     if (req.isAuthenticated()) {
       const user = req.user as any;
-      return res.json({ id: user.id, username: user.username });
+      return res.json({ id: user.id, email: user.email });
     }
     res.status(401).send("No has iniciado sesión");
   });

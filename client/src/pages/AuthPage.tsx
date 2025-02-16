@@ -11,8 +11,8 @@ import { useUser } from "@/hooks/use-user";
 import { useState } from "react";
 
 const authSchema = z.object({
-  username: z.string().min(3, "El nombre de usuario debe tener al menos 3 caracteres").max(20, "El nombre de usuario no puede exceder 20 caracteres"),
-  password: z.string().min(6, "La contraseña debe tener al menos 6 caracteres"),
+  email: z.string().email("Por favor, introduce un email válido"),
+  password: z.string().min(1, "La contraseña es requerida"),
 });
 
 export default function AuthPage() {
@@ -22,7 +22,7 @@ export default function AuthPage() {
   const form = useForm<z.infer<typeof authSchema>>({
     resolver: zodResolver(authSchema),
     defaultValues: {
-      username: "",
+      email: "",
       password: "",
     },
   });
@@ -63,12 +63,12 @@ export default function AuthPage() {
                 >
                   <FormField
                     control={form.control}
-                    name="username"
+                    name="email"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Nombre de Usuario</FormLabel>
+                        <FormLabel>Correo Electrónico</FormLabel>
                         <FormControl>
-                          <Input placeholder="Tu nombre de usuario" {...field} />
+                          <Input type="email" placeholder="tu@email.com" {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
