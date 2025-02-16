@@ -224,7 +224,7 @@ export default function ProjectPage() {
       <div className="space-y-8">
         <div className="flex justify-between items-center">
           <Button variant="outline" onClick={() => setLocation("/")}>
-            Back to Projects
+            Volver a Proyectos
           </Button>
 
           <div className="flex items-center gap-2">
@@ -232,7 +232,7 @@ export default function ProjectPage() {
               variant="outline"
               size="icon"
               onClick={handleNotificationToggle}
-              title={permission === 'granted' ? 'Notifications enabled' : 'Enable notifications'}
+              title={permission === 'granted' ? 'Notificaciones activadas' : 'Activar notificaciones'}
             >
               {permission === 'granted' ? (
                 <Bell className="h-4 w-4" />
@@ -242,7 +242,7 @@ export default function ProjectPage() {
             </Button>
 
             <ShareButton
-              title={`${project.title} - Birthday Gift Collection`}
+              title={`${project.title} - Colección de Regalos de Cumpleaños`}
               description={project.description || ''}
               url={shareableUrl}
             />
@@ -296,7 +296,7 @@ export default function ProjectPage() {
 
               <div className="flex items-center gap-2 text-muted-foreground">
                 <Users className="h-4 w-4" />
-                <span>Created by {project.creator.username}</span>
+                <span>Creado por {project.creator.username}</span>
               </div>
             </div>
 
@@ -305,16 +305,16 @@ export default function ProjectPage() {
                 <Progress value={progress} className="h-2 mb-4" />
                 <div className="flex justify-between text-sm mb-2">
                   <span className="text-muted-foreground">
-                    ${currentAmount} raised
+                    ${currentAmount} recaudados
                   </span>
                   {project.target_amount && (
                     <span className="font-medium">
-                      ${project.target_amount} goal
+                      ${project.target_amount} meta
                     </span>
                   )}
                 </div>
                 <p className="text-sm text-muted-foreground">
-                  {project.contributions.length} contributions
+                  {project.contributions.length} contribuciones
                 </p>
               </CardContent>
             </Card>
@@ -334,7 +334,7 @@ export default function ProjectPage() {
             />
             <Card>
               <CardHeader>
-                <CardTitle>Make a Contribution</CardTitle>
+                <CardTitle>Hacer una Contribución</CardTitle>
               </CardHeader>
               <CardContent>
                 <Form {...form}>
@@ -347,7 +347,7 @@ export default function ProjectPage() {
                       name="name"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Your Name</FormLabel>
+                          <FormLabel>Tu Nombre</FormLabel>
                           <FormControl>
                             <Input {...field} />
                           </FormControl>
@@ -361,7 +361,7 @@ export default function ProjectPage() {
                       name="amount"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Amount ($)</FormLabel>
+                          <FormLabel>Monto ($)</FormLabel>
                           <FormControl>
                             <Input type="number" {...field} />
                           </FormControl>
@@ -375,7 +375,7 @@ export default function ProjectPage() {
                       name="message"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Message (Optional)</FormLabel>
+                          <FormLabel>Mensaje (Opcional)</FormLabel>
                           <FormControl>
                             <Textarea {...field} />
                           </FormControl>
@@ -392,7 +392,7 @@ export default function ProjectPage() {
                       {contributeMutation.isPending && (
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                       )}
-                      {user ? 'Contribute' : 'Sign in to Contribute'}
+                      {user ? 'Contribuir' : 'Inicia sesión para contribuir'}
                     </Button>
                   </form>
                 </Form>
@@ -402,7 +402,7 @@ export default function ProjectPage() {
             {project.contributions.length > 0 && (
               <Card>
                 <CardHeader>
-                  <CardTitle>Recent Contributions</CardTitle>
+                  <CardTitle>Contribuciones Recientes</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
