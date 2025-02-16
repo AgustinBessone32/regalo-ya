@@ -58,11 +58,11 @@ export default function InvitationPage() {
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <Gift className="w-12 h-12 mx-auto mb-4 text-primary" />
-          <CardTitle>Birthday Project Invitation</CardTitle>
+          <CardTitle>RegaloYa Project Invitation</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <p className="text-center text-muted-foreground">
-            You've been invited to join a birthday project!
+            You've been invited to join a collaborative gift project!
           </p>
           <Button
             className="w-full"

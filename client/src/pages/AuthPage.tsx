@@ -11,8 +11,8 @@ import { useUser } from "@/hooks/use-user";
 import { useState } from "react";
 
 const authSchema = z.object({
-  username: z.string().min(3, "El nombre de usuario debe tener al menos 3 caracteres").max(20, "El nombre de usuario no puede tener más de 20 caracteres"),
-  password: z.string().min(6, "La contraseña debe tener al menos 6 caracteres"),
+  username: z.string().min(3, "Username must be at least 3 characters").max(20, "Username must not exceed 20 characters"),
+  password: z.string().min(6, "Password must be at least 6 characters"),
 });
 
 export default function AuthPage() {
@@ -32,24 +32,24 @@ export default function AuthPage() {
       <div className="w-full max-w-md space-y-8">
         <div className="flex flex-col items-center gap-2">
           <Gift className="h-12 w-12 text-primary" />
-          <h1 className="text-2xl font-semibold text-center">RegaloFácil</h1>
+          <h1 className="text-2xl font-semibold text-center">RegaloYa</h1>
           <p className="text-sm text-muted-foreground text-center">
-            Simplifica la organización de regalos grupales
+            Simplify collaborative gift collections
           </p>
         </div>
 
         <Card>
           <CardHeader>
-            <CardTitle>¡Bienvenido!</CardTitle>
+            <CardTitle>Welcome to RegaloYa!</CardTitle>
             <CardDescription>
-              Inicia sesión en tu cuenta o crea una nueva
+              Sign in to your account or create a new one
             </CardDescription>
           </CardHeader>
           <CardContent>
             <Tabs defaultValue="login" value={activeTab} onValueChange={(value) => setActiveTab(value as "login" | "register")}>
               <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="login">Iniciar Sesión</TabsTrigger>
-                <TabsTrigger value="register">Registrarse</TabsTrigger>
+                <TabsTrigger value="login">Sign In</TabsTrigger>
+                <TabsTrigger value="register">Register</TabsTrigger>
               </TabsList>
 
               <Form {...form}>
@@ -66,9 +66,9 @@ export default function AuthPage() {
                     name="username"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Nombre de Usuario</FormLabel>
+                        <FormLabel>Username</FormLabel>
                         <FormControl>
-                          <Input placeholder="Tu nombre de usuario" {...field} />
+                          <Input placeholder="Your username" {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -80,9 +80,9 @@ export default function AuthPage() {
                     name="password"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Contraseña</FormLabel>
+                        <FormLabel>Password</FormLabel>
                         <FormControl>
-                          <Input type="password" placeholder="Tu contraseña" {...field} />
+                          <Input type="password" placeholder="Your password" {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -91,13 +91,13 @@ export default function AuthPage() {
 
                   <TabsContent value="login" className="space-y-4">
                     <Button type="submit" className="w-full">
-                      Iniciar Sesión
+                      Sign In
                     </Button>
                   </TabsContent>
 
                   <TabsContent value="register" className="space-y-4">
                     <Button type="submit" className="w-full">
-                      Crear Cuenta
+                      Create Account
                     </Button>
                   </TabsContent>
                 </form>

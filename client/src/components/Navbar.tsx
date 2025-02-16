@@ -12,18 +12,18 @@ export default function Navbar() {
         <Link href="/">
           <a className="flex items-center gap-2 text-xl font-semibold text-primary">
             <Gift className="h-6 w-6" />
-            <span>BirthdayGift</span>
+            <span>RegaloYa</span>
           </a>
         </Link>
 
         <div className="flex items-center gap-4">
-          <Link href="/projects/new">
+          <Link href="/create">
             <Button variant="outline" size="sm" className="gap-2">
               <Plus className="h-4 w-4" />
               New Project
             </Button>
           </Link>
-          
+
           <div className="flex items-center gap-2">
             <span className="text-sm text-muted-foreground">
               {user?.username}
