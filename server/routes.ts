@@ -4,7 +4,7 @@ import { setupAuth } from "./auth";
 import { db } from "@db";
 import { projects, insertProjectSchema, contributions, users } from "@db/schema";
 import { nanoid } from 'nanoid';
-import { eq, sql } from "drizzle-orm";
+import { eq, sql, and } from "drizzle-orm";
 import { createUploadthingExpressHandler } from "uploadthing/express";
 import { ourFileRouter } from "./uploadthing";
 
@@ -22,17 +22,14 @@ export function registerRoutes(app: Express): Server {
     next();
   });
 
-  // Configure UploadThing with proper CORS handling
-  const uploadthingHandler = createUploadthingExpressHandler({
+  app.use("/api/uploadthing", createUploadthingExpressHandler({
     router: ourFileRouter,
     config: {
       uploadthingId: process.env.UPLOADTHING_APP_ID!,
       uploadthingSecret: process.env.UPLOADTHING_SECRET!,
       isDev: process.env.NODE_ENV === "development",
     },
-  });
-
-  app.use("/api/uploadthing", uploadthingHandler);
+  }));
 
   // Get list of projects (filtered by user access)
   app.get("/api/projects", async (req, res) => {
@@ -46,46 +43,129 @@ export function registerRoutes(app: Express): Server {
         return res.status(401).json({ error: "Invalid user session" });
       }
 
-      // Get all accessible projects using a single SQL query
-      const result = await db.execute(sql`
-        WITH user_projects AS (
-          SELECT 
-            p.*,
-            COUNT(DISTINCT c.id)::int as contribution_count,
-            true as is_owner
-          FROM ${projects} p
-          LEFT JOIN ${contributions} c ON c.project_id = p.id
-          WHERE p.creator_id = ${user.id}
-          GROUP BY p.id
-        ),
-        contributed_projects AS (
-          SELECT 
-            p.*,
-            COUNT(DISTINCT c.id)::int as contribution_count,
-            false as is_owner
-          FROM ${projects} p
-          INNER JOIN ${contributions} c ON c.project_id = p.id
-          WHERE c.contributor_name = ${user.email}
-          AND p.creator_id != ${user.id}
-          GROUP BY p.id
+      // Get projects owned by user
+      const userProjects = await db
+        .select({
+          id: projects.id,
+          title: projects.title,
+          description: projects.description,
+          image_url: projects.image_url,
+          target_amount: projects.target_amount,
+          current_amount: projects.current_amount,
+          event_date: projects.event_date,
+          location: projects.location,
+          creator_id: projects.creator_id,
+          is_public: projects.is_public,
+          invitation_token: projects.invitation_token,
+          payment_method: projects.payment_method,
+          payment_details: projects.payment_details,
+          created_at: projects.created_at,
+          contribution_count: sql<number>`COUNT(DISTINCT ${contributions.id})::int`,
+        })
+        .from(projects)
+        .leftJoin(contributions, eq(contributions.project_id, projects.id))
+        .where(eq(projects.creator_id, user.id))
+        .groupBy(projects.id)
+        .orderBy(projects.created_at);
+
+      // Get projects where user has contributed
+      const contributedProjects = await db
+        .select({
+          id: projects.id,
+          title: projects.title,
+          description: projects.description,
+          image_url: projects.image_url,
+          target_amount: projects.target_amount,
+          current_amount: projects.current_amount,
+          event_date: projects.event_date,
+          location: projects.location,
+          creator_id: projects.creator_id,
+          is_public: projects.is_public,
+          invitation_token: projects.invitation_token,
+          payment_method: projects.payment_method,
+          payment_details: projects.payment_details,
+          created_at: projects.created_at,
+          contribution_count: sql<number>`COUNT(DISTINCT ${contributions.id})::int`,
+        })
+        .from(projects)
+        .innerJoin(
+          contributions,
+          and(
+            eq(contributions.project_id, projects.id),
+            eq(contributions.contributor_name, user.email)
+          )
         )
-        SELECT * FROM user_projects
-        UNION ALL
-        SELECT * FROM contributed_projects
-        ORDER BY created_at DESC;
-      `);
+        .where(sql`${projects.creator_id} != ${user.id}`)
+        .groupBy(projects.id)
+        .orderBy(projects.created_at);
 
-      // Transform the results
-      const accessibleProjects = result.rows.map(row => ({
-        ...row,
-        isOwner: row.is_owner === true,
-        contribution_count: Number(row.contribution_count)
-      }));
+      const accessibleProjects = [
+        ...userProjects.map(project => ({
+          ...project,
+          isOwner: true,
+          contribution_count: Number(project.contribution_count)
+        })),
+        ...contributedProjects.map(project => ({
+          ...project,
+          isOwner: false,
+          contribution_count: Number(project.contribution_count)
+        }))
+      ];
 
+      console.log("Returning projects:", accessibleProjects.length);
       res.json(accessibleProjects);
     } catch (error: any) {
       console.error("Error fetching projects:", error);
       res.status(500).json({ error: error.message || "Error fetching projects" });
+    }
+  });
+
+  // Create project (requires authentication)
+  app.post("/api/projects", async (req, res) => {
+    try {
+      if (!req.isAuthenticated()) {
+        return res.status(401).send("You must be logged in to create a project");
+      }
+
+      const user = req.user as any;
+      if (!user?.id) {
+        return res.status(401).json({ error: "Invalid user session" });
+      }
+
+      const projectData = {
+        ...req.body,
+        creator_id: user.id,
+        invitation_token: nanoid(),
+        event_date: req.body.event_date ? new Date(req.body.event_date) : null,
+        target_amount: Number(req.body.target_amount),
+        image_url: req.body.image_url || null,
+      };
+
+      console.log("Creating project with data:", projectData);
+
+      const validationResult = insertProjectSchema.safeParse(projectData);
+      if (!validationResult.success) {
+        return res.status(400).json({
+          message: "Invalid data",
+          errors: validationResult.error.errors,
+        });
+      }
+
+      const [newProject] = await db
+        .insert(projects)
+        .values(validationResult.data)
+        .returning();
+
+      console.log("Created project:", newProject);
+
+      res.json({
+        ...newProject,
+        isOwner: true,
+        contribution_count: 0
+      });
+    } catch (error: any) {
+      console.error("Error creating project:", error);
+      res.status(500).send(error.message || "Error creating project");
     }
   });
 
@@ -161,51 +241,6 @@ export function registerRoutes(app: Express): Server {
     } catch (error: any) {
       console.error("Error fetching project:", error);
       res.status(500).json({ error: error.message || "Error fetching project" });
-    }
-  });
-
-  // Create project (requires authentication)
-  app.post("/api/projects", async (req, res) => {
-    try {
-      if (!req.isAuthenticated()) {
-        return res.status(401).send("You must be logged in to create a project");
-      }
-
-      const user = req.user as any;
-      if (!user?.id) {
-        return res.status(401).json({ error: "Invalid user session" });
-      }
-
-      const projectData = {
-        ...req.body,
-        creator_id: user.id,
-        invitation_token: nanoid(),
-        event_date: req.body.event_date ? new Date(req.body.event_date) : null,
-        target_amount: Number(req.body.target_amount),
-        image_url: req.body.image_url || null,
-      };
-
-      console.log("Creating project with data:", projectData);
-
-      const validationResult = insertProjectSchema.safeParse(projectData);
-      if (!validationResult.success) {
-        return res.status(400).json({
-          message: "Invalid data",
-          errors: validationResult.error.errors,
-        });
-      }
-
-      const [newProject] = await db
-        .insert(projects)
-        .values(validationResult.data)
-        .returning();
-
-      console.log("Created project:", newProject);
-
-      res.json(newProject);
-    } catch (error: any) {
-      console.error("Error creating project:", error);
-      res.status(500).send(error.message || "Error creating project");
     }
   });
 
