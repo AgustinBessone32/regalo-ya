@@ -41,8 +41,8 @@ export function registerRoutes(app: Express): Server {
         return res.status(401).json({ error: "Invalid user session" });
       }
 
-      // Get owned projects
-      const ownedProjects = await db
+      // Get all projects where user is either owner or contributor
+      const accessibleProjects = await db
         .select({
           id: projects.id,
           title: projects.title,
@@ -58,71 +58,30 @@ export function registerRoutes(app: Express): Server {
           payment_method: projects.payment_method,
           payment_details: projects.payment_details,
           created_at: projects.created_at,
+          contribution_count: sql<number>`COUNT(DISTINCT ${contributions.id})::int`,
+          is_owner: sql<boolean>`CASE WHEN ${projects.creator_id} = ${user.id} THEN true ELSE false END`
         })
         .from(projects)
-        .where(eq(projects.creator_id, user.id));
-
-      // Get contributed projects
-      const contributedProjects = await db
-        .select({
-          id: projects.id,
-          title: projects.title,
-          description: projects.description,
-          image_url: projects.image_url,
-          target_amount: projects.target_amount,
-          current_amount: projects.current_amount,
-          event_date: projects.event_date,
-          location: projects.location,
-          creator_id: projects.creator_id,
-          is_public: projects.is_public,
-          invitation_token: projects.invitation_token,
-          payment_method: projects.payment_method,
-          payment_details: projects.payment_details,
-          created_at: projects.created_at,
-        })
-        .from(projects)
-        .innerJoin(
+        .leftJoin(
           contributions,
-          and(
-            eq(contributions.project_id, projects.id),
-            eq(contributions.contributor_name, user.email)
-          )
+          eq(contributions.project_id, projects.id)
         )
-        .where(not(eq(projects.creator_id, user.id)));
+        .where(
+          sql`${projects.creator_id} = ${user.id} OR EXISTS (
+            SELECT 1 FROM ${contributions} c 
+            WHERE c.project_id = ${projects.id} 
+            AND c.contributor_name = ${user.email}
+          )`
+        )
+        .groupBy(projects.id)
+        .orderBy(desc(projects.created_at));
 
-      // Get contribution counts for each project
-      let countsMap = new Map();
-      if (ownedProjects.length > 0 || contributedProjects.length > 0) {
-        const projectIds = [...ownedProjects, ...contributedProjects].map(p => p.id);
-        const contributionCounts = await db
-          .select({
-            project_id: contributions.project_id,
-            count: sql<number>`count(${contributions.id})::int`,
-          })
-          .from(contributions)
-          .where(sql`${contributions.project_id}::int = ANY(${sql.array(projectIds, 'int4')})`)
-          .groupBy(contributions.project_id);
+      return res.json(accessibleProjects.map(project => ({
+        ...project,
+        isOwner: project.is_owner,
+        contribution_count: Number(project.contribution_count)
+      })));
 
-        countsMap = new Map(
-          contributionCounts.map(({ project_id, count }) => [project_id, Number(count)])
-        );
-      }
-
-      // Format response with strict access control
-      const accessibleProjects = [
-        ...ownedProjects.map(project => ({
-          ...project,
-          isOwner: true,
-          contribution_count: countsMap.get(project.id) || 0
-        })),
-        ...contributedProjects.map(project => ({
-          ...project,
-          isOwner: false,
-          contribution_count: countsMap.get(project.id) || 0
-        }))
-      ].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
-
-      return res.json(accessibleProjects);
     } catch (error: any) {
       console.error("Error fetching projects:", error);
       return res.status(500).json({ error: "Error fetching projects" });
