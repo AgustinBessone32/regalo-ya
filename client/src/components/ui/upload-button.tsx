@@ -18,12 +18,12 @@ export function UploadButton({
   onUploadError,
   onUploadBegin
 }: UploadButtonProps) {
-  const { startUpload, isUploading, permittedFileInfo } = useUploadThing(endpoint, {
+  const { startUpload, isUploading } = useUploadThing(endpoint, {
     onClientUploadComplete,
     onUploadError,
   });
 
-  const onChange = useCallback(
+  const handleFileSelect = useCallback(
     async (e: React.ChangeEvent<HTMLInputElement>) => {
       const files = e.target.files;
       if (!files?.length) return;
@@ -38,22 +38,33 @@ export function UploadButton({
     [startUpload, onUploadError, onUploadBegin]
   );
 
+  const handleButtonClick = () => {
+    // Programmatically trigger file input click
+    const fileInput = document.getElementById('file-upload') as HTMLInputElement;
+    if (fileInput) {
+      fileInput.click();
+    }
+  };
+
   return (
-    <Button variant="outline" className="w-full relative" disabled={isUploading}>
-      <label className="absolute inset-0 cursor-pointer">
-        <input
-          type="file"
-          className="hidden"
-          accept={permittedFileInfo?.config?.accept ? 
-            permittedFileInfo.config.accept.join(",") : 
-            "image/*"}
-          onChange={onChange}
-          disabled={isUploading}
-        />
-        <span className="flex items-center justify-center w-full h-full">
-          {isUploading ? "Subiendo..." : "Subir Imagen"}
-        </span>
-      </label>
-    </Button>
+    <div className="w-full">
+      <input
+        id="file-upload"
+        type="file"
+        className="hidden"
+        accept="image/*"
+        onChange={handleFileSelect}
+        disabled={isUploading}
+      />
+      <Button 
+        type="button"
+        variant="outline" 
+        className="w-full" 
+        onClick={handleButtonClick}
+        disabled={isUploading}
+      >
+        {isUploading ? "Subiendo..." : "Subir Imagen"}
+      </Button>
+    </div>
   );
 }
