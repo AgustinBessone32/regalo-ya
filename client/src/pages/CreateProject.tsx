@@ -76,14 +76,13 @@ export default function CreateProject() {
       });
 
       if (!response.ok) {
-        const error = await response.text();
-        throw new Error(error);
+        const error = await response.json();
+        throw new Error(error.error || 'Error creating project');
       }
 
       return response.json();
     },
     onSuccess: (data) => {
-      // Invalidate all project-related queries to ensure fresh data
       queryClient.invalidateQueries({ queryKey: ['/api/projects'] });
       queryClient.invalidateQueries({ queryKey: [`/api/projects/${data.id}`] });
 
@@ -91,7 +90,10 @@ export default function CreateProject() {
         title: "¡Éxito!",
         description: "Proyecto creado correctamente",
       });
-      setLocation(`/projects/${data.id}`);
+
+      setTimeout(() => {
+        setLocation(`/projects/${data.id}`);
+      }, 100);
     },
     onError: (error: Error) => {
       toast({

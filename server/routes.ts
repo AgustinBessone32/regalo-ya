@@ -108,6 +108,7 @@ export function registerRoutes(app: Express): Server {
         return res.status(401).json({ error: "Invalid user session" });
       }
 
+      // Prepare project data with all required fields
       const projectData = {
         ...req.body,
         creator_id: user.id,
@@ -115,7 +116,8 @@ export function registerRoutes(app: Express): Server {
         event_date: req.body.event_date ? new Date(req.body.event_date) : null,
         target_amount: Number(req.body.target_amount),
         image_url: req.body.image_url || null,
-        current_amount: 0, // Ensure this is set
+        current_amount: 0,
+        is_public: false,
       };
 
       const validationResult = insertProjectSchema.safeParse(projectData);
@@ -126,11 +128,19 @@ export function registerRoutes(app: Express): Server {
         });
       }
 
+      // Insert project and return complete data
       const [newProject] = await db
         .insert(projects)
         .values(validationResult.data)
         .returning();
 
+      if (!newProject) {
+        throw new Error("Failed to create project");
+      }
+
+      console.log("Created new project:", newProject.id);
+
+      // Return project with all required fields
       return res.json({
         ...newProject,
         isOwner: true,
