@@ -11,6 +11,7 @@ import { useEffect } from "react";
 
 type ProjectWithDetails = Project & {
   contribution_count: number;
+  isOwner: boolean;
 };
 
 export default function HomePage() {
@@ -30,8 +31,7 @@ export default function HomePage() {
       }
       return response.json();
     },
-    enabled: !!user,
-    retry: 1
+    enabled: !!user
   });
 
   const handleLogout = async () => {
@@ -47,7 +47,6 @@ export default function HomePage() {
     }
   };
 
-  // Handle error state with useEffect to avoid render-time side effects
   useEffect(() => {
     if (error) {
       toast({
@@ -58,6 +57,11 @@ export default function HomePage() {
     }
   }, [error, toast]);
 
+  if (!user) {
+    setLocation("/auth");
+    return null;
+  }
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-[50vh]">
@@ -66,51 +70,8 @@ export default function HomePage() {
     );
   }
 
-  const EmptyState = () => (
-    <div className="space-y-8">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold">RegaloYa</h1>
-          <p className="text-muted-foreground">
-            Crea y gestiona colecciones de regalos colaborativos
-          </p>
-        </div>
-        <Link href="/create">
-          <Button>
-            <Plus className="mr-2 h-4 w-4" />
-            Crear Proyecto
-          </Button>
-        </Link>
-      </div>
-
-      <div className="flex flex-col items-center justify-center min-h-[40vh] gap-4">
-        <p className="text-muted-foreground">
-          {error ? "No se pudieron cargar los proyectos" : "No hay proyectos disponibles"}
-        </p>
-        {error ? (
-          <Button onClick={() => window.location.reload()}>
-            Intentar de nuevo
-          </Button>
-        ) : (
-          <Link href="/create">
-            <Button>
-              <Plus className="mr-2 h-4 w-4" />
-              Crear tu primer proyecto
-            </Button>
-          </Link>
-        )}
-      </div>
-    </div>
-  );
-
-  if (!projects) {
-    return <EmptyState />;
-  }
-
-  const myProjects = projects.filter(p => p.creator_id === user?.id);
-  const contributedProjects = projects.filter(p =>
-    p.creator_id !== user?.id && p.contribution_count > 0
-  );
+  const myProjects = projects?.filter(p => p.isOwner) || [];
+  const contributedProjects = projects?.filter(p => !p.isOwner) || [];
 
   return (
     <div className="space-y-8">
@@ -141,7 +102,7 @@ export default function HomePage() {
             <TabsTrigger value="all" className="flex items-center gap-2">
               Todos
               <span className="px-2 py-0.5 text-xs bg-primary/10 rounded-full">
-                {projects.length}
+                {projects?.length || 0}
               </span>
             </TabsTrigger>
             <TabsTrigger value="my" className="flex items-center gap-2">
@@ -159,7 +120,7 @@ export default function HomePage() {
           </TabsList>
 
           <TabsContent value="all">
-            {projects.length === 0 ? (
+            {!projects?.length ? (
               <div className="text-center text-muted-foreground py-8">
                 No hay proyectos. ¡Crea uno para comenzar!
               </div>
@@ -173,7 +134,7 @@ export default function HomePage() {
           </TabsContent>
 
           <TabsContent value="my">
-            {myProjects.length === 0 ? (
+            {!myProjects.length ? (
               <div className="text-center text-muted-foreground py-8">
                 Aún no has creado ningún proyecto.
               </div>
@@ -187,7 +148,7 @@ export default function HomePage() {
           </TabsContent>
 
           <TabsContent value="contributed">
-            {contributedProjects.length === 0 ? (
+            {!contributedProjects.length ? (
               <div className="text-center text-muted-foreground py-8">
                 Aún no has contribuido a ningún proyecto.
               </div>
