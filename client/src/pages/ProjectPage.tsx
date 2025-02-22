@@ -30,7 +30,7 @@ const contributionSchema = z.object({
 });
 
 type ProjectWithDetails = Project & {
-  creator: { username: string };
+  creator: { email: string };
   contributions: Contribution[];
   reactions: { emoji: string; count: number; reacted: boolean }[];
   shares: {
@@ -43,6 +43,7 @@ type ProjectWithDetails = Project & {
   max_amount: number;
   total_contributions: number;
   contribution_history: number[];
+  isOwner: boolean;
 };
 
 export default function ProjectPage() {
@@ -154,6 +155,18 @@ export default function ProjectPage() {
     }
   };
 
+  // Handle unauthorized access or project not found
+  useEffect(() => {
+    if (error?.message === "You don't have access to this project") {
+      toast({
+        variant: "destructive",
+        title: "Acceso denegado",
+        description: "No tienes permiso para ver este proyecto",
+      });
+      setLocation("/");
+    }
+  }, [error, toast, setLocation]);
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-[50vh]">
@@ -228,18 +241,20 @@ export default function ProjectPage() {
           </Button>
 
           <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={handleNotificationToggle}
-              title={permission === 'granted' ? 'Notificaciones activadas' : 'Activar notificaciones'}
-            >
-              {permission === 'granted' ? (
-                <Bell className="h-4 w-4" />
-              ) : (
-                <BellOff className="h-4 w-4" />
-              )}
-            </Button>
+            {project.isOwner && (
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={handleNotificationToggle}
+                title={permission === 'granted' ? 'Notificaciones activadas' : 'Activar notificaciones'}
+              >
+                {permission === 'granted' ? (
+                  <Bell className="h-4 w-4" />
+                ) : (
+                  <BellOff className="h-4 w-4" />
+                )}
+              </Button>
+            )}
 
             <ShareButton
               title={`${project.title} - Colección de Regalos de Cumpleaños`}
@@ -296,7 +311,7 @@ export default function ProjectPage() {
 
               <div className="flex items-center gap-2 text-muted-foreground">
                 <Users className="h-4 w-4" />
-                <span>Creado por {project.creator.username}</span>
+                <span>Creado por {project.creator.email}</span>
               </div>
             </div>
 
@@ -332,72 +347,75 @@ export default function ProjectPage() {
               totalShares={project.shares?.total || 0}
               platformShares={project.shares?.by_platform || []}
             />
-            <Card>
-              <CardHeader>
-                <CardTitle>Hacer una Contribución</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <Form {...form}>
-                  <form
-                    onSubmit={form.handleSubmit(handleContribute)}
-                    className="space-y-4"
-                  >
-                    <FormField
-                      control={form.control}
-                      name="name"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Tu Nombre</FormLabel>
-                          <FormControl>
-                            <Input {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
 
-                    <FormField
-                      control={form.control}
-                      name="amount"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Monto ($)</FormLabel>
-                          <FormControl>
-                            <Input type="number" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={form.control}
-                      name="message"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Mensaje (Opcional)</FormLabel>
-                          <FormControl>
-                            <Textarea {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <Button
-                      type="submit"
-                      className="w-full"
-                      disabled={contributeMutation.isPending}
+            {!project.isOwner && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Hacer una Contribución</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <Form {...form}>
+                    <form
+                      onSubmit={form.handleSubmit(handleContribute)}
+                      className="space-y-4"
                     >
-                      {contributeMutation.isPending && (
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      )}
-                      {user ? 'Contribuir' : 'Inicia sesión para contribuir'}
-                    </Button>
-                  </form>
-                </Form>
-              </CardContent>
-            </Card>
+                      <FormField
+                        control={form.control}
+                        name="name"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Tu Nombre</FormLabel>
+                            <FormControl>
+                              <Input {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={form.control}
+                        name="amount"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Monto ($)</FormLabel>
+                            <FormControl>
+                              <Input type="number" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={form.control}
+                        name="message"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Mensaje (Opcional)</FormLabel>
+                            <FormControl>
+                              <Textarea {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <Button
+                        type="submit"
+                        className="w-full"
+                        disabled={contributeMutation.isPending}
+                      >
+                        {contributeMutation.isPending && (
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        )}
+                        {user ? 'Contribuir' : 'Inicia sesión para contribuir'}
+                      </Button>
+                    </form>
+                  </Form>
+                </CardContent>
+              </Card>
+            )}
 
             {project.contributions.length > 0 && (
               <Card>

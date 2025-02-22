@@ -87,11 +87,13 @@ export function registerRoutes(app: Express): Server {
       const combinedProjects = [
         ...userProjects.map(({ project, contribution_count }) => ({
           ...project,
-          contribution_count
+          contribution_count,
+          isOwner: true
         })),
         ...contributedProjects.map(({ project, contribution_count }) => ({
           ...project,
-          contribution_count
+          contribution_count,
+          isOwner: false
         }))
       ];
 
@@ -102,22 +104,42 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
-  // Get single project (public access)
+  // Get single project (with access control)
   app.get("/api/projects/:id", async (req, res) => {
     try {
+      if (!req.isAuthenticated()) {
+        return res.status(401).json({ error: "You must be logged in to view this project" });
+      }
+
+      const user = req.user as any;
       const projectId = parseInt(req.params.id);
+
       if (isNaN(projectId)) {
         return res.status(400).json({ error: "Invalid project ID" });
       }
 
+      // Get project with user access check
       const [project] = await db
-        .select()
+        .select({
+          project: projects,
+          isContributor: sql<boolean>`EXISTS (
+            SELECT 1 FROM ${contributions} 
+            WHERE ${contributions.project_id} = ${projectId} 
+            AND ${contributions.contributor_name} = ${user.email}
+          )`,
+        })
         .from(projects)
         .where(eq(projects.id, projectId))
         .limit(1);
 
       if (!project) {
         return res.status(404).json({ error: "Project not found" });
+      }
+
+      // Check if user has access (owner or contributor)
+      const hasAccess = project.project.creator_id === user.id || project.isContributor;
+      if (!hasAccess) {
+        return res.status(403).json({ error: "You don't have access to this project" });
       }
 
       // Get project details including contributions
@@ -131,12 +153,13 @@ export function registerRoutes(app: Express): Server {
       const [creator] = await db
         .select()
         .from(users)
-        .where(eq(users.id, project.creator_id))
+        .where(eq(users.id, project.project.creator_id))
         .limit(1);
 
       res.json({
-        ...project,
-        creator: { username: creator?.username || "Unknown User" },
+        ...project.project,
+        isOwner: project.project.creator_id === user.id,
+        creator: { email: creator?.email || "Unknown User" },
         contributions: projectContributions,
         reactions: [],
         shares: {
