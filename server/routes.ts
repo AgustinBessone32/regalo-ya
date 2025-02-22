@@ -4,7 +4,7 @@ import { setupAuth } from "./auth";
 import { db } from "@db";
 import { projects, insertProjectSchema, contributions, users } from "@db/schema";
 import { nanoid } from 'nanoid';
-import { eq, and, not, sql } from "drizzle-orm";
+import { eq, and, not, sql, desc } from "drizzle-orm";
 import { createUploadthingExpressHandler } from "uploadthing/express";
 import { ourFileRouter } from "./uploadthing";
 
@@ -41,15 +41,24 @@ export function registerRoutes(app: Express): Server {
         return res.status(401).json({ error: "Invalid user session" });
       }
 
-      // First get all owned projects
+      // Get owned projects with contribution counts
       const ownedProjects = await db
-        .select()
+        .select({
+          project: projects,
+          contribution_count: sql<number>`COALESCE(COUNT(DISTINCT ${contributions.id}), 0)::int`
+        })
         .from(projects)
-        .where(eq(projects.creator_id, user.id));
+        .leftJoin(contributions, eq(contributions.project_id, projects.id))
+        .where(eq(projects.creator_id, user.id))
+        .groupBy(projects.id)
+        .orderBy(desc(projects.created_at));
 
-      // Then get all contributed projects
+      // Get contributed projects with contribution counts
       const contributedProjects = await db
-        .select()
+        .select({
+          project: projects,
+          contribution_count: sql<number>`COALESCE(COUNT(DISTINCT ${contributions.id}), 0)::int`
+        })
         .from(projects)
         .innerJoin(
           contributions,
@@ -58,47 +67,23 @@ export function registerRoutes(app: Express): Server {
             eq(contributions.contributor_name, user.email)
           )
         )
-        .where(not(eq(projects.creator_id, user.id)));
-
-      // Get all accessible project IDs
-      const projectIds = [
-        ...ownedProjects.map(p => p.id),
-        ...contributedProjects.map(p => p.id)
-      ];
-
-      // Get contribution counts if there are any projects
-      let contributionCountsMap = new Map();
-
-      if (projectIds.length > 0) {
-        const contributionCounts = await db
-          .select({
-            project_id: contributions.project_id,
-            count: sql<number>`count(${contributions.id})::int`
-          })
-          .from(contributions)
-          .where(sql`${contributions.project_id} = ANY(${projectIds})`)
-          .groupBy(contributions.project_id);
-
-        contributionCountsMap = new Map(
-          contributionCounts.map(row => [row.project_id, Number(row.count)])
-        );
-      }
+        .where(not(eq(projects.creator_id, user.id)))
+        .groupBy(projects.id)
+        .orderBy(desc(projects.created_at));
 
       // Format and combine projects
       const accessibleProjects = [
-        ...ownedProjects.map(project => ({
+        ...ownedProjects.map(({ project, contribution_count }) => ({
           ...project,
           isOwner: true,
-          contribution_count: contributionCountsMap.get(project.id) || 0
+          contribution_count: Number(contribution_count)
         })),
-        ...contributedProjects.map(project => ({
+        ...contributedProjects.map(({ project, contribution_count }) => ({
           ...project,
           isOwner: false,
-          contribution_count: contributionCountsMap.get(project.id) || 0
+          contribution_count: Number(contribution_count)
         }))
-      ].sort((a, b) => 
-        new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-      );
+      ];
 
       return res.json(accessibleProjects);
     } catch (error: any) {
@@ -149,9 +134,8 @@ export function registerRoutes(app: Express): Server {
         throw new Error("Failed to create project");
       }
 
-      console.log("Created new project:", newProject.id);
+      console.log("Created new project:", newProject.id, "for user:", user.id);
 
-      // Return project with all required fields
       return res.json({
         ...newProject,
         isOwner: true,
@@ -180,32 +164,29 @@ export function registerRoutes(app: Express): Server {
         return res.status(400).json({ error: "Invalid project ID" });
       }
 
-      // Get project with strict access control
-      const [project] = await db
-        .select()
+      // Get project with access check
+      const [projectWithAccess] = await db
+        .select({
+          project: projects,
+          isContributor: sql<boolean>`EXISTS (
+            SELECT 1 FROM ${contributions}
+            WHERE ${contributions.project_id} = ${projectId}
+            AND ${contributions.contributor_name} = ${user.email}
+          )`
+        })
         .from(projects)
         .where(eq(projects.id, projectId));
 
-      if (!project) {
+      if (!projectWithAccess) {
         return res.status(404).json({ error: "Project not found" });
       }
 
-      // Check if user is owner or contributor
+      const { project, isContributor } = projectWithAccess;
       const isOwner = project.creator_id === user.id;
-      if (!isOwner) {
-        const [contribution] = await db
-          .select()
-          .from(contributions)
-          .where(
-            and(
-              eq(contributions.project_id, projectId),
-              eq(contributions.contributor_name, user.email)
-            )
-          );
 
-        if (!contribution) {
-          return res.status(403).json({ error: "Access denied" });
-        }
+      // Check access rights
+      if (!isOwner && !isContributor) {
+        return res.status(403).json({ error: "Access denied" });
       }
 
       // Get project details
@@ -213,7 +194,7 @@ export function registerRoutes(app: Express): Server {
         .select()
         .from(contributions)
         .where(eq(contributions.project_id, projectId))
-        .orderBy(contributions.created_at);
+        .orderBy(desc(contributions.created_at));
 
       const [creator] = await db
         .select()
@@ -262,7 +243,7 @@ export function registerRoutes(app: Express): Server {
         return res.status(400).json({ error: "Amount and name are required" });
       }
 
-      // Verify project exists
+      // Get project and verify access
       const [project] = await db
         .select()
         .from(projects)
@@ -272,24 +253,27 @@ export function registerRoutes(app: Express): Server {
         return res.status(404).json({ error: "Project not found" });
       }
 
-      // Create contribution
-      const [contribution] = await db
-        .insert(contributions)
-        .values({
-          amount,
-          message,
-          contributor_name: name,
-          project_id: projectId,
-        })
-        .returning();
+      // Create contribution and update project amount atomically
+      const [contribution] = await db.transaction(async (tx) => {
+        const [contribution] = await tx
+          .insert(contributions)
+          .values({
+            amount,
+            message,
+            contributor_name: name,
+            project_id: projectId,
+          })
+          .returning();
 
-      // Update project amount
-      await db
-        .update(projects)
-        .set({
-          current_amount: project.current_amount + amount
-        })
-        .where(eq(projects.id, projectId));
+        await tx
+          .update(projects)
+          .set({
+            current_amount: project.current_amount + amount
+          })
+          .where(eq(projects.id, projectId));
+
+        return [contribution];
+      });
 
       return res.json(contribution);
     } catch (error: any) {
