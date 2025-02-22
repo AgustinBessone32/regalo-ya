@@ -62,7 +62,7 @@ export function registerRoutes(app: Express): Server {
         .from(projects)
         .where(eq(projects.creator_id, user.id));
 
-      // Get projects where user is a contributor
+      // Get contributed projects
       const contributedProjects = await db
         .select({
           id: projects.id,
@@ -90,22 +90,25 @@ export function registerRoutes(app: Express): Server {
         )
         .where(not(eq(projects.creator_id, user.id)));
 
-      // Get contribution counts
-      const projectIds = [...ownedProjects, ...contributedProjects].map(p => p.id);
-      const contributionCounts = await db
-        .select({
-          project_id: contributions.project_id,
-          count: sql<number>`COUNT(*)::int`,
-        })
-        .from(contributions)
-        .where(sql`${contributions.project_id} = ANY(ARRAY[${projectIds}])`)
-        .groupBy(contributions.project_id);
+      // Get contribution counts for each project
+      let countsMap = new Map();
+      if (ownedProjects.length > 0 || contributedProjects.length > 0) {
+        const projectIds = [...ownedProjects, ...contributedProjects].map(p => p.id);
+        const contributionCounts = await db
+          .select({
+            project_id: contributions.project_id,
+            count: sql<number>`count(${contributions.id})::int`,
+          })
+          .from(contributions)
+          .where(sql`${contributions.project_id}::int = ANY(${sql.array(projectIds, 'int4')})`)
+          .groupBy(contributions.project_id);
 
-      const countsMap = new Map(
-        contributionCounts.map(({ project_id, count }) => [project_id, Number(count)])
-      );
+        countsMap = new Map(
+          contributionCounts.map(({ project_id, count }) => [project_id, Number(count)])
+        );
+      }
 
-      // Format response
+      // Format response with strict access control
       const accessibleProjects = [
         ...ownedProjects.map(project => ({
           ...project,
