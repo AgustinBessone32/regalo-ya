@@ -1,6 +1,5 @@
 import { createUploadthing, type FileRouter } from "uploadthing/server";
-import { type Request } from "express";
-import { type Session } from "express-session";
+import type { Request } from "express";
 
 // Add session to Request type
 declare module "express" {
@@ -15,15 +14,20 @@ declare module "express" {
 
 const f = createUploadthing();
 
+// Check if we have the required environment variables
+if (!process.env.UPLOADTHING_APP_ID || !process.env.UPLOADTHING_SECRET) {
+  throw new Error("Missing UPLOADTHING_APP_ID or UPLOADTHING_SECRET environment variables");
+}
+
 export const ourFileRouter = {
   imageUploader: f({ image: { maxFileSize: "4MB", maxFileCount: 1 } })
     .middleware(async ({ req }) => {
       // Authorization check
-      if (!req.session?.passport?.user) {
+      if (!req.isAuthenticated?.()) {
         throw new Error("Unauthorized - Please log in to upload images");
       }
 
-      return { userId: req.session.passport.user };
+      return { userId: (req.user as any).id };
     })
     .onUploadComplete(async ({ metadata, file }) => {
       try {

@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { generateReactHelpers } from "@uploadthing/react/hooks";
 import type { OurFileRouter } from "../../../server/uploadthing";
 
-export const { useUploadThing, uploadFiles } = generateReactHelpers<OurFileRouter>();
+export const { useUploadThing } = generateReactHelpers<OurFileRouter>();
 
 type UploadButtonProps = {
   endpoint: keyof OurFileRouter;
@@ -18,7 +18,7 @@ export function UploadButton({
   onUploadError,
   onUploadBegin
 }: UploadButtonProps) {
-  const { startUpload, permittedFileInfo } = useUploadThing(endpoint, {
+  const { startUpload, isUploading, permittedFileInfo } = useUploadThing(endpoint, {
     onClientUploadComplete,
     onUploadError,
   });
@@ -39,15 +39,20 @@ export function UploadButton({
   );
 
   return (
-    <Button variant="outline" className="w-full" asChild>
-      <label>
+    <Button variant="outline" className="w-full relative" disabled={isUploading}>
+      <label className="absolute inset-0 cursor-pointer">
         <input
           type="file"
           className="hidden"
-          accept={permittedFileInfo?.config?.accept?.join(",")}
+          accept={permittedFileInfo?.config?.accept ? 
+            permittedFileInfo.config.accept.join(",") : 
+            "image/*"}
           onChange={onChange}
+          disabled={isUploading}
         />
-        Subir Imagen
+        <span className="flex items-center justify-center w-full h-full">
+          {isUploading ? "Subiendo..." : "Subir Imagen"}
+        </span>
       </label>
     </Button>
   );

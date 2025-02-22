@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import ProjectCard from "@/components/ProjectCard";
-import { Loader2, Plus } from "lucide-react";
+import { Loader2, Plus, LogOut } from "lucide-react";
 import type { Project } from "@db/schema";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
@@ -14,8 +14,9 @@ type ProjectWithDetails = Project & {
 };
 
 export default function HomePage() {
-  const { user } = useUser();
+  const { user, logout } = useUser();
   const { toast } = useToast();
+  const [, setLocation] = useLocation();
 
   const { data: projects, isLoading, error } = useQuery<ProjectWithDetails[]>({
     queryKey: ["/api/projects"],
@@ -32,6 +33,19 @@ export default function HomePage() {
     enabled: !!user,
     retry: 1
   });
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+      setLocation('/auth');
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Error al cerrar sesión"
+      });
+    }
+  };
 
   // Handle error state with useEffect to avoid render-time side effects
   useEffect(() => {
@@ -94,7 +108,7 @@ export default function HomePage() {
   }
 
   const myProjects = projects.filter(p => p.creator_id === user?.id);
-  const contributedProjects = projects.filter(p => 
+  const contributedProjects = projects.filter(p =>
     p.creator_id !== user?.id && p.contribution_count > 0
   );
 
@@ -107,12 +121,18 @@ export default function HomePage() {
             Crea y gestiona colecciones de regalos colaborativos
           </p>
         </div>
-        <Link href="/create">
-          <Button>
-            <Plus className="mr-2 h-4 w-4" />
-            Crear Proyecto
+        <div className="flex items-center gap-4">
+          <Link href="/create">
+            <Button>
+              <Plus className="mr-2 h-4 w-4" />
+              Crear Proyecto
+            </Button>
+          </Link>
+          <Button variant="outline" onClick={handleLogout}>
+            <LogOut className="mr-2 h-4 w-4" />
+            Cerrar Sesión
           </Button>
-        </Link>
+        </div>
       </div>
 
       <div className="bg-card rounded-lg p-4 border">

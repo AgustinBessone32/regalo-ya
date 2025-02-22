@@ -50,9 +50,17 @@ export function registerRoutes(app: Express): Server {
 
       // Get all projects created by the user
       const userProjects = await db
-        .select()
+        .select({
+          project: projects,
+          contribution_count: sql<number>`count(${contributions.id})::int`,
+        })
         .from(projects)
+        .leftJoin(
+          contributions,
+          eq(contributions.project_id, projects.id)
+        )
         .where(eq(projects.creator_id, user.id))
+        .groupBy(projects.id)
         .orderBy(sql`${projects.created_at} DESC`);
 
       // Get all projects where user has contributed
@@ -62,37 +70,32 @@ export function registerRoutes(app: Express): Server {
           contribution_count: sql<number>`count(${contributions.id})::int`,
         })
         .from(projects)
-        .leftJoin(
+        .innerJoin(
           contributions,
           and(
             eq(contributions.project_id, projects.id),
-            eq(contributions.contributor_name, user.email) // Use email instead of username
+            eq(contributions.contributor_name, user.email)
           )
+        )
+        .where(
+          sql`${projects.creator_id} != ${user.id}`
         )
         .groupBy(projects.id)
         .orderBy(sql`${projects.created_at} DESC`);
 
-      // Combine and deduplicate projects
+      // Combine projects
       const combinedProjects = [
-        ...userProjects.map(project => ({
+        ...userProjects.map(({ project, contribution_count }) => ({
           ...project,
-          contribution_count: 0
+          contribution_count
         })),
         ...contributedProjects.map(({ project, contribution_count }) => ({
           ...project,
-          contribution_count: contribution_count || 0
+          contribution_count
         }))
       ];
 
-      // Remove duplicates based on project ID
-      const uniqueProjects = Array.from(
-        new Map(combinedProjects.map(project => [
-          project.id,
-          project
-        ])).values()
-      );
-
-      res.json(uniqueProjects);
+      res.json(combinedProjects);
     } catch (error: any) {
       console.error("Error fetching projects:", error);
       res.status(500).json({ error: error.message || "Error fetching projects" });
