@@ -41,23 +41,44 @@ export function registerRoutes(app: Express): Server {
         return res.status(401).json({ error: "Invalid user session" });
       }
 
-      // Get owned projects with contribution counts
+      // Get owned projects
       const ownedProjects = await db
         .select({
-          project: projects,
-          contribution_count: sql<number>`COALESCE(COUNT(DISTINCT ${contributions.id}), 0)::int`
+          id: projects.id,
+          title: projects.title,
+          description: projects.description,
+          image_url: projects.image_url,
+          target_amount: projects.target_amount,
+          current_amount: projects.current_amount,
+          event_date: projects.event_date,
+          location: projects.location,
+          creator_id: projects.creator_id,
+          is_public: projects.is_public,
+          invitation_token: projects.invitation_token,
+          payment_method: projects.payment_method,
+          payment_details: projects.payment_details,
+          created_at: projects.created_at,
         })
         .from(projects)
-        .leftJoin(contributions, eq(contributions.project_id, projects.id))
-        .where(eq(projects.creator_id, user.id))
-        .groupBy(projects.id)
-        .orderBy(desc(projects.created_at));
+        .where(eq(projects.creator_id, user.id));
 
-      // Get contributed projects with contribution counts
+      // Get projects where user is a contributor
       const contributedProjects = await db
         .select({
-          project: projects,
-          contribution_count: sql<number>`COALESCE(COUNT(DISTINCT ${contributions.id}), 0)::int`
+          id: projects.id,
+          title: projects.title,
+          description: projects.description,
+          image_url: projects.image_url,
+          target_amount: projects.target_amount,
+          current_amount: projects.current_amount,
+          event_date: projects.event_date,
+          location: projects.location,
+          creator_id: projects.creator_id,
+          is_public: projects.is_public,
+          invitation_token: projects.invitation_token,
+          payment_method: projects.payment_method,
+          payment_details: projects.payment_details,
+          created_at: projects.created_at,
         })
         .from(projects)
         .innerJoin(
@@ -67,23 +88,36 @@ export function registerRoutes(app: Express): Server {
             eq(contributions.contributor_name, user.email)
           )
         )
-        .where(not(eq(projects.creator_id, user.id)))
-        .groupBy(projects.id)
-        .orderBy(desc(projects.created_at));
+        .where(not(eq(projects.creator_id, user.id)));
 
-      // Format and combine projects
+      // Get contribution counts
+      const projectIds = [...ownedProjects, ...contributedProjects].map(p => p.id);
+      const contributionCounts = await db
+        .select({
+          project_id: contributions.project_id,
+          count: sql<number>`COUNT(*)::int`,
+        })
+        .from(contributions)
+        .where(sql`${contributions.project_id} = ANY(ARRAY[${projectIds}])`)
+        .groupBy(contributions.project_id);
+
+      const countsMap = new Map(
+        contributionCounts.map(({ project_id, count }) => [project_id, Number(count)])
+      );
+
+      // Format response
       const accessibleProjects = [
-        ...ownedProjects.map(({ project, contribution_count }) => ({
+        ...ownedProjects.map(project => ({
           ...project,
           isOwner: true,
-          contribution_count: Number(contribution_count)
+          contribution_count: countsMap.get(project.id) || 0
         })),
-        ...contributedProjects.map(({ project, contribution_count }) => ({
+        ...contributedProjects.map(project => ({
           ...project,
           isOwner: false,
-          contribution_count: Number(contribution_count)
+          contribution_count: countsMap.get(project.id) || 0
         }))
-      ];
+      ].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
 
       return res.json(accessibleProjects);
     } catch (error: any) {
