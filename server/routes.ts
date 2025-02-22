@@ -4,7 +4,7 @@ import { setupAuth } from "./auth";
 import { db } from "@db";
 import { projects, insertProjectSchema, contributions, users } from "@db/schema";
 import { nanoid } from 'nanoid';
-import { eq, and, not, sql, desc, or, exists } from "drizzle-orm";
+import { eq, and, not, sql, desc, or } from "drizzle-orm";
 import { createUploadthingExpressHandler } from "uploadthing/express";
 import { ourFileRouter } from "./uploadthing";
 
@@ -32,17 +32,19 @@ export function registerRoutes(app: Express): Server {
   // Get list of projects (strict access control)
   app.get("/api/projects", async (req, res) => {
     try {
+      // Strict authentication check
       if (!req.isAuthenticated()) {
         return res.status(401).json({ error: "Authentication required" });
       }
 
       const user = req.user as any;
-      if (!user?.id || !user?.email) {
+      if (!user?.id || typeof user.id !== 'number' || !user?.email) {
         return res.status(401).json({ error: "Invalid user session" });
       }
 
-      // Get all projects where user is either owner or contributor
-      const accessibleProjects = await db
+      // Two separate queries for better security and clarity
+      // 1. Get user's own projects
+      const ownedProjects = await db
         .select({
           id: projects.id,
           title: projects.title,
@@ -58,8 +60,34 @@ export function registerRoutes(app: Express): Server {
           payment_method: projects.payment_method,
           payment_details: projects.payment_details,
           created_at: projects.created_at,
-          contribution_count: sql<number>`COUNT(DISTINCT ${contributions.id})::int`,
-          is_owner: sql<boolean>`${projects.creator_id} = ${user.id}`
+          contribution_count: sql<number>`COUNT(DISTINCT ${contributions.id})::int`
+        })
+        .from(projects)
+        .leftJoin(
+          contributions,
+          eq(contributions.project_id, projects.id)
+        )
+        .where(eq(projects.creator_id, user.id))
+        .groupBy(projects.id);
+
+      // 2. Get projects where user is a contributor
+      const contributedProjects = await db
+        .select({
+          id: projects.id,
+          title: projects.title,
+          description: projects.description,
+          image_url: projects.image_url,
+          target_amount: projects.target_amount,
+          current_amount: projects.current_amount,
+          event_date: projects.event_date,
+          location: projects.location,
+          creator_id: projects.creator_id,
+          is_public: projects.is_public,
+          invitation_token: projects.invitation_token,
+          payment_method: projects.payment_method,
+          payment_details: projects.payment_details,
+          created_at: projects.created_at,
+          contribution_count: sql<number>`COUNT(DISTINCT ${contributions.id})::int`
         })
         .from(projects)
         .leftJoin(
@@ -67,10 +95,8 @@ export function registerRoutes(app: Express): Server {
           eq(contributions.project_id, projects.id)
         )
         .where(
-          or(
-            // User is the creator
-            eq(projects.creator_id, user.id),
-            // User is a contributor
+          and(
+            not(eq(projects.creator_id, user.id)),
             exists(
               db.select()
                 .from(contributions)
@@ -83,14 +109,23 @@ export function registerRoutes(app: Express): Server {
             )
           )
         )
-        .groupBy(projects.id)
-        .orderBy(desc(projects.created_at));
+        .groupBy(projects.id);
 
-      return res.json(accessibleProjects.map(project => ({
-        ...project,
-        isOwner: Boolean(project.is_owner),
-        contribution_count: Number(project.contribution_count)
-      })));
+      // Combine and format results
+      const accessibleProjects = [
+        ...ownedProjects.map(project => ({
+          ...project,
+          isOwner: true,
+          contribution_count: Number(project.contribution_count)
+        })),
+        ...contributedProjects.map(project => ({
+          ...project,
+          isOwner: false,
+          contribution_count: Number(project.contribution_count)
+        }))
+      ].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+
+      return res.json(accessibleProjects);
 
     } catch (error: any) {
       console.error("Error fetching projects:", error);
