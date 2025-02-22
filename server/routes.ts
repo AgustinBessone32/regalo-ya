@@ -60,8 +60,7 @@ export function registerRoutes(app: Express): Server {
           eq(contributions.project_id, projects.id)
         )
         .where(eq(projects.creator_id, user.id))
-        .groupBy(projects.id)
-        .orderBy(sql`${projects.created_at} DESC`);
+        .groupBy(projects.id);
 
       // Get all projects where user has contributed
       const contributedProjects = await db
@@ -80,10 +79,9 @@ export function registerRoutes(app: Express): Server {
         .where(
           sql`${projects.creator_id} != ${user.id}`
         )
-        .groupBy(projects.id)
-        .orderBy(sql`${projects.created_at} DESC`);
+        .groupBy(projects.id);
 
-      // Combine projects
+      // Combine projects with proper ownership flags
       const combinedProjects = [
         ...userProjects.map(({ project, contribution_count }) => ({
           ...project,
