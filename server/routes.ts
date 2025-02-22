@@ -4,7 +4,7 @@ import { setupAuth } from "./auth";
 import { db } from "@db";
 import { projects, insertProjectSchema, contributions, users } from "@db/schema";
 import { nanoid } from 'nanoid';
-import { eq, and, not, sql, desc } from "drizzle-orm";
+import { eq, and, not, sql, desc, or, exists } from "drizzle-orm";
 import { createUploadthingExpressHandler } from "uploadthing/express";
 import { ourFileRouter } from "./uploadthing";
 
@@ -67,11 +67,19 @@ export function registerRoutes(app: Express): Server {
           eq(contributions.project_id, projects.id)
         )
         .where(
-          sql`${projects.creator_id} = ${user.id} OR EXISTS (
-            SELECT 1 FROM ${contributions} c 
-            WHERE c.project_id = ${projects.id} 
-            AND c.contributor_name = ${user.email}
-          )`
+          or(
+            eq(projects.creator_id, user.id),
+            exists(
+              db.select()
+                .from(contributions)
+                .where(
+                  and(
+                    eq(contributions.project_id, projects.id),
+                    eq(contributions.contributor_name, user.email)
+                  )
+                )
+            )
+          )
         )
         .groupBy(projects.id)
         .orderBy(desc(projects.created_at));
