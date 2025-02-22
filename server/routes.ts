@@ -46,42 +46,43 @@ export function registerRoutes(app: Express): Server {
         return res.status(401).json({ error: "Invalid user session" });
       }
 
-      // Get all accessible projects for the user using a UNION
+      // Get all accessible projects using a single SQL query
       const result = await db.execute(sql`
-        -- First select projects owned by the user
-        (SELECT 
-          p.*,
-          COUNT(DISTINCT c.id)::int as contribution_count,
-          true as "isOwner"
-        FROM ${projects} p
-        LEFT JOIN ${contributions} c ON c.project_id = p.id
-        WHERE p.creator_id = ${user.id}
-        GROUP BY p.id)
-
+        WITH user_projects AS (
+          SELECT 
+            p.*,
+            COUNT(DISTINCT c.id)::int as contribution_count,
+            true as is_owner
+          FROM ${projects} p
+          LEFT JOIN ${contributions} c ON c.project_id = p.id
+          WHERE p.creator_id = ${user.id}
+          GROUP BY p.id
+        ),
+        contributed_projects AS (
+          SELECT 
+            p.*,
+            COUNT(DISTINCT c.id)::int as contribution_count,
+            false as is_owner
+          FROM ${projects} p
+          INNER JOIN ${contributions} c ON c.project_id = p.id
+          WHERE c.contributor_name = ${user.email}
+          AND p.creator_id != ${user.id}
+          GROUP BY p.id
+        )
+        SELECT * FROM user_projects
         UNION ALL
-
-        -- Then select projects where the user has contributed
-        (SELECT 
-          p.*,
-          COUNT(DISTINCT c.id)::int as contribution_count,
-          false as "isOwner"
-        FROM ${projects} p
-        INNER JOIN ${contributions} c ON c.project_id = p.id
-        WHERE c.contributor_name = ${user.email}
-        AND p.creator_id != ${user.id}
-        GROUP BY p.id)
-
-        ORDER BY created_at DESC
+        SELECT * FROM contributed_projects
+        ORDER BY created_at DESC;
       `);
 
       // Transform the results
-      const projects = result.rows.map(row => ({
+      const accessibleProjects = result.rows.map(row => ({
         ...row,
-        isOwner: row.isOwner === true,
+        isOwner: row.is_owner === true,
         contribution_count: Number(row.contribution_count)
       }));
 
-      res.json(projects);
+      res.json(accessibleProjects);
     } catch (error: any) {
       console.error("Error fetching projects:", error);
       res.status(500).json({ error: error.message || "Error fetching projects" });
