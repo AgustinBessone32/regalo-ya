@@ -4,7 +4,7 @@ import { setupAuth } from "./auth";
 import { db } from "@db";
 import { projects, insertProjectSchema, contributions, users } from "@db/schema";
 import { nanoid } from 'nanoid';
-import { eq, and, not } from "drizzle-orm";
+import { eq, and, not, sql } from "drizzle-orm";
 import { createUploadthingExpressHandler } from "uploadthing/express";
 import { ourFileRouter } from "./uploadthing";
 
@@ -41,13 +41,13 @@ export function registerRoutes(app: Express): Server {
         return res.status(401).json({ error: "Invalid user session" });
       }
 
-      // Get owned projects
+      // First get all owned projects
       const ownedProjects = await db
         .select()
         .from(projects)
         .where(eq(projects.creator_id, user.id));
 
-      // Get contributed projects (where user is not the owner)
+      // Then get all contributed projects
       const contributedProjects = await db
         .select()
         .from(projects)
@@ -60,30 +60,41 @@ export function registerRoutes(app: Express): Server {
         )
         .where(not(eq(projects.creator_id, user.id)));
 
-      // Get contribution counts for all projects
-      const contributionCounts = await db
-        .select({
-          project_id: contributions.project_id,
-          count: db.fn.count(contributions.id).as('count'),
-        })
-        .from(contributions)
-        .groupBy(contributions.project_id);
+      // Get all accessible project IDs
+      const projectIds = [
+        ...ownedProjects.map(p => p.id),
+        ...contributedProjects.map(p => p.id)
+      ];
 
-      const countsMap = new Map(
-        contributionCounts.map(row => [row.project_id, Number(row.count)])
-      );
+      // Get contribution counts if there are any projects
+      let contributionCountsMap = new Map();
 
-      // Combine and format projects
+      if (projectIds.length > 0) {
+        const contributionCounts = await db
+          .select({
+            project_id: contributions.project_id,
+            count: sql<number>`count(${contributions.id})::int`
+          })
+          .from(contributions)
+          .where(sql`${contributions.project_id} = ANY(${projectIds})`)
+          .groupBy(contributions.project_id);
+
+        contributionCountsMap = new Map(
+          contributionCounts.map(row => [row.project_id, Number(row.count)])
+        );
+      }
+
+      // Format and combine projects
       const accessibleProjects = [
         ...ownedProjects.map(project => ({
           ...project,
           isOwner: true,
-          contribution_count: countsMap.get(project.id) || 0
+          contribution_count: contributionCountsMap.get(project.id) || 0
         })),
         ...contributedProjects.map(project => ({
           ...project,
           isOwner: false,
-          contribution_count: countsMap.get(project.id) || 0
+          contribution_count: contributionCountsMap.get(project.id) || 0
         }))
       ].sort((a, b) => 
         new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
