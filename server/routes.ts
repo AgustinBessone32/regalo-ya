@@ -59,7 +59,7 @@ export function registerRoutes(app: Express): Server {
           payment_details: projects.payment_details,
           created_at: projects.created_at,
           contribution_count: sql<number>`COUNT(DISTINCT ${contributions.id})::int`,
-          is_owner: sql<boolean>`CASE WHEN ${projects.creator_id} = ${user.id} THEN true ELSE false END`
+          is_owner: sql<boolean>`${projects.creator_id} = ${user.id}`
         })
         .from(projects)
         .leftJoin(
@@ -68,7 +68,9 @@ export function registerRoutes(app: Express): Server {
         )
         .where(
           or(
+            // User is the creator
             eq(projects.creator_id, user.id),
+            // User is a contributor
             exists(
               db.select()
                 .from(contributions)
@@ -86,7 +88,7 @@ export function registerRoutes(app: Express): Server {
 
       return res.json(accessibleProjects.map(project => ({
         ...project,
-        isOwner: project.is_owner,
+        isOwner: Boolean(project.is_owner),
         contribution_count: Number(project.contribution_count)
       })));
 
