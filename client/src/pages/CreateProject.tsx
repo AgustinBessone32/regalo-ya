@@ -83,7 +83,10 @@ export default function CreateProject() {
       return response.json();
     },
     onSuccess: (data) => {
+      // Invalidate all project-related queries to ensure fresh data
       queryClient.invalidateQueries({ queryKey: ['/api/projects'] });
+      queryClient.invalidateQueries({ queryKey: [`/api/projects/${data.id}`] });
+
       toast({
         title: "¡Éxito!",
         description: "Proyecto creado correctamente",
@@ -187,7 +190,7 @@ export default function CreateProject() {
                             setImageUpload(prev => ({ ...prev, isUploading: true }));
                           }}
                           onClientUploadComplete={(res) => {
-                            console.log("Upload completed:", res); 
+                            console.log("Upload completed:", res);
                             const fileUrl = res?.[0]?.url;
                             setImageUpload({
                               isUploading: false,
@@ -200,7 +203,7 @@ export default function CreateProject() {
                             });
                           }}
                           onUploadError={(error: Error) => {
-                            console.error("Upload error:", error); 
+                            console.error("Upload error:", error);
                             setImageUpload({
                               isUploading: false,
                               preview: null
@@ -220,7 +223,7 @@ export default function CreateProject() {
                             alt="Preview"
                             className="w-full h-full object-cover rounded-lg"
                             onError={(e) => {
-                              console.error("Image load error:", e); 
+                              console.error("Image load error:", e);
                               const img = e.target as HTMLImageElement;
                               console.log("Failed URL:", img.src);
                             }}

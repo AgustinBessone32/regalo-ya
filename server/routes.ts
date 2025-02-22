@@ -4,7 +4,7 @@ import { setupAuth } from "./auth";
 import { db } from "@db";
 import { projects, insertProjectSchema, contributions, users } from "@db/schema";
 import { nanoid } from 'nanoid';
-import { eq, sql, and, or } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import { createUploadthingExpressHandler } from "uploadthing/express";
 import { ourFileRouter } from "./uploadthing";
 
@@ -34,11 +34,6 @@ export function registerRoutes(app: Express): Server {
 
   app.use("/api/uploadthing", uploadthingHandler);
 
-  // Health check route
-  app.get("/api/health", (req, res) => {
-    res.json({ status: "ok", time: new Date().toISOString() });
-  });
-
   // Get list of projects (filtered by user access)
   app.get("/api/projects", async (req, res) => {
     try {
@@ -52,7 +47,7 @@ export function registerRoutes(app: Express): Server {
       }
 
       // Get all accessible projects for the user using a UNION
-      const accessibleProjects = await db.execute(sql`
+      const result = await db.execute(sql`
         -- First select projects owned by the user
         (SELECT 
           p.*,
@@ -79,8 +74,8 @@ export function registerRoutes(app: Express): Server {
         ORDER BY created_at DESC
       `);
 
-      // Type check and transform the results
-      const projects = accessibleProjects.rows.map(row => ({
+      // Transform the results
+      const projects = result.rows.map(row => ({
         ...row,
         isOwner: row.isOwner === true,
         contribution_count: Number(row.contribution_count)
@@ -176,14 +171,20 @@ export function registerRoutes(app: Express): Server {
       }
 
       const user = req.user as any;
+      if (!user?.id) {
+        return res.status(401).json({ error: "Invalid user session" });
+      }
+
       const projectData = {
         ...req.body,
         creator_id: user.id,
         invitation_token: nanoid(),
         event_date: req.body.event_date ? new Date(req.body.event_date) : null,
         target_amount: Number(req.body.target_amount),
-        image_url: req.body.image_url || '',
+        image_url: req.body.image_url || null,
       };
+
+      console.log("Creating project with data:", projectData);
 
       const validationResult = insertProjectSchema.safeParse(projectData);
       if (!validationResult.success) {
@@ -197,6 +198,8 @@ export function registerRoutes(app: Express): Server {
         .insert(projects)
         .values(validationResult.data)
         .returning();
+
+      console.log("Created project:", newProject);
 
       res.json(newProject);
     } catch (error: any) {
