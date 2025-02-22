@@ -47,55 +47,46 @@ export function registerRoutes(app: Express): Server {
       }
 
       const user = req.user as any;
+      if (!user?.id || !user?.email) {
+        return res.status(401).json({ error: "Invalid user session" });
+      }
 
-      // Get all projects created by the user
-      const userProjects = await db
-        .select({
-          project: projects,
-          contribution_count: sql<number>`count(${contributions.id})::int`,
-        })
-        .from(projects)
-        .leftJoin(
-          contributions,
-          eq(contributions.project_id, projects.id)
-        )
-        .where(eq(projects.creator_id, user.id))
-        .groupBy(projects.id);
+      // Get all accessible projects for the user using a UNION
+      const accessibleProjects = await db.execute(sql`
+        -- First select projects owned by the user
+        (SELECT 
+          p.*,
+          COUNT(DISTINCT c.id)::int as contribution_count,
+          true as "isOwner"
+        FROM ${projects} p
+        LEFT JOIN ${contributions} c ON c.project_id = p.id
+        WHERE p.creator_id = ${user.id}
+        GROUP BY p.id)
 
-      // Get all projects where user has contributed
-      const contributedProjects = await db
-        .select({
-          project: projects,
-          contribution_count: sql<number>`count(${contributions.id})::int`,
-        })
-        .from(projects)
-        .innerJoin(
-          contributions,
-          and(
-            eq(contributions.project_id, projects.id),
-            eq(contributions.contributor_name, user.email)
-          )
-        )
-        .where(
-          sql`${projects.creator_id} != ${user.id}`
-        )
-        .groupBy(projects.id);
+        UNION ALL
 
-      // Combine projects with proper ownership flags
-      const combinedProjects = [
-        ...userProjects.map(({ project, contribution_count }) => ({
-          ...project,
-          contribution_count,
-          isOwner: true
-        })),
-        ...contributedProjects.map(({ project, contribution_count }) => ({
-          ...project,
-          contribution_count,
-          isOwner: false
-        }))
-      ];
+        -- Then select projects where the user has contributed
+        (SELECT 
+          p.*,
+          COUNT(DISTINCT c.id)::int as contribution_count,
+          false as "isOwner"
+        FROM ${projects} p
+        INNER JOIN ${contributions} c ON c.project_id = p.id
+        WHERE c.contributor_name = ${user.email}
+        AND p.creator_id != ${user.id}
+        GROUP BY p.id)
 
-      res.json(combinedProjects);
+        ORDER BY created_at DESC
+      `);
+
+      // Type check and transform the results
+      const projects = accessibleProjects.rows.map(row => ({
+        ...row,
+        isOwner: row.isOwner === true,
+        contribution_count: Number(row.contribution_count)
+      }));
+
+      res.json(projects);
     } catch (error: any) {
       console.error("Error fetching projects:", error);
       res.status(500).json({ error: error.message || "Error fetching projects" });
