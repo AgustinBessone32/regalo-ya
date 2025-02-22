@@ -4,7 +4,7 @@ import { setupAuth } from "./auth";
 import { db } from "@db";
 import { projects, insertProjectSchema, contributions, users } from "@db/schema";
 import { nanoid } from 'nanoid';
-import { eq, and } from "drizzle-orm";
+import { eq, and, not } from "drizzle-orm";
 import { createUploadthingExpressHandler } from "uploadthing/express";
 import { ourFileRouter } from "./uploadthing";
 
@@ -41,45 +41,15 @@ export function registerRoutes(app: Express): Server {
         return res.status(401).json({ error: "Invalid user session" });
       }
 
-      // Only get projects owned by the user
+      // Get owned projects
       const ownedProjects = await db
-        .select({
-          id: projects.id,
-          title: projects.title,
-          description: projects.description,
-          image_url: projects.image_url,
-          target_amount: projects.target_amount,
-          current_amount: projects.current_amount,
-          event_date: projects.event_date,
-          location: projects.location,
-          creator_id: projects.creator_id,
-          is_public: projects.is_public,
-          invitation_token: projects.invitation_token,
-          payment_method: projects.payment_method,
-          payment_details: projects.payment_details,
-          created_at: projects.created_at,
-        })
+        .select()
         .from(projects)
         .where(eq(projects.creator_id, user.id));
 
-      // Get projects where the user has contributed (strict check)
+      // Get contributed projects (where user is not the owner)
       const contributedProjects = await db
-        .select({
-          id: projects.id,
-          title: projects.title,
-          description: projects.description,
-          image_url: projects.image_url,
-          target_amount: projects.target_amount,
-          current_amount: projects.current_amount,
-          event_date: projects.event_date,
-          location: projects.location,
-          creator_id: projects.creator_id,
-          is_public: projects.is_public,
-          invitation_token: projects.invitation_token,
-          payment_method: projects.payment_method,
-          payment_details: projects.payment_details,
-          created_at: projects.created_at,
-        })
+        .select()
         .from(projects)
         .innerJoin(
           contributions,
@@ -88,9 +58,9 @@ export function registerRoutes(app: Express): Server {
             eq(contributions.contributor_name, user.email)
           )
         )
-        .where(eq(projects.creator_id, user.id).not());
+        .where(not(eq(projects.creator_id, user.id)));
 
-      // Count contributions for each project
+      // Get contribution counts for all projects
       const contributionCounts = await db
         .select({
           project_id: contributions.project_id,
@@ -103,7 +73,7 @@ export function registerRoutes(app: Express): Server {
         contributionCounts.map(row => [row.project_id, Number(row.count)])
       );
 
-      // Combine and format projects with strict access control
+      // Combine and format projects
       const accessibleProjects = [
         ...ownedProjects.map(project => ({
           ...project,
@@ -126,87 +96,6 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
-  // Get single project (strict access control)
-  app.get("/api/projects/:id", async (req, res) => {
-    try {
-      if (!req.isAuthenticated()) {
-        return res.status(401).json({ error: "Authentication required" });
-      }
-
-      const user = req.user as any;
-      if (!user?.id || !user?.email) {
-        return res.status(401).json({ error: "Invalid user session" });
-      }
-
-      const projectId = parseInt(req.params.id);
-      if (isNaN(projectId)) {
-        return res.status(400).json({ error: "Invalid project ID" });
-      }
-
-      // Verify user has access to this project
-      const [project] = await db
-        .select()
-        .from(projects)
-        .where(eq(projects.id, projectId));
-
-      if (!project) {
-        return res.status(404).json({ error: "Project not found" });
-      }
-
-      // Check if user is owner
-      const isOwner = project.creator_id === user.id;
-
-      // If not owner, check if user is a contributor
-      if (!isOwner) {
-        const [contribution] = await db
-          .select()
-          .from(contributions)
-          .where(
-            and(
-              eq(contributions.project_id, projectId),
-              eq(contributions.contributor_name, user.email)
-            )
-          )
-          .limit(1);
-
-        if (!contribution) {
-          return res.status(403).json({ error: "Access denied" });
-        }
-      }
-
-      // Get project details
-      const projectContributions = await db
-        .select()
-        .from(contributions)
-        .where(eq(contributions.project_id, projectId))
-        .orderBy(contributions.created_at);
-
-      const [creator] = await db
-        .select()
-        .from(users)
-        .where(eq(users.id, project.creator_id))
-        .limit(1);
-
-      return res.json({
-        ...project,
-        isOwner,
-        creator: { email: creator?.email || "Unknown" },
-        contributions: projectContributions,
-        reactions: [],
-        shares: { total: 0, by_platform: [] },
-        avg_amount: projectContributions.reduce((sum, c) => sum + c.amount, 0) / projectContributions.length || 0,
-        median_amount: 0,
-        min_amount: Math.min(...projectContributions.map(c => c.amount), 0),
-        max_amount: Math.max(...projectContributions.map(c => c.amount), 0),
-        total_contributions: projectContributions.length,
-        contribution_history: projectContributions.map(c => c.amount)
-      });
-    } catch (error: any) {
-      console.error("Error fetching project:", error);
-      return res.status(500).json({ error: "Error fetching project details" });
-    }
-  });
-
   // Create project (with security checks)
   app.post("/api/projects", async (req, res) => {
     try {
@@ -226,6 +115,7 @@ export function registerRoutes(app: Express): Server {
         event_date: req.body.event_date ? new Date(req.body.event_date) : null,
         target_amount: Number(req.body.target_amount),
         image_url: req.body.image_url || null,
+        current_amount: 0, // Ensure this is set
       };
 
       const validationResult = insertProjectSchema.safeParse(projectData);
@@ -252,7 +142,84 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
-  // Contribute to project (with security checks)
+  // Get single project (strict access control)
+  app.get("/api/projects/:id", async (req, res) => {
+    try {
+      if (!req.isAuthenticated()) {
+        return res.status(401).json({ error: "Authentication required" });
+      }
+
+      const user = req.user as any;
+      if (!user?.id || !user?.email) {
+        return res.status(401).json({ error: "Invalid user session" });
+      }
+
+      const projectId = parseInt(req.params.id);
+      if (isNaN(projectId)) {
+        return res.status(400).json({ error: "Invalid project ID" });
+      }
+
+      // Get project with strict access control
+      const [project] = await db
+        .select()
+        .from(projects)
+        .where(eq(projects.id, projectId));
+
+      if (!project) {
+        return res.status(404).json({ error: "Project not found" });
+      }
+
+      // Check if user is owner or contributor
+      const isOwner = project.creator_id === user.id;
+      if (!isOwner) {
+        const [contribution] = await db
+          .select()
+          .from(contributions)
+          .where(
+            and(
+              eq(contributions.project_id, projectId),
+              eq(contributions.contributor_name, user.email)
+            )
+          );
+
+        if (!contribution) {
+          return res.status(403).json({ error: "Access denied" });
+        }
+      }
+
+      // Get project details
+      const projectContributions = await db
+        .select()
+        .from(contributions)
+        .where(eq(contributions.project_id, projectId))
+        .orderBy(contributions.created_at);
+
+      const [creator] = await db
+        .select()
+        .from(users)
+        .where(eq(users.id, project.creator_id));
+
+      return res.json({
+        ...project,
+        isOwner,
+        creator: { email: creator?.email || "Unknown" },
+        contributions: projectContributions,
+        reactions: [],
+        shares: { total: 0, by_platform: [] },
+        avg_amount: projectContributions.reduce((sum, c) => sum + c.amount, 0) / projectContributions.length || 0,
+        median_amount: 0,
+        min_amount: Math.min(...projectContributions.map(c => c.amount), 0),
+        max_amount: Math.max(...projectContributions.map(c => c.amount), 0),
+        total_contributions: projectContributions.length,
+        contribution_history: projectContributions.map(c => c.amount)
+      });
+    } catch (error: any) {
+      console.error("Error fetching project:", error);
+      return res.status(500).json({ error: "Error fetching project details" });
+    }
+  });
+
+  // Create contribution (with security checks)
   app.post("/api/projects/:id/contribute", async (req, res) => {
     try {
       if (!req.isAuthenticated()) {
@@ -299,7 +266,7 @@ export function registerRoutes(app: Express): Server {
       await db
         .update(projects)
         .set({
-          current_amount: sql`${projects.current_amount} + ${amount}`
+          current_amount: project.current_amount + amount
         })
         .where(eq(projects.id, projectId));
 
