@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, useLocation } from "wouter";
 import ProjectCard from "@/components/ProjectCard";
 import { Loader2, Plus, LogOut } from "lucide-react";
@@ -18,6 +18,7 @@ export default function HomePage() {
   const { user, logout } = useUser();
   const { toast } = useToast();
   const [, setLocation] = useLocation();
+  const queryClient = useQueryClient();
 
   const { data: projects, isLoading, error } = useQuery<ProjectWithDetails[]>({
     queryKey: ["/api/projects"],
@@ -31,8 +32,18 @@ export default function HomePage() {
       }
       return response.json();
     },
-    enabled: !!user
+    enabled: !!user,
+    staleTime: 1000 * 60, // Consider data stale after 1 minute
+    refetchOnMount: true,
+    refetchOnWindowFocus: true
   });
+
+  // Force refetch projects when component mounts
+  useEffect(() => {
+    if (user) {
+      queryClient.invalidateQueries({ queryKey: ["/api/projects"] });
+    }
+  }, [queryClient, user]);
 
   const handleLogout = async () => {
     try {

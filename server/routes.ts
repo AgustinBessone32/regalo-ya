@@ -42,8 +42,7 @@ export function registerRoutes(app: Express): Server {
         return res.status(401).json({ error: "Invalid user session" });
       }
 
-      // Two separate queries for better security and clarity
-      // 1. Get user's own projects
+      // Get user's own projects
       const ownedProjects = await db
         .select({
           id: projects.id,
@@ -70,7 +69,7 @@ export function registerRoutes(app: Express): Server {
         .where(eq(projects.creator_id, user.id))
         .groupBy(projects.id);
 
-      // 2. Get projects where user is a contributor
+      // Get projects where user is a contributor
       const contributedProjects = await db
         .select({
           id: projects.id,
@@ -97,16 +96,11 @@ export function registerRoutes(app: Express): Server {
         .where(
           and(
             not(eq(projects.creator_id, user.id)),
-            exists(
-              db.select()
-                .from(contributions)
-                .where(
-                  and(
-                    eq(contributions.project_id, projects.id),
-                    eq(contributions.contributor_name, user.email)
-                  )
-                )
-            )
+            sql`EXISTS (
+              SELECT 1 FROM ${contributions}
+              WHERE ${contributions.project_id} = ${projects.id}
+              AND ${contributions.contributor_name} = ${user.email}
+            )`
           )
         )
         .groupBy(projects.id);
@@ -123,7 +117,10 @@ export function registerRoutes(app: Express): Server {
           isOwner: false,
           contribution_count: Number(project.contribution_count)
         }))
-      ].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+      ].sort((a, b) => 
+        (b.created_at ? new Date(b.created_at).getTime() : 0) - 
+        (a.created_at ? new Date(a.created_at).getTime() : 0)
+      );
 
       return res.json(accessibleProjects);
 
