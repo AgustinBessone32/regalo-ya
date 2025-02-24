@@ -67,8 +67,8 @@ app.use((req, res, next) => {
       log("Static file serving initialized");
     }
 
-    // Start server
-    const PORT = 5000;
+    // Start server on port 5000 and bind to all network interfaces
+    const PORT = process.env.PORT || 5000;
     server.listen(PORT, "0.0.0.0", () => {
       log(`Server running on port ${PORT}`);
     });
