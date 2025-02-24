@@ -32,18 +32,17 @@ export function registerRoutes(app: Express): Server {
   // Get list of projects (strict access control)
   app.get("/api/projects", async (req, res) => {
     try {
-      // Strict authentication check
       if (!req.isAuthenticated()) {
         return res.status(401).json({ error: "Authentication required" });
       }
 
       const user = req.user as any;
-      if (!user?.id || typeof user.id !== 'number' || !user?.email) {
+      if (!user?.id || !user?.email) {
         return res.status(401).json({ error: "Invalid user session" });
       }
 
-      // Get user's own projects
-      const ownedProjects = await db
+      // Single query to get all accessible projects with proper security filtering
+      const accessibleProjects = await db
         .select({
           id: projects.id,
           title: projects.title,
@@ -59,34 +58,8 @@ export function registerRoutes(app: Express): Server {
           payment_method: projects.payment_method,
           payment_details: projects.payment_details,
           created_at: projects.created_at,
-          contribution_count: sql<number>`COUNT(DISTINCT ${contributions.id})::int`
-        })
-        .from(projects)
-        .leftJoin(
-          contributions,
-          eq(contributions.project_id, projects.id)
-        )
-        .where(eq(projects.creator_id, user.id))
-        .groupBy(projects.id);
-
-      // Get projects where user is a contributor
-      const contributedProjects = await db
-        .select({
-          id: projects.id,
-          title: projects.title,
-          description: projects.description,
-          image_url: projects.image_url,
-          target_amount: projects.target_amount,
-          current_amount: projects.current_amount,
-          event_date: projects.event_date,
-          location: projects.location,
-          creator_id: projects.creator_id,
-          is_public: projects.is_public,
-          invitation_token: projects.invitation_token,
-          payment_method: projects.payment_method,
-          payment_details: projects.payment_details,
-          created_at: projects.created_at,
-          contribution_count: sql<number>`COUNT(DISTINCT ${contributions.id})::int`
+          contribution_count: sql<number>`COUNT(DISTINCT ${contributions.id})::int`,
+          isOwner: sql<boolean>`${projects.creator_id} = ${user.id}`
         })
         .from(projects)
         .leftJoin(
@@ -94,8 +67,10 @@ export function registerRoutes(app: Express): Server {
           eq(contributions.project_id, projects.id)
         )
         .where(
-          and(
-            not(eq(projects.creator_id, user.id)),
+          or(
+            // User is the creator
+            eq(projects.creator_id, user.id),
+            // OR user has contributed to the project
             sql`EXISTS (
               SELECT 1 FROM ${contributions}
               WHERE ${contributions.project_id} = ${projects.id}
@@ -103,26 +78,14 @@ export function registerRoutes(app: Express): Server {
             )`
           )
         )
-        .groupBy(projects.id);
+        .groupBy(projects.id)
+        .orderBy(desc(projects.created_at));
 
-      // Combine and format results
-      const accessibleProjects = [
-        ...ownedProjects.map(project => ({
-          ...project,
-          isOwner: true,
-          contribution_count: Number(project.contribution_count)
-        })),
-        ...contributedProjects.map(project => ({
-          ...project,
-          isOwner: false,
-          contribution_count: Number(project.contribution_count)
-        }))
-      ].sort((a, b) => 
-        (b.created_at ? new Date(b.created_at).getTime() : 0) - 
-        (a.created_at ? new Date(a.created_at).getTime() : 0)
-      );
-
-      return res.json(accessibleProjects);
+      return res.json(accessibleProjects.map(project => ({
+        ...project,
+        contribution_count: Number(project.contribution_count),
+        isOwner: Boolean(project.isOwner)
+      })));
 
     } catch (error: any) {
       console.error("Error fetching projects:", error);
@@ -142,7 +105,6 @@ export function registerRoutes(app: Express): Server {
         return res.status(401).json({ error: "Invalid user session" });
       }
 
-      // Prepare project data with all required fields
       const projectData = {
         ...req.body,
         creator_id: user.id,
@@ -162,7 +124,6 @@ export function registerRoutes(app: Express): Server {
         });
       }
 
-      // Insert project and return complete data
       const [newProject] = await db
         .insert(projects)
         .values(validationResult.data)
@@ -171,8 +132,6 @@ export function registerRoutes(app: Express): Server {
       if (!newProject) {
         throw new Error("Failed to create project");
       }
-
-      console.log("Created new project:", newProject.id, "for user:", user.id);
 
       return res.json({
         ...newProject,
@@ -185,7 +144,7 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
-  // Get single project (strict access control)
+  // Get single project (with access control)
   app.get("/api/projects/:id", async (req, res) => {
     try {
       if (!req.isAuthenticated()) {
@@ -202,10 +161,11 @@ export function registerRoutes(app: Express): Server {
         return res.status(400).json({ error: "Invalid project ID" });
       }
 
-      // Get project with access check
+      // Get project with strict access check
       const [projectWithAccess] = await db
         .select({
           project: projects,
+          isOwner: sql<boolean>`${projects.creator_id} = ${user.id}`,
           isContributor: sql<boolean>`EXISTS (
             SELECT 1 FROM ${contributions}
             WHERE ${contributions.project_id} = ${projectId}
@@ -219,8 +179,7 @@ export function registerRoutes(app: Express): Server {
         return res.status(404).json({ error: "Project not found" });
       }
 
-      const { project, isContributor } = projectWithAccess;
-      const isOwner = project.creator_id === user.id;
+      const { project, isOwner, isContributor } = projectWithAccess;
 
       // Check access rights
       if (!isOwner && !isContributor) {
@@ -259,7 +218,6 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
-  // Create contribution (with security checks)
   app.post("/api/projects/:id/contribute", async (req, res) => {
     try {
       if (!req.isAuthenticated()) {
