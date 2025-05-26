@@ -85,50 +85,54 @@ export default function HomePage() {
   const contributedProjects = projects?.filter(p => !p.isOwner) || [];
 
   return (
-    <div className="space-y-8">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold">RegaloYa</h1>
-          <p className="text-muted-foreground">
-            Crea y gestiona colecciones de regalos colaborativos
-          </p>
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-pink-50">
+      <div className="space-y-8 pb-8">
+        <div className="bg-white/60 backdrop-blur-sm border-b">
+          <div className="container mx-auto px-4 py-8">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+              <div>
+                <h1 className="text-4xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+                  ¡Bienvenido, {user.username}!
+                </h1>
+                <p className="text-gray-600 mt-2 text-lg">
+                  Gestiona tus proyectos de regalo colaborativo
+                </p>
+              </div>
+              <div className="flex items-center gap-3">
+                <Link href="/create">
+                  <Button className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white border-0 shadow-lg">
+                    <Plus className="mr-2 h-4 w-4" />
+                    Crear Proyecto
+                  </Button>
+                </Link>
+              </div>
+            </div>
+          </div>
         </div>
-        <div className="flex items-center gap-4">
-          <Link href="/create">
-            <Button>
-              <Plus className="mr-2 h-4 w-4" />
-              Crear Proyecto
-            </Button>
-          </Link>
-          <Button variant="outline" onClick={handleLogout}>
-            <LogOut className="mr-2 h-4 w-4" />
-            Cerrar Sesión
-          </Button>
-        </div>
-      </div>
 
-      <div className="bg-card rounded-lg p-4 border">
-        <Tabs defaultValue="all" className="w-full">
-          <TabsList className="grid w-full grid-cols-3 max-w-[400px] mb-6">
-            <TabsTrigger value="all" className="flex items-center gap-2">
-              Todos
-              <span className="px-2 py-0.5 text-xs bg-primary/10 rounded-full">
-                {projects?.length || 0}
-              </span>
-            </TabsTrigger>
-            <TabsTrigger value="my" className="flex items-center gap-2">
-              Mis Proyectos
-              <span className="px-2 py-0.5 text-xs bg-primary/10 rounded-full">
-                {myProjects.length}
-              </span>
-            </TabsTrigger>
-            <TabsTrigger value="contributed" className="flex items-center gap-2">
-              Contribuyendo
-              <span className="px-2 py-0.5 text-xs bg-primary/10 rounded-full">
-                {contributedProjects.length}
-              </span>
-            </TabsTrigger>
-          </TabsList>
+        <div className="container mx-auto px-4">
+          <div className="bg-white/80 backdrop-blur-sm rounded-xl p-6 shadow-lg border border-purple-100">
+            <Tabs defaultValue="all" className="w-full">
+              <TabsList className="grid w-full grid-cols-3 max-w-[500px] mb-8 bg-gray-100/50">
+                <TabsTrigger value="all" className="flex items-center gap-2 data-[state=active]:bg-white data-[state=active]:shadow-sm">
+                  Todos
+                  <span className="px-2 py-0.5 text-xs bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-full">
+                    {projects?.length || 0}
+                  </span>
+                </TabsTrigger>
+                <TabsTrigger value="my" className="flex items-center gap-2 data-[state=active]:bg-white data-[state=active]:shadow-sm">
+                  Mis Proyectos
+                  <span className="px-2 py-0.5 text-xs bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-full">
+                    {myProjects.length}
+                  </span>
+                </TabsTrigger>
+                <TabsTrigger value="contributed" className="flex items-center gap-2 data-[state=active]:bg-white data-[state=active]:shadow-sm">
+                  Contribuyendo
+                  <span className="px-2 py-0.5 text-xs bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-full">
+                    {contributedProjects.length}
+                  </span>
+                </TabsTrigger>
+              </TabsList>
 
           <TabsContent value="all">
             {!projects?.length ? (
