@@ -5,6 +5,7 @@ import AuthPage from "./pages/AuthPage";
 import CreateProject from "./pages/CreateProject";
 import ProjectPage from "./pages/ProjectPage";
 import HomePage from "./pages/HomePage";
+import LandingPage from "./pages/LandingPage";
 import { useUser } from "./hooks/use-user";
 
 function App() {
@@ -19,7 +20,13 @@ function App() {
   }
 
   if (!user) {
-    return <AuthPage />;
+    return (
+      <Switch>
+        <Route path="/auth" component={AuthPage} />
+        <Route path="/" component={LandingPage} />
+        <Route component={LandingPage} />
+      </Switch>
+    );
   }
 
   return (
