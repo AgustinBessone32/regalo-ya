@@ -4,11 +4,26 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { format } from "date-fns";
-import { Loader2, CalendarIcon, MapPinIcon, Users, Bell, BellOff } from "lucide-react";
+import {
+  Loader2,
+  CalendarIcon,
+  MapPinIcon,
+  Users,
+  Bell,
+  BellOff,
+  Gift,
+} from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
@@ -22,11 +37,25 @@ import { BudgetAnalytics } from "@/components/BudgetAnalytics";
 import { MetaTags } from "@/components/MetaTags";
 import { EmojiReaction } from "@/components/EmojiReaction";
 import { useEffect } from "react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { useState } from "react";
 
 const contributionSchema = z.object({
   name: z.string().min(1, "El nombre es requerido"),
   amount: z.coerce.number().min(1, "El monto debe ser mayor a 0"),
   message: z.string().optional(),
+});
+
+const paymentSchema = z.object({
+  amount: z.coerce.number().min(1, "El monto debe ser mayor a 0"),
+  description: z.string().optional(),
 });
 
 type ProjectWithDetails = Project & {
@@ -56,7 +85,11 @@ export default function ProjectPage() {
   // Generate the full shareable URL
   const shareableUrl = `${window.location.origin}/projects/${id}`;
 
-  const { data: project, isLoading, error } = useQuery<ProjectWithDetails>({
+  const {
+    data: project,
+    isLoading,
+    error,
+  } = useQuery<ProjectWithDetails>({
     queryKey: [`/api/projects/${id}`],
     enabled: !!id,
   });
@@ -67,6 +100,16 @@ export default function ProjectPage() {
       name: "",
       amount: 0,
       message: "",
+    },
+  });
+
+  const [isPaymentDialogOpen, setIsPaymentDialogOpen] = useState(false);
+
+  const paymentForm = useForm<z.infer<typeof paymentSchema>>({
+    resolver: zodResolver(paymentSchema),
+    defaultValues: {
+      amount: 0,
+      description: "",
     },
   });
 
@@ -82,12 +125,12 @@ export default function ProjectPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
-        credentials: 'include',
+        credentials: "include",
       });
 
       if (!response.ok) {
         const error = await response.json();
-        throw new Error(error.error || 'Error al realizar la contribución');
+        throw new Error(error.error || "Error al realizar la contribución");
       }
 
       return response.json();
@@ -106,7 +149,8 @@ export default function ProjectPage() {
         fireConfetti();
         toast({
           title: "🎉 ¡Meta Alcanzada!",
-          description: "¡Felicitaciones! ¡El proyecto ha alcanzado su meta de financiamiento!",
+          description:
+            "¡Felicitaciones! ¡El proyecto ha alcanzado su meta de financiamiento!",
         });
       }
     },
@@ -114,7 +158,8 @@ export default function ProjectPage() {
       if (error.message === "Se requiere autenticación") {
         toast({
           title: "Autenticación Requerida",
-          description: "Por favor, inicia sesión o regístrate para contribuir a este proyecto",
+          description:
+            "Por favor, inicia sesión o regístrate para contribuir a este proyecto",
         });
       } else {
         toast({
@@ -130,10 +175,51 @@ export default function ProjectPage() {
     contributeMutation.mutate(data);
   };
 
-  const { permission, requestPermission, scheduleNotification } = useNotifications();
+  const handleMercadoPagoPayment = async (
+    data: z.infer<typeof paymentSchema>
+  ) => {
+    try {
+      if (!user) {
+        setLocation("/auth");
+        return;
+      }
+
+      const response = await fetch(`/api/projects/${id}/payment`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+        credentials: "include",
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || "Error al crear el enlace de pago");
+      }
+
+      const { paymentUrl } = await response.json();
+
+      // Redirect to MercadoPago
+      window.open(paymentUrl, "_blank");
+      setIsPaymentDialogOpen(false);
+
+      toast({
+        title: "Redirigiendo a MercadoPago",
+        description: "Se abrió una nueva ventana para completar el pago",
+      });
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: error.message,
+      });
+    }
+  };
+
+  const { permission, requestPermission, scheduleNotification } =
+    useNotifications();
 
   const handleNotificationToggle = async () => {
-    if (permission !== 'granted') {
+    if (permission !== "granted") {
       const granted = await requestPermission();
       if (granted && project?.event_date) {
         scheduleNotification(
@@ -150,7 +236,8 @@ export default function ProjectPage() {
       toast({
         variant: "destructive",
         title: "Notificaciones desactivadas",
-        description: "Puedes reactivar las notificaciones desde la configuración de tu navegador",
+        description:
+          "Puedes reactivar las notificaciones desde la configuración de tu navegador",
       });
     }
   };
@@ -229,7 +316,7 @@ export default function ProjectPage() {
     <>
       <MetaTags
         title={`${project.title} - RegaloYa`}
-        description={project.description || ''}
+        description={project.description || ""}
         url={shareableUrl}
         image={project.image_url || undefined}
       />
@@ -246,9 +333,13 @@ export default function ProjectPage() {
                 variant="outline"
                 size="icon"
                 onClick={handleNotificationToggle}
-                title={permission === 'granted' ? 'Notificaciones activadas' : 'Activar notificaciones'}
+                title={
+                  permission === "granted"
+                    ? "Notificaciones activadas"
+                    : "Activar notificaciones"
+                }
               >
-                {permission === 'granted' ? (
+                {permission === "granted" ? (
                   <Bell className="h-4 w-4" />
                 ) : (
                   <BellOff className="h-4 w-4" />
@@ -258,7 +349,7 @@ export default function ProjectPage() {
 
             <ShareButton
               title={`${project.title} - Colección de Regalos de Cumpleaños`}
-              description={project.description || ''}
+              description={project.description || ""}
               url={shareableUrl}
             />
           </div>
@@ -276,9 +367,9 @@ export default function ProjectPage() {
                     className="object-cover w-full h-full"
                     loading="lazy"
                     onError={(e) => {
-                      console.error('Image load error:', e);
+                      console.error("Image load error:", e);
                       const img = e.target as HTMLImageElement;
-                      img.style.display = 'none';
+                      img.style.display = "none";
                     }}
                   />
                 </div>
@@ -314,6 +405,88 @@ export default function ProjectPage() {
                 <span>Creado por {project.creator.email}</span>
               </div>
             </div>
+
+            <Dialog
+              open={isPaymentDialogOpen}
+              onOpenChange={setIsPaymentDialogOpen}
+            >
+              <DialogTrigger asChild>
+                <Button
+                  variant="outline"
+                  className="w-full bg-primary/5 hover:bg-primary/10 border-primary/20 text-primary hover:text-primary"
+                >
+                  <Gift className="h-4 w-4 mr-2" />
+                  Agregar Regalo
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Agregar Regalo con MercadoPago</DialogTitle>
+                  <DialogDescription>
+                    Ingresa el monto que deseas enviar como regalo para{" "}
+                    {project.title}
+                  </DialogDescription>
+                </DialogHeader>
+                <Form {...paymentForm}>
+                  <form
+                    onSubmit={paymentForm.handleSubmit(
+                      handleMercadoPagoPayment
+                    )}
+                    className="space-y-4"
+                  >
+                    <FormField
+                      control={paymentForm.control}
+                      name="amount"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Monto ($ARS)</FormLabel>
+                          <FormControl>
+                            <Input
+                              type="number"
+                              placeholder="Ej: 1000"
+                              {...field}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={paymentForm.control}
+                      name="description"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Mensaje (Opcional)</FormLabel>
+                          <FormControl>
+                            <Textarea
+                              placeholder="Mensaje para el regalo..."
+                              {...field}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <div className="flex gap-2">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        className="w-full"
+                        onClick={() => setIsPaymentDialogOpen(false)}
+                      >
+                        Cancelar
+                      </Button>
+                      <Button type="submit" className="w-full">
+                        <Gift className="h-4 w-4 mr-2" />
+                        Continuar a MercadoPago
+                      </Button>
+                    </div>
+                  </form>
+                </Form>
+              </DialogContent>
+            </Dialog>
 
             <Card>
               <CardContent className="pt-6">
@@ -409,7 +582,7 @@ export default function ProjectPage() {
                         {contributeMutation.isPending && (
                           <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                         )}
-                        {user ? 'Contribuir' : 'Inicia sesión para contribuir'}
+                        {user ? "Contribuir" : "Inicia sesión para contribuir"}
                       </Button>
                     </form>
                   </Form>
@@ -430,14 +603,18 @@ export default function ProjectPage() {
                         className="flex justify-between items-start pb-4 border-b last:border-0 last:pb-0"
                       >
                         <div>
-                          <p className="font-medium">{contribution.contributor_name}</p>
+                          <p className="font-medium">
+                            {contribution.contributor_name}
+                          </p>
                           {contribution.message && (
                             <p className="text-sm text-muted-foreground mt-1">
                               {contribution.message}
                             </p>
                           )}
                         </div>
-                        <span className="font-medium">${contribution.amount}</span>
+                        <span className="font-medium">
+                          ${contribution.amount}
+                        </span>
                       </div>
                     ))}
                   </div>

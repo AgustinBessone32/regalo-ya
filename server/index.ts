@@ -1,3 +1,4 @@
+import "dotenv/config";
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupAuth } from "./auth";
@@ -68,7 +69,7 @@ app.use((req, res, next) => {
     }
 
     // Start server on port 5000 and bind to all network interfaces
-    const PORT = process.env.PORT || 5000;
+    const PORT = Number(process.env.PORT) || 3000;
     server.listen(PORT, "0.0.0.0", () => {
       log(`Server running on port ${PORT}`);
     });

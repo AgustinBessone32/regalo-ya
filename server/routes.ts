@@ -2,32 +2,42 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { setupAuth } from "./auth";
 import { db } from "@db";
-import { projects, insertProjectSchema, contributions, users } from "@db/schema";
-import { nanoid } from 'nanoid';
+import {
+  projects,
+  insertProjectSchema,
+  contributions,
+  users,
+  payments,
+} from "@db/schema";
+import { nanoid } from "nanoid";
 import { eq, and, not, sql, desc, or } from "drizzle-orm";
 import { createUploadthingExpressHandler } from "uploadthing/express";
 import { ourFileRouter } from "./uploadthing";
+import { MercadoPagoConfig, Preference } from "mercadopago";
 
 export function registerRoutes(app: Express): Server {
   setupAuth(app);
 
   app.use((req, res, next) => {
-    res.header('Access-Control-Allow-Origin', '*');
-    res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE');
-    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-    res.header('Cross-Origin-Resource-Policy', 'cross-origin');
-    res.header('Access-Control-Allow-Credentials', 'true');
+    res.header("Access-Control-Allow-Origin", "*");
+    res.header("Access-Control-Allow-Methods", "GET,PUT,POST,DELETE");
+    res.header("Access-Control-Allow-Headers", "Content-Type, Authorization");
+    res.header("Cross-Origin-Resource-Policy", "cross-origin");
+    res.header("Access-Control-Allow-Credentials", "true");
     next();
   });
 
-  app.use("/api/uploadthing", createUploadthingExpressHandler({
-    router: ourFileRouter,
-    config: {
-      uploadthingId: process.env.UPLOADTHING_APP_ID!,
-      uploadthingSecret: process.env.UPLOADTHING_SECRET!,
-      isDev: process.env.NODE_ENV === "development",
-    },
-  }));
+  app.use(
+    "/api/uploadthing",
+    createUploadthingExpressHandler({
+      router: ourFileRouter,
+      config: {
+        uploadthingId: process.env.UPLOADTHING_APP_ID!,
+        uploadthingSecret: process.env.UPLOADTHING_SECRET!,
+        isDev: process.env.NODE_ENV === "development",
+      },
+    })
+  );
 
   // Get list of projects (strict access control)
   app.get("/api/projects", async (req, res) => {
@@ -59,13 +69,10 @@ export function registerRoutes(app: Express): Server {
           payment_details: projects.payment_details,
           created_at: projects.created_at,
           contribution_count: sql<number>`COUNT(DISTINCT ${contributions.id})::int`,
-          isOwner: sql<boolean>`${projects.creator_id} = ${user.id}`
+          isOwner: sql<boolean>`${projects.creator_id} = ${user.id}`,
         })
         .from(projects)
-        .leftJoin(
-          contributions,
-          eq(contributions.project_id, projects.id)
-        )
+        .leftJoin(contributions, eq(contributions.project_id, projects.id))
         .where(
           or(
             // User is the creator
@@ -81,12 +88,13 @@ export function registerRoutes(app: Express): Server {
         .groupBy(projects.id)
         .orderBy(desc(projects.created_at));
 
-      return res.json(accessibleProjects.map(project => ({
-        ...project,
-        contribution_count: Number(project.contribution_count),
-        isOwner: Boolean(project.isOwner)
-      })));
-
+      return res.json(
+        accessibleProjects.map((project) => ({
+          ...project,
+          contribution_count: Number(project.contribution_count),
+          isOwner: Boolean(project.isOwner),
+        }))
+      );
     } catch (error: any) {
       console.error("Error fetching projects:", error);
       return res.status(500).json({ error: "Error fetching projects" });
@@ -136,7 +144,7 @@ export function registerRoutes(app: Express): Server {
       return res.json({
         ...newProject,
         isOwner: true,
-        contribution_count: 0
+        contribution_count: 0,
       });
     } catch (error: any) {
       console.error("Error creating project:", error);
@@ -170,7 +178,7 @@ export function registerRoutes(app: Express): Server {
             SELECT 1 FROM ${contributions}
             WHERE ${contributions.project_id} = ${projectId}
             AND ${contributions.contributor_name} = ${user.email}
-          )`
+          )`,
         })
         .from(projects)
         .where(eq(projects.id, projectId));
@@ -205,12 +213,14 @@ export function registerRoutes(app: Express): Server {
         contributions: projectContributions,
         reactions: [],
         shares: { total: 0, by_platform: [] },
-        avg_amount: projectContributions.reduce((sum, c) => sum + c.amount, 0) / projectContributions.length || 0,
+        avg_amount:
+          projectContributions.reduce((sum, c) => sum + c.amount, 0) /
+            projectContributions.length || 0,
         median_amount: 0,
-        min_amount: Math.min(...projectContributions.map(c => c.amount), 0),
-        max_amount: Math.max(...projectContributions.map(c => c.amount), 0),
+        min_amount: Math.min(...projectContributions.map((c) => c.amount), 0),
+        max_amount: Math.max(...projectContributions.map((c) => c.amount), 0),
         total_contributions: projectContributions.length,
-        contribution_history: projectContributions.map(c => c.amount)
+        contribution_history: projectContributions.map((c) => c.amount),
       });
     } catch (error: any) {
       console.error("Error fetching project:", error);
@@ -264,7 +274,7 @@ export function registerRoutes(app: Express): Server {
         await tx
           .update(projects)
           .set({
-            current_amount: project.current_amount + amount
+            current_amount: project.current_amount + amount,
           })
           .where(eq(projects.id, projectId));
 
@@ -275,6 +285,268 @@ export function registerRoutes(app: Express): Server {
     } catch (error: any) {
       console.error("Error processing contribution:", error);
       return res.status(500).json({ error: "Failed to process contribution" });
+    }
+  });
+
+  // Create MercadoPago payment link
+  app.post("/api/projects/:id/payment", async (req, res) => {
+    try {
+      if (!req.isAuthenticated()) {
+        return res.status(401).json({ error: "Authentication required" });
+      }
+
+      const user = req.user as any;
+      if (!user?.id || !user?.email) {
+        return res.status(401).json({ error: "Invalid user session" });
+      }
+
+      const projectId = parseInt(req.params.id);
+      if (isNaN(projectId)) {
+        return res.status(400).json({ error: "Invalid project ID" });
+      }
+
+      const { amount, description } = req.body;
+      if (!amount || amount <= 0) {
+        return res.status(400).json({ error: "Valid amount is required" });
+      }
+
+      // Get project details
+      const [project] = await db
+        .select()
+        .from(projects)
+        .where(eq(projects.id, projectId));
+
+      if (!project) {
+        return res.status(404).json({ error: "Project not found" });
+      }
+
+      // Initialize MercadoPago
+      if (!process.env.MERCADOPAGO_ACCESS_TOKEN) {
+        return res.status(500).json({ error: "MercadoPago not configured" });
+      }
+
+      const client = new MercadoPagoConfig({
+        accessToken: process.env.MERCADOPAGO_ACCESS_TOKEN,
+      });
+
+      const preference = new Preference(client);
+
+      // Create payment preference
+      const preferenceData = {
+        items: [
+          {
+            id: `gift_${projectId}_${Date.now()}`,
+            title: `Regalo para: ${project.title}`,
+            description: description || `Contribución para ${project.title}`,
+            quantity: 1,
+            currency_id: "ARS",
+            unit_price: Number(amount),
+          },
+        ],
+        payer: {
+          email: user.email,
+        },
+        back_urls: {
+          success: `${req.protocol}://${req.get(
+            "host"
+          )}/projects/${projectId}?payment=success`,
+          failure: `${req.protocol}://${req.get(
+            "host"
+          )}/projects/${projectId}?payment=failure`,
+          pending: `${req.protocol}://${req.get(
+            "host"
+          )}/projects/${projectId}?payment=pending`,
+        },
+        auto_return: "approved",
+        external_reference: `project_${projectId}_user_${user.id}`,
+        notification_url: `${req.protocol}://${req.get(
+          "host"
+        )}/api/webhooks/mercadopago`,
+      };
+
+      const result = await preference.create({ body: preferenceData });
+
+      return res.json({
+        paymentUrl: result.init_point,
+        preferenceId: result.id,
+      });
+    } catch (error: any) {
+      console.error("Error creating MercadoPago payment:", error);
+      return res.status(500).json({ error: "Failed to create payment link" });
+    }
+  });
+
+  // Get payments for a project
+  app.get("/api/projects/:id/payments", async (req, res) => {
+    try {
+      if (!req.isAuthenticated()) {
+        return res.status(401).json({ error: "Authentication required" });
+      }
+
+      const user = req.user as any;
+      if (!user?.id) {
+        return res.status(401).json({ error: "Invalid user session" });
+      }
+
+      const projectId = parseInt(req.params.id);
+      if (isNaN(projectId)) {
+        return res.status(400).json({ error: "Invalid project ID" });
+      }
+
+      // Verificar que el usuario tenga acceso al proyecto
+      const [project] = await db
+        .select({
+          creator_id: projects.creator_id,
+        })
+        .from(projects)
+        .where(eq(projects.id, projectId));
+
+      if (!project) {
+        return res.status(404).json({ error: "Project not found" });
+      }
+
+      // Solo el creador del proyecto puede ver todos los pagos
+      if (project.creator_id !== user.id) {
+        return res.status(403).json({ error: "Access denied" });
+      }
+
+      // Obtener todos los pagos del proyecto
+      const projectPayments = await db
+        .select()
+        .from(payments)
+        .where(eq(payments.project_id, projectId))
+        .orderBy(desc(payments.created_at));
+
+      return res.json(projectPayments);
+    } catch (error: any) {
+      console.error("Error fetching project payments:", error);
+      return res.status(500).json({ error: "Error fetching payments" });
+    }
+  });
+
+  // MercadoPago Webhook endpoint
+  app.post("/api/webhooks/mercadopago", async (req, res) => {
+    try {
+      const { type, data } = req.body;
+
+      // Solo procesar notificaciones de pago
+      if (type === "payment") {
+        const paymentId = data.id;
+
+        if (!process.env.MERCADOPAGO_ACCESS_TOKEN) {
+          console.error("MercadoPago access token not configured");
+          return res.status(500).json({ error: "MercadoPago not configured" });
+        }
+
+        // Obtener información del pago desde MercadoPago
+        const paymentResponse = await fetch(
+          `https://api.mercadopago.com/v1/payments/${paymentId}`,
+          {
+            headers: {
+              Authorization: `Bearer ${process.env.MERCADOPAGO_ACCESS_TOKEN}`,
+            },
+          }
+        );
+
+        if (!paymentResponse.ok) {
+          console.error(
+            "Error fetching payment from MercadoPago:",
+            paymentResponse.statusText
+          );
+          return res
+            .status(400)
+            .json({ error: "Error fetching payment details" });
+        }
+
+        const paymentData = await paymentResponse.json();
+
+        // Extraer información de la external_reference (project_id_user_id)
+        const externalRef = paymentData.external_reference;
+        if (!externalRef) {
+          console.error("No external reference found in payment");
+          return res.status(400).json({ error: "No external reference" });
+        }
+
+        const match = externalRef.match(/project_(\d+)_user_(\d+)/);
+        if (!match) {
+          console.error("Invalid external reference format:", externalRef);
+          return res
+            .status(400)
+            .json({ error: "Invalid external reference format" });
+        }
+
+        const projectId = parseInt(match[1]);
+        const userId = parseInt(match[2]);
+
+        // Verificar si el pago ya existe
+        const [existingPayment] = await db
+          .select()
+          .from(payments)
+          .where(eq(payments.mercadopago_payment_id, paymentId.toString()))
+          .limit(1);
+
+        if (existingPayment) {
+          // Actualizar el pago existente
+          await db
+            .update(payments)
+            .set({
+              status: paymentData.status,
+              status_detail: paymentData.status_detail,
+              payment_method: paymentData.payment_method_id,
+              payment_type: paymentData.payment_type_id,
+              updated_at: new Date(),
+            })
+            .where(eq(payments.mercadopago_payment_id, paymentId.toString()));
+        } else {
+          // Crear nuevo registro de pago
+          await db.insert(payments).values({
+            project_id: projectId,
+            user_id: userId,
+            mercadopago_payment_id: paymentId.toString(),
+            preference_id: paymentData.order.id || "",
+            amount: Math.round(paymentData.transaction_amount),
+            currency: paymentData.currency_id,
+            status: paymentData.status,
+            status_detail: paymentData.status_detail,
+            payment_method: paymentData.payment_method_id,
+            payment_type: paymentData.payment_type_id,
+            description: paymentData.description,
+            external_reference: paymentData.external_reference,
+            payer_email: paymentData.payer?.email,
+          });
+        }
+
+        // Si el pago fue aprobado, actualizar el monto del proyecto
+        if (paymentData.status === "approved") {
+          const [project] = await db
+            .select()
+            .from(projects)
+            .where(eq(projects.id, projectId));
+
+          if (project) {
+            await db
+              .update(projects)
+              .set({
+                current_amount:
+                  (project.current_amount || 0) +
+                  Math.round(paymentData.transaction_amount),
+              })
+              .where(eq(projects.id, projectId));
+
+            console.log(
+              `Payment approved for project ${projectId}: $${paymentData.transaction_amount}`
+            );
+          }
+        }
+
+        return res.status(200).json({ success: true });
+      }
+
+      // Para otros tipos de notificación, simplemente responder OK
+      return res.status(200).json({ success: true });
+    } catch (error: any) {
+      console.error("Error processing MercadoPago webhook:", error);
+      return res.status(500).json({ error: "Internal server error" });
     }
   });
 
