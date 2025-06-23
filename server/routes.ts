@@ -59,7 +59,11 @@ export function registerRoutes(app: Express): Server {
           description: projects.description,
           image_url: projects.image_url,
           target_amount: projects.target_amount,
-          current_amount: projects.current_amount,
+          current_amount: sql<number>`COALESCE(
+            (SELECT SUM(amount) FROM ${payments} 
+             WHERE ${payments.project_id} = ${projects.id} 
+             AND ${payments.status} = 'approved'), 0
+          )::int`,
           event_date: projects.event_date,
           location: projects.location,
           creator_id: projects.creator_id,
@@ -194,20 +198,36 @@ export function registerRoutes(app: Express): Server {
         return res.status(403).json({ error: "Access denied" });
       }
 
-      // Get project details
+      // Get project details including payments
       const projectContributions = await db
         .select()
         .from(contributions)
         .where(eq(contributions.project_id, projectId))
         .orderBy(desc(contributions.created_at));
 
+      // Calculate current amount from approved payments
+      const [paymentsSum] = await db
+        .select({
+          total: sql<number>`COALESCE(SUM(amount), 0)::int`,
+        })
+        .from(payments)
+        .where(
+          and(
+            eq(payments.project_id, projectId),
+            eq(payments.status, "approved")
+          )
+        );
+
       const [creator] = await db
         .select()
         .from(users)
         .where(eq(users.id, project.creator_id));
 
+      const currentAmount = paymentsSum?.total || 0;
+
       return res.json({
         ...project,
+        current_amount: currentAmount,
         isOwner,
         creator: { email: creator?.email || "Unknown" },
         contributions: projectContributions,
