@@ -69,7 +69,7 @@ app.use((req, res, next) => {
     }
 
     // Start server on port 5000 and bind to all network interfaces
-    const PORT = Number(process.env.PORT) || 3000;
+    const PORT = Number(process.env.PORT) || 5000;
     server.listen(PORT, "0.0.0.0", () => {
       log(`Server running on port ${PORT}`);
     });
