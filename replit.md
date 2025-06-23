@@ -94,6 +94,11 @@ The application is configured for deployment on Replit with the following setup:
 
 ## Changelog
 
+- February 16, 2025. Successfully migrated from Replit Agent to Replit environment
+  - Database setup complete with all tables and relationships
+  - UploadThing API keys configured for file uploads
+  - MercadoPago payment URLs fixed to use correct success redirect format
+  - Server configured to run on port 5000 with proper binding
 - June 23, 2025. Initial setup
 
 ## User Preferences

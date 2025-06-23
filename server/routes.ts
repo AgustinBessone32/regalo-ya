@@ -36,7 +36,7 @@ export function registerRoutes(app: Express): Server {
         uploadthingSecret: process.env.UPLOADTHING_SECRET!,
         isDev: process.env.NODE_ENV === "development",
       },
-    })
+    }),
   );
 
   // Get list of projects (strict access control)
@@ -82,8 +82,8 @@ export function registerRoutes(app: Express): Server {
               SELECT 1 FROM ${contributions}
               WHERE ${contributions.project_id} = ${projects.id}
               AND ${contributions.contributor_name} = ${user.email}
-            )`
-          )
+            )`,
+          ),
         )
         .groupBy(projects.id)
         .orderBy(desc(projects.created_at));
@@ -93,7 +93,7 @@ export function registerRoutes(app: Express): Server {
           ...project,
           contribution_count: Number(project.contribution_count),
           isOwner: Boolean(project.isOwner),
-        }))
+        })),
       );
     } catch (error: any) {
       console.error("Error fetching projects:", error);
@@ -347,21 +347,19 @@ export function registerRoutes(app: Express): Server {
           email: user.email,
         },
         back_urls: {
-          success: `${req.protocol}://${req.get(
-            "host"
-          )}/projects/${projectId}?payment=success`,
-          failure: `${req.protocol}://${req.get(
-            "host"
-          )}/projects/${projectId}?payment=failure`,
-          pending: `${req.protocol}://${req.get(
-            "host"
-          )}/projects/${projectId}?payment=pending`,
+          success: `https://${req.get(
+            "host",
+          )}/projects/${projectId}?success=true`,
+          failure: `https://${req.get(
+            "host",
+          )}/projects/${projectId}?success=false`,
+          pending: `https://${req.get(
+            "host",
+          )}/projects/${projectId}?pending=true`,
         },
         auto_return: "approved",
         external_reference: `project_${projectId}_user_${user.id}`,
-        notification_url: `${req.protocol}://${req.get(
-          "host"
-        )}/api/webhooks/mercadopago`,
+        notification_url: `https://${req.get("host")}/api/webhooks/mercadopago`,
       };
 
       const result = await preference.create({ body: preferenceData });
@@ -445,13 +443,13 @@ export function registerRoutes(app: Express): Server {
             headers: {
               Authorization: `Bearer ${process.env.MERCADOPAGO_ACCESS_TOKEN}`,
             },
-          }
+          },
         );
 
         if (!paymentResponse.ok) {
           console.error(
             "Error fetching payment from MercadoPago:",
-            paymentResponse.statusText
+            paymentResponse.statusText,
           );
           return res
             .status(400)
@@ -534,7 +532,7 @@ export function registerRoutes(app: Express): Server {
               .where(eq(projects.id, projectId));
 
             console.log(
-              `Payment approved for project ${projectId}: $${paymentData.transaction_amount}`
+              `Payment approved for project ${projectId}: $${paymentData.transaction_amount}`,
             );
           }
         }
