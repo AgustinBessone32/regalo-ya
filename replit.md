@@ -99,6 +99,10 @@ The application is configured for deployment on Replit with the following setup:
   - UploadThing API keys configured for file uploads
   - MercadoPago payment URLs fixed to use correct success redirect format
   - Server configured to run on port 5000 with proper binding
+  - Progress bars now calculate from approved payments table instead of manual contributions
+  - Contribution counts updated to show actual payment counts from MercadoPago
+  - Added progress percentage calculation based on target amounts
+  - Mobile view optimized for project detail pages
 - June 23, 2025. Initial setup
 
 ## User Preferences

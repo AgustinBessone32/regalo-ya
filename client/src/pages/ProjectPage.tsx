@@ -502,9 +502,12 @@ export default function ProjectPage() {
                     </span>
                   )}
                 </div>
-                <p className="text-sm text-muted-foreground">
-                  {project.contributions.length} contribuciones
-                </p>
+                <div className="flex justify-between items-center text-sm text-muted-foreground">
+                  <span>{project.contribution_count || 0} pagos</span>
+                  <span className="font-medium text-primary">
+                    {Math.round(progress)}% completado
+                  </span>
+                </div>
               </CardContent>
             </Card>
           </div>

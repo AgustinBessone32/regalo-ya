@@ -72,7 +72,11 @@ export function registerRoutes(app: Express): Server {
           payment_method: projects.payment_method,
           payment_details: projects.payment_details,
           created_at: projects.created_at,
-          contribution_count: sql<number>`COUNT(DISTINCT ${contributions.id})::int`,
+          contribution_count: sql<number>`COALESCE(
+            (SELECT COUNT(*) FROM ${payments} 
+             WHERE ${payments.project_id} = ${projects.id} 
+             AND ${payments.status} = 'approved'), 0
+          )::int`,
           isOwner: sql<boolean>`${projects.creator_id} = ${user.id}`,
         })
         .from(projects)
@@ -97,6 +101,9 @@ export function registerRoutes(app: Express): Server {
           ...project,
           contribution_count: Number(project.contribution_count),
           isOwner: Boolean(project.isOwner),
+          progress_percentage: project.target_amount > 0 
+            ? Math.round((Number(project.current_amount) / Number(project.target_amount)) * 100)
+            : 0,
         })),
       );
     } catch (error: any) {
@@ -223,11 +230,30 @@ export function registerRoutes(app: Express): Server {
         .from(users)
         .where(eq(users.id, project.creator_id));
 
+      // Get payment count
+      const [paymentsCount] = await db
+        .select({
+          count: sql<number>`COUNT(*)::int`,
+        })
+        .from(payments)
+        .where(
+          and(
+            eq(payments.project_id, projectId),
+            eq(payments.status, "approved")
+          )
+        );
+
       const currentAmount = paymentsSum?.total || 0;
+      const paymentCount = paymentsCount?.count || 0;
+      const progressPercentage = project.target_amount > 0 
+        ? Math.round((currentAmount / project.target_amount) * 100)
+        : 0;
 
       return res.json({
         ...project,
         current_amount: currentAmount,
+        contribution_count: paymentCount,
+        progress_percentage: progressPercentage,
         isOwner,
         creator: { email: creator?.email || "Unknown" },
         contributions: projectContributions,

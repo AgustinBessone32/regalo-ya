@@ -77,7 +77,10 @@ export default function ProjectCard({ project }: ProjectCardProps) {
               </span>
             )}
           </div>
-          <div className="text-center">
+          <div className="flex justify-between items-center">
+            <span className="text-xs text-gray-600">
+              {project.contribution_count || 0} pagos
+            </span>
             <span className="text-xs bg-gradient-to-r from-purple-100 to-pink-100 text-purple-700 px-2 py-1 rounded-full">
               {Math.round(progress)}% completado
             </span>
