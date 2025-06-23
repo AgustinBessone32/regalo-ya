@@ -321,13 +321,13 @@ export default function ProjectPage() {
         image={project.image_url || undefined}
       />
 
-      <div className="space-y-8">
-        <div className="flex justify-between items-center">
+      <div className="space-y-6 sm:space-y-8">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <Button variant="outline" onClick={() => setLocation("/")}>
             Volver a Proyectos
           </Button>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
             {project.isOwner && (
               <Button
                 variant="outline"
@@ -355,10 +355,10 @@ export default function ProjectPage() {
           </div>
         </div>
 
-        <div className="grid gap-8 md:grid-cols-2">
-          <div className="space-y-6">
+        <div className="grid gap-6 md:gap-8 lg:grid-cols-2">
+          <div className="space-y-4 sm:space-y-6">
             <div>
-              <h1 className="text-3xl font-bold mb-2">{project.title}</h1>
+              <h1 className="text-2xl sm:text-3xl font-bold mb-3 leading-tight">{project.title}</h1>
               {project.image_url && (
                 <div className="relative w-full aspect-video mb-4 rounded-lg overflow-hidden bg-muted">
                   <img
@@ -374,7 +374,7 @@ export default function ProjectPage() {
                   />
                 </div>
               )}
-              <p className="text-muted-foreground">{project.description}</p>
+              <p className="text-muted-foreground leading-relaxed">{project.description}</p>
             </div>
 
             <EmojiReaction
@@ -382,27 +382,27 @@ export default function ProjectPage() {
               initialReactions={project.reactions}
             />
 
-            <div className="flex flex-col gap-2">
+            <div className="flex flex-col gap-3">
               {project.event_date && (
                 <>
-                  <div className="flex items-center gap-2 text-muted-foreground">
-                    <CalendarIcon className="h-4 w-4" />
-                    <span>{format(new Date(project.event_date), "PPP")}</span>
+                  <div className="flex items-center gap-2 text-muted-foreground text-sm">
+                    <CalendarIcon className="h-4 w-4 flex-shrink-0" />
+                    <span className="break-words">{format(new Date(project.event_date), "PPP")}</span>
                   </div>
                   <CountdownTimer eventDate={project.event_date} />
                 </>
               )}
 
               {project.location && (
-                <div className="flex items-center gap-2 text-muted-foreground">
-                  <MapPinIcon className="h-4 w-4" />
-                  <span>{project.location}</span>
+                <div className="flex items-center gap-2 text-muted-foreground text-sm">
+                  <MapPinIcon className="h-4 w-4 flex-shrink-0" />
+                  <span className="break-words">{project.location}</span>
                 </div>
               )}
 
-              <div className="flex items-center gap-2 text-muted-foreground">
-                <Users className="h-4 w-4" />
-                <span>Creado por {project.creator.email}</span>
+              <div className="flex items-center gap-2 text-muted-foreground text-sm">
+                <Users className="h-4 w-4 flex-shrink-0" />
+                <span className="break-words">Creado por {project.creator.email}</span>
               </div>
             </div>
 
@@ -413,7 +413,8 @@ export default function ProjectPage() {
               <DialogTrigger asChild>
                 <Button
                   variant="outline"
-                  className="w-full bg-primary/5 hover:bg-primary/10 border-primary/20 text-primary hover:text-primary"
+                  className="w-full bg-primary/5 hover:bg-primary/10 border-primary/20 text-primary hover:text-primary py-3"
+                  size="lg"
                 >
                   <Gift className="h-4 w-4 mr-2" />
                   Agregar Regalo
@@ -489,14 +490,14 @@ export default function ProjectPage() {
             </Dialog>
 
             <Card>
-              <CardContent className="pt-6">
-                <Progress value={progress} className="h-2 mb-4" />
-                <div className="flex justify-between text-sm mb-2">
-                  <span className="text-muted-foreground">
+              <CardContent className="pt-4 sm:pt-6">
+                <Progress value={progress} className="h-3 mb-4" />
+                <div className="flex flex-col sm:flex-row sm:justify-between gap-2 mb-3">
+                  <span className="text-sm text-muted-foreground">
                     ${currentAmount} recaudados
                   </span>
                   {project.target_amount && (
-                    <span className="font-medium">
+                    <span className="text-sm font-medium">
                       ${project.target_amount} meta
                     </span>
                   )}
@@ -508,7 +509,7 @@ export default function ProjectPage() {
             </Card>
           </div>
 
-          <div className="space-y-6">
+          <div className="space-y-4 sm:space-y-6 lg:order-last order-first">
             <BudgetAnalytics
               avgAmount={project.avg_amount || 0}
               medianAmount={project.median_amount || 0}
@@ -592,27 +593,27 @@ export default function ProjectPage() {
 
             {project.contributions.length > 0 && (
               <Card>
-                <CardHeader>
-                  <CardTitle>Contribuciones Recientes</CardTitle>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-lg">Contribuciones Recientes</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-4">
+                  <div className="space-y-3">
                     {project.contributions.map((contribution) => (
                       <div
                         key={contribution.id}
-                        className="flex justify-between items-start pb-4 border-b last:border-0 last:pb-0"
+                        className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2 pb-3 border-b last:border-0 last:pb-0"
                       >
-                        <div>
-                          <p className="font-medium">
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium text-sm break-words">
                             {contribution.contributor_name}
                           </p>
                           {contribution.message && (
-                            <p className="text-sm text-muted-foreground mt-1">
+                            <p className="text-xs text-muted-foreground mt-1 break-words">
                               {contribution.message}
                             </p>
                           )}
                         </div>
-                        <span className="font-medium">
+                        <span className="font-medium text-sm flex-shrink-0 self-start">
                           ${contribution.amount}
                         </span>
                       </div>
