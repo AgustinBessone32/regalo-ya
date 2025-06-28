@@ -85,19 +85,19 @@ export default function HomePage() {
   const contributedProjects = projects?.filter(p => !p.isOwner) || [];
 
   return (
-    <div className="space-y-8">
-      <div className="flex justify-between items-center">
+    <div className="space-y-4 sm:space-y-8">
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+          <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
             ¡Bienvenido, {user.username}!
           </h1>
-          <p className="text-gray-600 mt-2">
+          <p className="text-gray-600 mt-2 text-sm sm:text-base">
             Gestiona tus proyectos de regalo colaborativo
           </p>
         </div>
-        <div className="flex items-center gap-4">
-          <Link href="/create">
-            <Button className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white border-0">
+        <div className="flex items-center gap-4 w-full sm:w-auto">
+          <Link href="/create" className="w-full sm:w-auto">
+            <Button className="w-full sm:w-auto bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white border-0">
               <Plus className="mr-2 h-4 w-4" />
               Crear Proyecto
             </Button>
@@ -105,36 +105,38 @@ export default function HomePage() {
         </div>
       </div>
 
-      <div className="bg-white/80 backdrop-blur-sm rounded-lg p-6 border border-purple-100 shadow-sm">
+      <div className="bg-white/80 backdrop-blur-sm rounded-lg p-3 sm:p-6 border border-purple-100 shadow-sm">
         <Tabs defaultValue="all" className="w-full">
-          <TabsList className="grid w-full grid-cols-3 max-w-[400px] mb-6">
-            <TabsTrigger value="all" className="flex items-center gap-2">
-              Todos
-              <span className="px-2 py-0.5 text-xs bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-full">
+          <TabsList className="grid w-full grid-cols-3 mb-4 sm:mb-6 h-auto">
+            <TabsTrigger value="all" className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2 p-2 text-xs sm:text-sm">
+              <span>Todos</span>
+              <span className="px-1.5 sm:px-2 py-0.5 text-xs bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-full">
                 {projects?.length || 0}
               </span>
             </TabsTrigger>
-            <TabsTrigger value="my" className="flex items-center gap-2">
-              Mis Proyectos
-              <span className="px-2 py-0.5 text-xs bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-full">
+            <TabsTrigger value="my" className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2 p-2 text-xs sm:text-sm">
+              <span className="hidden sm:inline">Mis Proyectos</span>
+              <span className="sm:hidden">Míos</span>
+              <span className="px-1.5 sm:px-2 py-0.5 text-xs bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-full">
                 {myProjects.length}
               </span>
             </TabsTrigger>
-            <TabsTrigger value="contributed" className="flex items-center gap-2">
-              Contribuyendo
-              <span className="px-2 py-0.5 text-xs bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-full">
+            <TabsTrigger value="contributed" className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2 p-2 text-xs sm:text-sm">
+              <span className="hidden sm:inline">Contribuyendo</span>
+              <span className="sm:hidden">Contri.</span>
+              <span className="px-1.5 sm:px-2 py-0.5 text-xs bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-full">
                 {contributedProjects.length}
               </span>
             </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="all">
+          <TabsContent value="all" className="mt-0">
             {!projects?.length ? (
-              <div className="text-center text-muted-foreground py-8">
-                No hay proyectos. ¡Crea uno para comenzar!
+              <div className="text-center text-muted-foreground py-8 px-4">
+                <p className="text-sm sm:text-base">No hay proyectos. ¡Crea uno para comenzar!</p>
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
                 {projects.map((project) => (
                   <ProjectCard key={project.id} project={project} />
                 ))}
@@ -142,13 +144,13 @@ export default function HomePage() {
             )}
           </TabsContent>
 
-          <TabsContent value="my">
+          <TabsContent value="my" className="mt-0">
             {!myProjects.length ? (
-              <div className="text-center text-muted-foreground py-8">
-                Aún no has creado ningún proyecto.
+              <div className="text-center text-muted-foreground py-8 px-4">
+                <p className="text-sm sm:text-base">Aún no has creado ningún proyecto.</p>
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
                 {myProjects.map((project) => (
                   <ProjectCard key={project.id} project={project} />
                 ))}
@@ -156,13 +158,13 @@ export default function HomePage() {
             )}
           </TabsContent>
 
-          <TabsContent value="contributed">
+          <TabsContent value="contributed" className="mt-0">
             {!contributedProjects.length ? (
-              <div className="text-center text-muted-foreground py-8">
-                Aún no has contribuido a ningún proyecto.
+              <div className="text-center text-muted-foreground py-8 px-4">
+                <p className="text-sm sm:text-base">Aún no has contribuido a ningún proyecto.</p>
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
                 {contributedProjects.map((project) => (
                   <ProjectCard key={project.id} project={project} />
                 ))}

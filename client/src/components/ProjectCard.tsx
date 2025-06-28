@@ -123,9 +123,9 @@ export default function ProjectCard({ project }: ProjectCardProps) {
           </div>
         </div>
       </CardContent>
-      <CardFooter className="flex justify-between gap-2 pt-4">
+      <CardFooter className="flex flex-col sm:flex-row justify-between gap-2 pt-4">
         <Button 
-          className="flex-1 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white border-0 shadow-sm"
+          className="w-full sm:flex-1 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white border-0 shadow-sm"
           asChild
         >
           <Link href={`/projects/${project.id}`}>
@@ -135,9 +135,9 @@ export default function ProjectCard({ project }: ProjectCardProps) {
 
         <Dialog open={isShareModalOpen} onOpenChange={setIsShareModalOpen}>
           <DialogTrigger asChild>
-            <Button variant="outline" size="sm" className="gap-2">
+            <Button variant="outline" size="sm" className="w-full sm:w-auto gap-2">
               <Share2 className="h-4 w-4" />
-              Compartir
+              <span className="sm:inline">Compartir</span>
             </Button>
           </DialogTrigger>
           <DialogContent className="sm:max-w-md">
