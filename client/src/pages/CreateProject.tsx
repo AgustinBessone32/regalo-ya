@@ -428,7 +428,7 @@ export default function CreateProject() {
                       />
                     </FormControl>
                     <p className="text-sm text-muted-foreground">
-                      Aquí transferiremos el monto total recaudado, un día después de que finalice el proyecto ({form.watch("event_date") ? new Date(form.watch("event_date") || "").toLocaleDateString() : "fecha del evento"}).
+                      Aquí transferiremos el monto total recaudado, un día después de que finalice el proyecto {form.watch("event_date") && form.watch("event_date") !== "" ? `(${new Date(form.watch("event_date")!).toLocaleDateString()})` : "(fecha del evento)"}.
                     </p>
                     <FormMessage />
                   </FormItem>
