@@ -57,7 +57,7 @@ export const insertProjectSchema = z.object({
     .string()
     .min(10, "La descripción debe tener al menos 10 caracteres"),
   image_url: z.string().optional().nullable(),
-  target_amount: z.number().min(1, "El monto objetivo debe ser mayor a 0"),
+  target_amount: z.number().default(0),
   location: z.string().optional().nullable(),
   event_date: z.date().optional().nullable(),
   is_public: z.boolean().default(false),

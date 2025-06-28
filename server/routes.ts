@@ -129,7 +129,7 @@ export function registerRoutes(app: Express): Server {
         creator_id: user.id,
         invitation_token: nanoid(),
         event_date: req.body.event_date ? new Date(req.body.event_date) : null,
-        target_amount: Number(req.body.target_amount),
+        target_amount: 0,
         image_url: req.body.image_url || null,
         current_amount: 0,
         is_public: false,

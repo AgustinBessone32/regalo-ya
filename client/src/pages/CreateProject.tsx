@@ -21,7 +21,7 @@ const projectSchema = z.object({
   title: z.string().min(3, "El título debe tener al menos 3 caracteres"),
   description: z.string().min(10, "La descripción debe tener al menos 10 caracteres"),
   image_url: z.string().optional(),
-  target_amount: z.number().min(1, "El monto objetivo debe ser mayor a 0"),
+
   location: z.string().optional(),
   event_date: z.string().optional().transform(val => val || null),
   is_public: z.boolean().default(false),
@@ -56,7 +56,7 @@ export default function CreateProject() {
       title: "",
       description: "",
       image_url: "",
-      target_amount: 0,
+
       location: "",
       event_date: "",
       is_public: false,
@@ -77,7 +77,6 @@ export default function CreateProject() {
         },
         body: JSON.stringify({
           ...data,
-          target_amount: Number(data.target_amount),
           event_date: data.event_date || null,
           fixed_amounts: data.fixed_amounts ? JSON.stringify(data.fixed_amounts) : null,
         }),
@@ -300,34 +299,11 @@ export default function CreateProject() {
       ),
     },
     {
-      title: "Meta y Método de Pago",
-      description: "Establece tu meta de recolección y cómo recibirás el dinero",
+      title: "Opciones de Contribución",
+      description: "Configura cómo las personas pueden contribuir y donde recibirás el dinero",
       content: (
         <Form {...form}>
           <form className="space-y-4" onSubmit={(e) => e.preventDefault()}>
-            <FormField
-              control={form.control}
-              name="target_amount"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Monto Objetivo ($)</FormLabel>
-                  <FormControl>
-                    <Input
-                      type="number"
-                      min="1"
-                      placeholder="0"
-                      {...field}
-                      onChange={(e) => {
-                        const value = e.target.value;
-                        field.onChange(value === "" ? 0 : Number(value));
-                      }}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
             <div className="space-y-4">
               <FormLabel className="text-base font-medium">Opciones de Contribución</FormLabel>
               
