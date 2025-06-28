@@ -247,6 +247,23 @@ export function registerRoutes(app: Express): Server {
           )
         );
 
+      // Get payment details for metrics
+      const paymentDetails = await db
+        .select({
+          payer_email: payments.payer_email,
+          amount: payments.amount,
+          description: payments.description,
+          created_at: payments.created_at,
+        })
+        .from(payments)
+        .where(
+          and(
+            eq(payments.project_id, projectId),
+            eq(payments.status, "approved")
+          )
+        )
+        .orderBy(desc(payments.created_at));
+
       const currentAmount = paymentsSum?.total || 0;
       const paymentCount = paymentsCount?.count || 0;
       const progressPercentage = project.target_amount > 0 
@@ -262,6 +279,7 @@ export function registerRoutes(app: Express): Server {
         creator: { email: creator?.email || "Unknown" },
         contributions: projectContributions,
         reactions: [],
+        payment_details: paymentDetails,
       });
     } catch (error: any) {
       console.error("Error fetching project:", error);

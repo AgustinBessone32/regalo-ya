@@ -36,6 +36,7 @@ import { useNotifications } from "@/hooks/use-notifications";
 
 import { MetaTags } from "@/components/MetaTags";
 import { EmojiReaction } from "@/components/EmojiReaction";
+import { ContributionMetrics } from "@/components/ContributionMetrics";
 import { useEffect } from "react";
 import {
   Dialog,
@@ -64,6 +65,12 @@ type ProjectWithDetails = Project & {
   reactions: { emoji: string; count: number; reacted: boolean }[];
   contribution_count: number;
   progress_percentage: number;
+  payment_details: {
+    payer_email: string;
+    amount: number;
+    description?: string;
+    created_at: string;
+  }[];
   isOwner: boolean;
 };
 
@@ -504,6 +511,12 @@ export default function ProjectPage() {
           </div>
 
           <div className="space-y-4 sm:space-y-6 lg:order-last order-first">
+            {/* Contribution Metrics */}
+            <ContributionMetrics 
+              contributors={project.payment_details || []}
+              totalAmount={project.current_amount || 0}
+            />
+
             {!project.isOwner && (
               <Card>
                 <CardHeader>
