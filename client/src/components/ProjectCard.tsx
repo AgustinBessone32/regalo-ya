@@ -2,12 +2,21 @@ import { Link } from "wouter";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
-import { CalendarIcon, MapPinIcon } from "lucide-react";
+import { CalendarIcon, MapPinIcon, Share2, Copy, MessageCircle } from "lucide-react";
 import { format } from "date-fns";
 import { es } from 'date-fns/locale';
 import type { Project } from "@db/schema";
 import { CountdownTimer } from "./CountdownTimer";
-import { ShareButton } from "./ShareButton";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { useToast } from "@/hooks/use-toast";
+import { useState } from "react";
 
 type ProjectCardProps = {
   project: Project;
@@ -16,6 +25,33 @@ type ProjectCardProps = {
 export default function ProjectCard({ project }: ProjectCardProps) {
   const currentAmount = project.current_amount ?? 0;
   const progress = (currentAmount / (project.target_amount || 1)) * 100;
+  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
+  const { toast } = useToast();
+  
+  const projectUrl = `${window.location.origin}/projects/${project.id}`;
+  
+  const handleCopyLink = async () => {
+    try {
+      await navigator.clipboard.writeText(projectUrl);
+      toast({
+        title: "¡Éxito!",
+        description: "¡Enlace copiado al portapapeles!",
+      });
+      setIsShareModalOpen(false);
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Error al copiar el enlace",
+      });
+    }
+  };
+
+  const handleWhatsAppShare = () => {
+    const whatsappMessage = `${project.title}%0A${project.description}%0A${projectUrl}`;
+    window.open(`https://wa.me/?text=${whatsappMessage}`, '_blank');
+    setIsShareModalOpen(false);
+  };
 
   return (
     <Card className="h-full flex flex-col transition-all duration-300 hover:shadow-lg hover:scale-105 bg-white/90 backdrop-blur-sm border border-purple-100">

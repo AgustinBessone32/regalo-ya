@@ -1,4 +1,4 @@
-import { Share2, Facebook, Twitter, MessageCircle } from "lucide-react";
+import { Copy, MessageCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 
@@ -11,52 +11,25 @@ interface ShareButtonProps {
 export function ShareButton({ title, description, url }: ShareButtonProps) {
   const { toast } = useToast();
 
-  const shareUrl = encodeURIComponent(url);
-  const shareTitle = encodeURIComponent(`${title} en RegaloYa`);
-  const shareDescription = encodeURIComponent(description || '');
-
-  const handleShare = async () => {
-    if (navigator.share) {
-      try {
-        await navigator.share({
-          title: `${title} - RegaloYa`,
-          text: description,
-          url,
-        });
-      } catch (error) {
-        if ((error as Error).name !== 'AbortError') {
-          toast({
-            variant: "destructive",
-            title: "Error",
-            description: "Error al compartir el proyecto",
-          });
-        }
-      }
-    } else {
-      // Fallback to copying to clipboard
-      try {
-        await navigator.clipboard.writeText(url);
-        toast({
-          title: "¡Éxito!",
-          description: "¡Enlace copiado al portapapeles!",
-        });
-      } catch (error) {
-        toast({
-          variant: "destructive",
-          title: "Error",
-          description: "Error al copiar el enlace",
-        });
-      }
+  const handleCopyLink = async () => {
+    try {
+      await navigator.clipboard.writeText(url);
+      toast({
+        title: "¡Éxito!",
+        description: "¡Enlace copiado al portapapeles!",
+      });
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Error al copiar el enlace",
+      });
     }
   };
 
-  const openShareWindow = (baseUrl: string) => {
-    const width = 550;
-    const height = 400;
-    const left = (window.screen.width - width) / 2;
-    const top = (window.screen.height - height) / 2;
-    const windowFeatures = `toolbar=no,location=no,status=no,menubar=no,scrollbars=yes,resizable=yes,width=${width},height=${height},top=${top},left=${left}`;
-    window.open(baseUrl, '_blank', windowFeatures);
+  const handleWhatsAppShare = () => {
+    const whatsappMessage = `${title}%0A${description ? description + '%0A' : ''}${url}`;
+    window.open(`https://wa.me/?text=${whatsappMessage}`, '_blank');
   };
 
   return (
@@ -65,34 +38,20 @@ export function ShareButton({ title, description, url }: ShareButtonProps) {
         variant="outline"
         size="sm"
         className="gap-2"
-        onClick={handleShare}
+        onClick={handleCopyLink}
       >
-        <Share2 className="h-4 w-4" />
-        Compartir
+        <Copy className="h-4 w-4" />
+        Copiar enlace
       </Button>
 
       <Button
         variant="outline"
-        size="icon"
-        onClick={() => openShareWindow(`https://twitter.com/intent/tweet?text=${shareTitle}&url=${shareUrl}`)}
-      >
-        <Twitter className="h-4 w-4" />
-      </Button>
-
-      <Button
-        variant="outline"
-        size="icon"
-        onClick={() => openShareWindow(`https://www.facebook.com/sharer/sharer.php?u=${shareUrl}`)}
-      >
-        <Facebook className="h-4 w-4" />
-      </Button>
-
-      <Button
-        variant="outline"
-        size="icon"
-        onClick={() => window.open(`https://wa.me/?text=${shareTitle}%0A${shareDescription}%0A${shareUrl}`, '_blank')}
+        size="sm"
+        className="gap-2"
+        onClick={handleWhatsAppShare}
       >
         <MessageCircle className="h-4 w-4" />
+        WhatsApp
       </Button>
     </div>
   );
