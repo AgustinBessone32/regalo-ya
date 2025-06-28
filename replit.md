@@ -106,6 +106,8 @@ The application is configured for deployment on Replit with the following setup:
   - Removed CBU/Cash payment options in favor of MercadoPago only
   - Added fixed amount selection feature for contributors
   - Added recipient account field for fund transfer after project completion
+  - Removed all participation analytics and metrics (BudgetAnalytics component)
+  - Simplified project display to focus only on essential contribution information
 - June 23, 2025. Initial setup
 
 ## User Preferences
