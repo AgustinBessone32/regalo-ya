@@ -133,11 +133,47 @@ export default function ProjectCard({ project }: ProjectCardProps) {
           </Link>
         </Button>
 
-        <ShareButton
-          title={project.title}
-          description={project.description || ''}
-          url={`${window.location.origin}/projects/${project.id}`}
-        />
+        <Dialog open={isShareModalOpen} onOpenChange={setIsShareModalOpen}>
+          <DialogTrigger asChild>
+            <Button variant="outline" size="sm" className="gap-2">
+              <Share2 className="h-4 w-4" />
+              Compartir
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle>Compartir Proyecto</DialogTitle>
+              <DialogDescription>
+                Comparte este proyecto con otras personas
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div className="flex items-center gap-2 p-3 bg-gray-50 rounded-lg">
+                <span className="text-sm text-gray-600 flex-1 truncate">
+                  {projectUrl}
+                </span>
+              </div>
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  onClick={handleCopyLink}
+                  className="flex-1 gap-2"
+                >
+                  <Copy className="h-4 w-4" />
+                  Copiar enlace
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={handleWhatsAppShare}
+                  className="flex-1 gap-2"
+                >
+                  <MessageCircle className="h-4 w-4" />
+                  WhatsApp
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
       </CardFooter>
     </Card>
   );

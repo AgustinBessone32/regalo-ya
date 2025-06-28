@@ -511,6 +511,20 @@ export default function ProjectPage() {
           </div>
 
           <div className="space-y-4 sm:space-y-6 lg:order-last order-first">
+            {/* Sharing Block */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">Compartir Proyecto</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ShareButton
+                  title={project.title}
+                  description={project.description}
+                  url={window.location.href}
+                />
+              </CardContent>
+            </Card>
+
             {/* Contribution Metrics */}
             <ContributionMetrics 
               contributors={project.payment_details || []}

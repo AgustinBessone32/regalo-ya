@@ -109,6 +109,9 @@ The application is configured for deployment on Replit with the following setup:
   - Removed all participation analytics and metrics (BudgetAnalytics component)
   - Added new ContributionMetrics component showing contributor details and gift statistics
   - Displays contributor count, total gifts, average gift amount, and ranked contributor list
+  - Updated sharing functionality to include only copy link and WhatsApp options (removed Twitter/Facebook)
+  - Added sharing modal in project cards with copy and WhatsApp options
+  - Added dedicated sharing block within project pages
 - June 23, 2025. Initial setup
 
 ## User Preferences
