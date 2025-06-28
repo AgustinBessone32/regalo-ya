@@ -45,7 +45,7 @@ export const projects = pgTable("projects", {
     enum: ["mercadopago"],
   }).notNull().default("mercadopago"),
   payment_details: text("payment_details"),
-  fixed_amounts: json("fixed_amounts").$type<number[]>(),
+  fixed_amounts: text("fixed_amounts"),
   allow_custom_amount: boolean("allow_custom_amount").default(true),
   created_at: timestamp("created_at").defaultNow(),
 });
@@ -64,7 +64,7 @@ export const insertProjectSchema = z.object({
   invitation_token: z.string(),
   payment_method: z.enum(["mercadopago"]).default("mercadopago"),
   payment_details: z.string().optional().nullable(),
-  fixed_amounts: z.array(z.number().min(1)).optional().nullable(),
+  fixed_amounts: z.string().optional().nullable(),
   allow_custom_amount: z.boolean().default(true),
 });
 
