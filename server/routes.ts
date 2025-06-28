@@ -133,6 +133,8 @@ export function registerRoutes(app: Express): Server {
         image_url: req.body.image_url || null,
         current_amount: 0,
         is_public: false,
+        fixed_amounts: req.body.fixed_amounts || null,
+        allow_custom_amount: req.body.allow_custom_amount !== undefined ? req.body.allow_custom_amount : true,
       };
 
       const validationResult = insertProjectSchema.safeParse(projectData);
