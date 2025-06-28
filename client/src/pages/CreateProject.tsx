@@ -29,6 +29,7 @@ const projectSchema = z.object({
   payment_details: z.string().optional(),
   fixed_amounts: z.array(z.number().min(1)).optional(),
   allow_custom_amount: z.boolean().default(true),
+  recipient_account: z.string().min(1, "Debes proporcionar tu alias bancario"),
 });
 
 type FormData = z.infer<typeof projectSchema>;
@@ -63,6 +64,7 @@ export default function CreateProject() {
       payment_details: "",
       fixed_amounts: [],
       allow_custom_amount: true,
+      recipient_account: "",
     },
   });
 
@@ -405,6 +407,30 @@ export default function CreateProject() {
                         Los contribuyentes podrán elegir cuánto aportar
                       </p>
                     </div>
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            {/* Recipient Account Section */}
+            <div className="space-y-3 pt-4 border-t">
+              <FormLabel className="text-base font-medium">Cuenta de Destino</FormLabel>
+              <FormField
+                control={form.control}
+                name="recipient_account"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Alias de tu cuenta bancaria</FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="Ej: juan.perez.mp"
+                        {...field}
+                      />
+                    </FormControl>
+                    <p className="text-sm text-muted-foreground">
+                      Aquí transferiremos el monto total recaudado, un día después de que finalice el proyecto ({form.watch("event_date") ? new Date(form.watch("event_date") || "").toLocaleDateString() : "fecha del evento"}).
+                    </p>
+                    <FormMessage />
                   </FormItem>
                 )}
               />

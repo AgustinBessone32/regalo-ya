@@ -135,6 +135,7 @@ export function registerRoutes(app: Express): Server {
         is_public: false,
         fixed_amounts: req.body.fixed_amounts || null,
         allow_custom_amount: req.body.allow_custom_amount !== undefined ? req.body.allow_custom_amount : true,
+        recipient_account: req.body.recipient_account || null,
       };
 
       const validationResult = insertProjectSchema.safeParse(projectData);

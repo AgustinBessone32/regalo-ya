@@ -103,6 +103,9 @@ The application is configured for deployment on Replit with the following setup:
   - Contribution counts updated to show actual payment counts from MercadoPago
   - Added progress percentage calculation based on target amounts
   - Mobile view optimized for project detail pages
+  - Removed CBU/Cash payment options in favor of MercadoPago only
+  - Added fixed amount selection feature for contributors
+  - Added recipient account field for fund transfer after project completion
 - June 23, 2025. Initial setup
 
 ## User Preferences

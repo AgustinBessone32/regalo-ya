@@ -47,6 +47,7 @@ export const projects = pgTable("projects", {
   payment_details: text("payment_details"),
   fixed_amounts: text("fixed_amounts"),
   allow_custom_amount: boolean("allow_custom_amount").default(true),
+  recipient_account: text("recipient_account"),
   created_at: timestamp("created_at").defaultNow(),
 });
 
@@ -66,6 +67,7 @@ export const insertProjectSchema = z.object({
   payment_details: z.string().optional().nullable(),
   fixed_amounts: z.string().optional().nullable(),
   allow_custom_amount: z.boolean().default(true),
+  recipient_account: z.string().min(1, "Debes proporcionar tu alias bancario"),
 });
 
 export type Project = typeof projects.$inferSelect;
