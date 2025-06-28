@@ -8,6 +8,7 @@ import {
   contributions,
   users,
   payments,
+  reactions,
 } from "@db/schema";
 import { nanoid } from "nanoid";
 import { eq, and, not, sql, desc, or } from "drizzle-orm";
@@ -468,6 +469,119 @@ export function registerRoutes(app: Express): Server {
     } catch (error: any) {
       console.error("Error fetching project payments:", error);
       return res.status(500).json({ error: "Error fetching payments" });
+    }
+  });
+
+  // React to a project
+  app.post("/api/projects/:id/react", async (req, res) => {
+    try {
+      if (!req.isAuthenticated()) {
+        return res.status(401).json({ error: "Authentication required" });
+      }
+
+      const user = req.user as any;
+      if (!user?.id) {
+        return res.status(401).json({ error: "Invalid user session" });
+      }
+
+      const projectId = parseInt(req.params.id);
+      if (isNaN(projectId)) {
+        return res.status(400).json({ error: "Invalid project ID" });
+      }
+
+      const { emoji } = req.body;
+      if (!emoji) {
+        return res.status(400).json({ error: "Emoji is required" });
+      }
+
+      // Check if project exists
+      const [project] = await db
+        .select()
+        .from(projects)
+        .where(eq(projects.id, projectId));
+
+      if (!project) {
+        return res.status(404).json({ error: "Project not found" });
+      }
+
+      // Check if user already reacted with this emoji
+      const [existingReaction] = await db
+        .select()
+        .from(reactions)
+        .where(
+          and(
+            eq(reactions.project_id, projectId),
+            eq(reactions.user_id, user.id),
+            eq(reactions.emoji, emoji)
+          )
+        );
+
+      if (existingReaction) {
+        // Remove the reaction (toggle off)
+        await db
+          .delete(reactions)
+          .where(
+            and(
+              eq(reactions.project_id, projectId),
+              eq(reactions.user_id, user.id),
+              eq(reactions.emoji, emoji)
+            )
+          );
+      } else {
+        // Add the reaction
+        await db
+          .insert(reactions)
+          .values({
+            project_id: projectId,
+            user_id: user.id,
+            emoji,
+          });
+      }
+
+      // Get updated reaction counts
+      const reactionCounts = await db
+        .select({
+          emoji: reactions.emoji,
+          count: sql<number>`count(*)::int`,
+        })
+        .from(reactions)
+        .where(eq(reactions.project_id, projectId))
+        .groupBy(reactions.emoji);
+
+      // Get user's reactions for this project
+      const userReactions = await db
+        .select({ emoji: reactions.emoji })
+        .from(reactions)
+        .where(
+          and(
+            eq(reactions.project_id, projectId),
+            eq(reactions.user_id, user.id)
+          )
+        );
+
+      const userReactionEmojis = userReactions.map(r => r.emoji);
+
+      // Format response with all possible reactions
+      const allReactions = [
+        { emoji: "🎁", label: "Gift" },
+        { emoji: "🎂", label: "Cake" },
+        { emoji: "🎈", label: "Balloon" },
+        { emoji: "🎊", label: "Confetti" },
+        { emoji: "❤️", label: "Love" },
+        { emoji: "🌟", label: "Star" }
+      ].map(r => {
+        const countData = reactionCounts.find(rc => rc.emoji === r.emoji);
+        return {
+          emoji: r.emoji,
+          count: countData?.count || 0,
+          reacted: userReactionEmojis.includes(r.emoji)
+        };
+      });
+
+      return res.json({ reactions: allReactions });
+    } catch (error: any) {
+      console.error("Error processing reaction:", error);
+      return res.status(500).json({ error: "Failed to process reaction" });
     }
   });
 
