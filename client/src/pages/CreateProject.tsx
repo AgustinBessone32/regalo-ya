@@ -14,7 +14,8 @@ import { useToast } from "@/hooks/use-toast";
 import { WizardForm } from "@/components/WizardForm";
 import { useUser } from "@/hooks/use-user";
 import { UploadButton } from "@/components/ui/upload-button";
-import { Loader2 } from "lucide-react";
+import { Loader2, PlusIcon, XIcon } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
 
 const projectSchema = z.object({
   title: z.string().min(3, "El título debe tener al menos 3 caracteres"),
@@ -24,8 +25,10 @@ const projectSchema = z.object({
   location: z.string().optional(),
   event_date: z.string().optional().transform(val => val || null),
   is_public: z.boolean().default(false),
-  payment_method: z.enum(["cbu", "efectivo"]),
-  payment_details: z.string().min(1, "Debes proporcionar los detalles del pago"),
+  payment_method: z.enum(["mercadopago"]).default("mercadopago"),
+  payment_details: z.string().optional(),
+  fixed_amounts: z.array(z.number().min(1)).optional(),
+  allow_custom_amount: z.boolean().default(true),
 });
 
 type FormData = z.infer<typeof projectSchema>;
@@ -44,6 +47,7 @@ export default function CreateProject() {
     isUploading: false,
     preview: null,
   });
+  const [fixedAmounts, setFixedAmounts] = useState<number[]>([]);
 
   const form = useForm<FormData>({
     resolver: zodResolver(projectSchema),
@@ -55,8 +59,10 @@ export default function CreateProject() {
       location: "",
       event_date: "",
       is_public: false,
-      payment_method: "cbu",
+      payment_method: "mercadopago",
       payment_details: "",
+      fixed_amounts: [],
+      allow_custom_amount: true,
     },
   });
 
@@ -71,6 +77,7 @@ export default function CreateProject() {
           ...data,
           target_amount: Number(data.target_amount),
           event_date: data.event_date || null,
+          fixed_amounts: data.fixed_amounts ? JSON.stringify(data.fixed_amounts) : null,
         }),
         credentials: "include",
       });
@@ -319,65 +326,89 @@ export default function CreateProject() {
               )}
             />
 
-            <FormField
-              control={form.control}
-              name="payment_method"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Método de Pago</FormLabel>
-                  <FormControl>
-                    <RadioGroup
-                      onValueChange={field.onChange}
-                      value={field.value}
-                      className="flex flex-col gap-2"
-                    >
-                      <FormItem className="flex items-center space-x-3 space-y-0">
-                        <FormControl>
-                          <RadioGroupItem value="cbu" />
-                        </FormControl>
-                        <FormLabel className="font-normal">
-                          CBU
-                        </FormLabel>
-                      </FormItem>
-                      <FormItem className="flex items-center space-x-3 space-y-0">
-                        <FormControl>
-                          <RadioGroupItem value="efectivo" />
-                        </FormControl>
-                        <FormLabel className="font-normal">
-                          Efectivo
-                        </FormLabel>
-                      </FormItem>
-                    </RadioGroup>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="payment_details"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>
-                    {form.watch("payment_method") === "cbu"
-                      ? "Número de CBU"
-                      : "Detalles para la entrega del efectivo"}
-                  </FormLabel>
-                  <FormControl>
+            <div className="space-y-4">
+              <FormLabel className="text-base font-medium">Opciones de Contribución</FormLabel>
+              
+              {/* Fixed Amounts Section */}
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <FormLabel>Montos Fijos</FormLabel>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      const newAmounts = [...fixedAmounts, 0];
+                      setFixedAmounts(newAmounts);
+                      form.setValue("fixed_amounts", newAmounts);
+                    }}
+                  >
+                    <PlusIcon className="h-4 w-4 mr-1" />
+                    Agregar Monto
+                  </Button>
+                </div>
+                
+                {fixedAmounts.map((amount, index) => (
+                  <div key={index} className="flex items-center gap-2">
                     <Input
-                      placeholder={
-                        form.watch("payment_method") === "cbu"
-                          ? "Ingresa tu CBU"
-                          : "Especifica cómo y dónde se entregará el efectivo"
-                      }
-                      {...field}
+                      type="number"
+                      min="1"
+                      placeholder="Monto en $"
+                      value={amount || ""}
+                      onChange={(e) => {
+                        const value = Number(e.target.value);
+                        const newAmounts = [...fixedAmounts];
+                        newAmounts[index] = value;
+                        setFixedAmounts(newAmounts);
+                        form.setValue("fixed_amounts", newAmounts.filter(a => a > 0));
+                      }}
                     />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        const newAmounts = fixedAmounts.filter((_, i) => i !== index);
+                        setFixedAmounts(newAmounts);
+                        form.setValue("fixed_amounts", newAmounts);
+                      }}
+                    >
+                      <XIcon className="h-4 w-4" />
+                    </Button>
+                  </div>
+                ))}
+                
+                {fixedAmounts.length === 0 && (
+                  <p className="text-sm text-muted-foreground">
+                    Agrega montos fijos que los contribuyentes puedan elegir
+                  </p>
+                )}
+              </div>
+
+              {/* Allow Custom Amount Option */}
+              <FormField
+                control={form.control}
+                name="allow_custom_amount"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                    <FormControl>
+                      <Checkbox
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormControl>
+                    <div className="space-y-1 leading-none">
+                      <FormLabel>
+                        Permitir monto personalizado
+                      </FormLabel>
+                      <p className="text-sm text-muted-foreground">
+                        Los contribuyentes podrán elegir cuánto aportar
+                      </p>
+                    </div>
+                  </FormItem>
+                )}
+              />
+            </div>
           </form>
         </Form>
       ),
