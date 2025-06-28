@@ -262,15 +262,6 @@ export function registerRoutes(app: Express): Server {
         creator: { email: creator?.email || "Unknown" },
         contributions: projectContributions,
         reactions: [],
-        shares: { total: 0, by_platform: [] },
-        avg_amount:
-          projectContributions.reduce((sum, c) => sum + c.amount, 0) /
-            projectContributions.length || 0,
-        median_amount: 0,
-        min_amount: Math.min(...projectContributions.map((c) => c.amount), 0),
-        max_amount: Math.max(...projectContributions.map((c) => c.amount), 0),
-        total_contributions: projectContributions.length,
-        contribution_history: projectContributions.map((c) => c.amount),
       });
     } catch (error: any) {
       console.error("Error fetching project:", error);

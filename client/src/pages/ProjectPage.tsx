@@ -33,7 +33,7 @@ import type { Project, Contribution } from "@db/schema";
 import { CountdownTimer } from "@/components/CountdownTimer";
 import { ShareButton } from "@/components/ShareButton";
 import { useNotifications } from "@/hooks/use-notifications";
-import { BudgetAnalytics } from "@/components/BudgetAnalytics";
+
 import { MetaTags } from "@/components/MetaTags";
 import { EmojiReaction } from "@/components/EmojiReaction";
 import { useEffect } from "react";
@@ -62,16 +62,8 @@ type ProjectWithDetails = Project & {
   creator: { email: string };
   contributions: Contribution[];
   reactions: { emoji: string; count: number; reacted: boolean }[];
-  shares: {
-    total: number;
-    by_platform: { platform: string; count: number }[];
-  };
-  avg_amount: number;
-  median_amount: number;
-  min_amount: number;
-  max_amount: number;
-  total_contributions: number;
-  contribution_history: number[];
+  contribution_count: number;
+  progress_percentage: number;
   isOwner: boolean;
 };
 
@@ -310,7 +302,6 @@ export default function ProjectPage() {
   }
 
   const currentAmount = project.current_amount ?? 0;
-  const progress = (currentAmount / (project.target_amount || 1)) * 100;
 
   return (
     <>
@@ -491,7 +482,7 @@ export default function ProjectPage() {
 
             <Card>
               <CardContent className="pt-4 sm:pt-6">
-                <Progress value={progress} className="h-3 mb-4" />
+                <Progress value={project.progress_percentage || 0} className="h-3 mb-4" />
                 <div className="flex flex-col sm:flex-row sm:justify-between gap-2 mb-3">
                   <span className="text-sm text-muted-foreground">
                     ${currentAmount} recaudados
@@ -505,7 +496,7 @@ export default function ProjectPage() {
                 <div className="flex justify-between items-center text-sm text-muted-foreground">
                   <span>{project.contribution_count || 0} pagos</span>
                   <span className="font-medium text-primary">
-                    {Math.round(progress)}% completado
+                    {project.progress_percentage || 0}% completado
                   </span>
                 </div>
               </CardContent>
@@ -513,18 +504,6 @@ export default function ProjectPage() {
           </div>
 
           <div className="space-y-4 sm:space-y-6 lg:order-last order-first">
-            <BudgetAnalytics
-              avgAmount={project.avg_amount || 0}
-              medianAmount={project.median_amount || 0}
-              minAmount={project.min_amount || 0}
-              maxAmount={project.max_amount || 0}
-              totalContributions={project.total_contributions || 0}
-              contributionHistory={project.contribution_history || []}
-              reactionCounts={project.reactions}
-              totalShares={project.shares?.total || 0}
-              platformShares={project.shares?.by_platform || []}
-            />
-
             {!project.isOwner && (
               <Card>
                 <CardHeader>
