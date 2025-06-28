@@ -107,7 +107,8 @@ The application is configured for deployment on Replit with the following setup:
   - Added fixed amount selection feature for contributors
   - Added recipient account field for fund transfer after project completion
   - Removed all participation analytics and metrics (BudgetAnalytics component)
-  - Simplified project display to focus only on essential contribution information
+  - Added new ContributionMetrics component showing contributor details and gift statistics
+  - Displays contributor count, total gifts, average gift amount, and ranked contributor list
 - June 23, 2025. Initial setup
 
 ## User Preferences
