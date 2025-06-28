@@ -5,6 +5,7 @@ import {
   integer,
   boolean,
   timestamp,
+  json,
 } from "drizzle-orm/pg-core";
 import { createInsertSchema, createSelectSchema } from "drizzle-zod";
 import { z } from "zod";
@@ -41,9 +42,11 @@ export const projects = pgTable("projects", {
   is_public: boolean("is_public").default(false),
   invitation_token: text("invitation_token").notNull(),
   payment_method: text("payment_method", {
-    enum: ["cbu", "efectivo"],
-  }).notNull(),
-  payment_details: text("payment_details").notNull(),
+    enum: ["mercadopago"],
+  }).notNull().default("mercadopago"),
+  payment_details: text("payment_details"),
+  fixed_amounts: json("fixed_amounts").$type<number[]>(),
+  allow_custom_amount: boolean("allow_custom_amount").default(true),
   created_at: timestamp("created_at").defaultNow(),
 });
 
@@ -59,12 +62,10 @@ export const insertProjectSchema = z.object({
   is_public: z.boolean().default(false),
   creator_id: z.number(),
   invitation_token: z.string(),
-  payment_method: z.enum(["cbu", "efectivo"], {
-    required_error: "Debes seleccionar un método de pago",
-  }),
-  payment_details: z
-    .string()
-    .min(1, "Debes proporcionar los detalles del pago"),
+  payment_method: z.enum(["mercadopago"]).default("mercadopago"),
+  payment_details: z.string().optional().nullable(),
+  fixed_amounts: z.array(z.number().min(1)).optional().nullable(),
+  allow_custom_amount: z.boolean().default(true),
 });
 
 export type Project = typeof projects.$inferSelect;
