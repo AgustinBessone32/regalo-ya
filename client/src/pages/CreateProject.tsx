@@ -5,11 +5,17 @@ import { useForm } from "react-hook-form";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { z } from "zod";
 import { Card, CardContent } from "@/components/ui/card";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useToast } from "@/hooks/use-toast";
 import { WizardForm } from "@/components/WizardForm";
 import { useUser } from "@/hooks/use-user";
@@ -19,11 +25,14 @@ import { Checkbox } from "@/components/ui/checkbox";
 
 const projectSchema = z.object({
   title: z.string().min(3, "El título debe tener al menos 3 caracteres"),
-  description: z.string().min(10, "La descripción debe tener al menos 10 caracteres"),
+  description: z
+    .string()
+    .min(10, "La descripción debe tener al menos 10 caracteres"),
   image_url: z.string().optional(),
 
   location: z.string().optional(),
-  event_date: z.string().optional().transform(val => val || null),
+  event_date: z.string().min(1, "La fecha del evento es requerida").default(""),
+  target_amount: z.number().min(1, "La cantidad esperada debe ser mayor a 0"),
   is_public: z.boolean().default(false),
   payment_method: z.enum(["mercadopago"]).default("mercadopago"),
   payment_details: z.string().optional(),
@@ -32,7 +41,15 @@ const projectSchema = z.object({
   recipient_account: z.string().min(1, "Debes proporcionar tu alias bancario"),
 });
 
-type FormData = z.infer<typeof projectSchema>;
+type FormData = z.infer<typeof projectSchema> & {
+  image_url?: string;
+  location?: string;
+  payment_details?: string;
+  fixed_amounts?: number[];
+  target_amount?: number;
+  allow_custom_amount?: boolean;
+  recipient_account?: string;
+};
 
 type ImageUploadState = {
   isUploading: boolean;
@@ -56,9 +73,9 @@ export default function CreateProject() {
       title: "",
       description: "",
       image_url: "",
-
       location: "",
       event_date: "",
+      target_amount: 0,
       is_public: false,
       payment_method: "mercadopago",
       payment_details: "",
@@ -78,20 +95,22 @@ export default function CreateProject() {
         body: JSON.stringify({
           ...data,
           event_date: data.event_date || null,
-          fixed_amounts: data.fixed_amounts ? JSON.stringify(data.fixed_amounts) : null,
+          fixed_amounts: data.fixed_amounts
+            ? JSON.stringify(data.fixed_amounts)
+            : null,
         }),
         credentials: "include",
       });
 
       if (!response.ok) {
         const error = await response.json();
-        throw new Error(error.error || 'Error creating project');
+        throw new Error(error.error || "Error creating project");
       }
 
       return response.json();
     },
     onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ['/api/projects'] });
+      queryClient.invalidateQueries({ queryKey: ["/api/projects"] });
       queryClient.invalidateQueries({ queryKey: [`/api/projects/${data.id}`] });
 
       toast({
@@ -116,7 +135,6 @@ export default function CreateProject() {
     const values = form.getValues();
     const formData = {
       ...values,
-      target_amount: Number(values.target_amount),
       event_date: values.event_date || null,
     };
 
@@ -127,7 +145,7 @@ export default function CreateProject() {
       toast({
         variant: "destructive",
         title: "Error de validación",
-        description: errors.map(err => err.message).join('\n'),
+        description: errors.map((err) => err.message).join("\n"),
       });
       return;
     }
@@ -144,6 +162,27 @@ export default function CreateProject() {
     {
       title: "Información Básica",
       description: "Comencemos con la información básica sobre el proyecto",
+      validation: () => {
+        const values = form.getValues();
+        const errors: string[] = [];
+
+        if (!values.title || values.title.length < 3) {
+          errors.push("El título debe tener al menos 3 caracteres");
+        }
+
+        if (!values.description || values.description.length < 10) {
+          errors.push("La descripción debe tener al menos 10 caracteres");
+        }
+
+        if (!values.target_amount || values.target_amount <= 0) {
+          errors.push("La cantidad esperada debe ser mayor a 0");
+        }
+
+        return {
+          isValid: errors.length === 0,
+          errors,
+        };
+      },
       content: (
         <Form {...form}>
           <form className="space-y-4" onSubmit={(e) => e.preventDefault()}>
@@ -154,7 +193,10 @@ export default function CreateProject() {
                 <FormItem>
                   <FormLabel>Título del Proyecto</FormLabel>
                   <FormControl>
-                    <Input placeholder="Regalo de Cumpleaños para Juan" {...field} />
+                    <Input
+                      placeholder="Regalo de Cumpleaños para Juan"
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -180,6 +222,37 @@ export default function CreateProject() {
 
             <FormField
               control={form.control}
+              name="target_amount"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Cantidad Esperada ($ARS)</FormLabel>
+                  <FormControl>
+                    <div className="relative">
+                      <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground">
+                        $
+                      </span>
+                      <Input
+                        type="text"
+                        placeholder="Ej: 50000"
+                        className="pl-6"
+                        {...field}
+                        onChange={(e) =>
+                          field.onChange(Number(e.target.value) || 0)
+                        }
+                      />
+                    </div>
+                  </FormControl>
+                  <p className="text-sm text-muted-foreground">
+                    Establece el monto objetivo que esperas recaudar para el
+                    proyecto
+                  </p>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
               name="image_url"
               render={({ field }) => (
                 <FormItem>
@@ -190,33 +263,39 @@ export default function CreateProject() {
                         <div className="flex items-center justify-center p-4 border-2 border-dashed rounded-lg">
                           <div className="flex flex-col items-center gap-2">
                             <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                            <p className="text-sm text-muted-foreground">Subiendo imagen...</p>
+                            <p className="text-sm text-muted-foreground">
+                              Subiendo imagen...
+                            </p>
                           </div>
                         </div>
                       ) : (
                         <UploadButton
                           endpoint="imageUploader"
                           onUploadBegin={() => {
-                            setImageUpload(prev => ({ ...prev, isUploading: true }));
+                            setImageUpload((prev) => ({
+                              ...prev,
+                              isUploading: true,
+                            }));
                           }}
                           onClientUploadComplete={(res) => {
                             console.log("Upload completed:", res);
                             const fileUrl = res?.[0]?.url;
                             setImageUpload({
                               isUploading: false,
-                              preview: fileUrl || null
+                              preview: fileUrl || null,
                             });
                             field.onChange(fileUrl);
                             toast({
                               title: "Imagen subida",
-                              description: "La imagen se ha subido correctamente",
+                              description:
+                                "La imagen se ha subido correctamente",
                             });
                           }}
                           onUploadError={(error: Error) => {
                             console.error("Upload error:", error);
                             setImageUpload({
                               isUploading: false,
-                              preview: null
+                              preview: null,
                             });
                             toast({
                               variant: "destructive",
@@ -244,7 +323,10 @@ export default function CreateProject() {
                             className="absolute top-1 right-1 h-6 w-6"
                             onClick={() => {
                               field.onChange("");
-                              setImageUpload(prev => ({ ...prev, preview: null }));
+                              setImageUpload((prev) => ({
+                                ...prev,
+                                preview: null,
+                              }));
                             }}
                           >
                             ×
@@ -264,6 +346,19 @@ export default function CreateProject() {
     {
       title: "Detalles",
       description: "¿Cuándo y dónde es la celebración?",
+      validation: () => {
+        const values = form.getValues();
+        const errors: string[] = [];
+
+        if (!values.event_date || values.event_date.trim() === "") {
+          errors.push("La fecha del evento es requerida");
+        }
+
+        return {
+          isValid: errors.length === 0,
+          errors,
+        };
+      },
       content: (
         <Form {...form}>
           <form className="space-y-4" onSubmit={(e) => e.preventDefault()}>
@@ -272,7 +367,7 @@ export default function CreateProject() {
               name="event_date"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Fecha del Evento (Opcional)</FormLabel>
+                  <FormLabel>Fecha del Evento</FormLabel>
                   <FormControl>
                     <Input type="date" {...field} />
                   </FormControl>
@@ -300,13 +395,32 @@ export default function CreateProject() {
     },
     {
       title: "Opciones de Contribución",
-      description: "Configura cómo las personas pueden contribuir y donde recibirás el dinero",
+      description:
+        "Configura cómo las personas pueden contribuir y donde recibirás el dinero",
+      validation: () => {
+        const values = form.getValues();
+        const errors: string[] = [];
+
+        if (
+          !values.recipient_account ||
+          values.recipient_account.trim() === ""
+        ) {
+          errors.push("Debes proporcionar tu alias bancario");
+        }
+
+        return {
+          isValid: errors.length === 0,
+          errors,
+        };
+      },
       content: (
         <Form {...form}>
           <form className="space-y-4" onSubmit={(e) => e.preventDefault()}>
             <div className="space-y-4">
-              <FormLabel className="text-base font-medium">Opciones de Contribución</FormLabel>
-              
+              <FormLabel className="text-base font-medium">
+                Opciones de Contribución
+              </FormLabel>
+
               {/* Fixed Amounts Section */}
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
@@ -325,7 +439,7 @@ export default function CreateProject() {
                     Agregar Monto
                   </Button>
                 </div>
-                
+
                 {fixedAmounts.map((amount, index) => (
                   <div key={index} className="flex items-center gap-2">
                     <Input
@@ -338,7 +452,10 @@ export default function CreateProject() {
                         const newAmounts = [...fixedAmounts];
                         newAmounts[index] = value;
                         setFixedAmounts(newAmounts);
-                        form.setValue("fixed_amounts", newAmounts.filter(a => a > 0));
+                        form.setValue(
+                          "fixed_amounts",
+                          newAmounts.filter((a) => a > 0)
+                        );
                       }}
                     />
                     <Button
@@ -346,7 +463,9 @@ export default function CreateProject() {
                       variant="outline"
                       size="sm"
                       onClick={() => {
-                        const newAmounts = fixedAmounts.filter((_, i) => i !== index);
+                        const newAmounts = fixedAmounts.filter(
+                          (_, i) => i !== index
+                        );
                         setFixedAmounts(newAmounts);
                         form.setValue("fixed_amounts", newAmounts);
                       }}
@@ -355,7 +474,7 @@ export default function CreateProject() {
                     </Button>
                   </div>
                 ))}
-                
+
                 {fixedAmounts.length === 0 && (
                   <p className="text-sm text-muted-foreground">
                     Agrega montos fijos que los contribuyentes puedan elegir
@@ -376,9 +495,7 @@ export default function CreateProject() {
                       />
                     </FormControl>
                     <div className="space-y-1 leading-none">
-                      <FormLabel>
-                        Permitir monto personalizado
-                      </FormLabel>
+                      <FormLabel>Permitir monto personalizado</FormLabel>
                       <p className="text-sm text-muted-foreground">
                         Los contribuyentes podrán elegir cuánto aportar
                       </p>
@@ -390,7 +507,9 @@ export default function CreateProject() {
 
             {/* Recipient Account Section */}
             <div className="space-y-3 pt-4 border-t">
-              <FormLabel className="text-base font-medium">Cuenta de Destino</FormLabel>
+              <FormLabel className="text-base font-medium">
+                Cuenta de Destino
+              </FormLabel>
               <FormField
                 control={form.control}
                 name="recipient_account"
@@ -398,13 +517,18 @@ export default function CreateProject() {
                   <FormItem>
                     <FormLabel>Alias de tu cuenta bancaria</FormLabel>
                     <FormControl>
-                      <Input
-                        placeholder="Ej: juan.perez.mp"
-                        {...field}
-                      />
+                      <Input placeholder="Ej: juan.perez.mp" {...field} />
                     </FormControl>
                     <p className="text-sm text-muted-foreground">
-                      Aquí transferiremos el monto total recaudado, un día después de que finalice el proyecto {form.watch("event_date") && form.watch("event_date") !== "" ? `(${new Date(form.watch("event_date")!).toLocaleDateString()})` : "(fecha del evento)"}.
+                      Aquí transferiremos el monto total recaudado, un día
+                      después de que finalice el proyecto{" "}
+                      {form.watch("event_date") &&
+                      form.watch("event_date") !== ""
+                        ? `(${new Date(
+                            form.watch("event_date")!
+                          ).toLocaleDateString()})`
+                        : "(fecha del evento)"}
+                      .
                     </p>
                     <FormMessage />
                   </FormItem>

@@ -37,7 +37,7 @@ export function registerRoutes(app: Express): Server {
         uploadthingSecret: process.env.UPLOADTHING_SECRET!,
         isDev: process.env.NODE_ENV === "development",
       },
-    }),
+    })
   );
 
   // Get list of projects (strict access control)
@@ -91,8 +91,8 @@ export function registerRoutes(app: Express): Server {
               SELECT 1 FROM ${contributions}
               WHERE ${contributions.project_id} = ${projects.id}
               AND ${contributions.contributor_name} = ${user.email}
-            )`,
-          ),
+            )`
+          )
         )
         .groupBy(projects.id)
         .orderBy(desc(projects.created_at));
@@ -102,10 +102,15 @@ export function registerRoutes(app: Express): Server {
           ...project,
           contribution_count: Number(project.contribution_count),
           isOwner: Boolean(project.isOwner),
-          progress_percentage: project.target_amount > 0 
-            ? Math.round((Number(project.current_amount) / Number(project.target_amount)) * 100)
-            : 0,
-        })),
+          progress_percentage:
+            project.target_amount > 0
+              ? Math.round(
+                  (Number(project.current_amount) /
+                    Number(project.target_amount)) *
+                    100
+                )
+              : 0,
+        }))
       );
     } catch (error: any) {
       console.error("Error fetching projects:", error);
@@ -130,12 +135,15 @@ export function registerRoutes(app: Express): Server {
         creator_id: user.id,
         invitation_token: nanoid(),
         event_date: req.body.event_date ? new Date(req.body.event_date) : null,
-        target_amount: 0,
+        target_amount: req.body.target_amount || 0,
         image_url: req.body.image_url || null,
         current_amount: 0,
         is_public: false,
         fixed_amounts: req.body.fixed_amounts || null,
-        allow_custom_amount: req.body.allow_custom_amount !== undefined ? req.body.allow_custom_amount : true,
+        allow_custom_amount:
+          req.body.allow_custom_amount !== undefined
+            ? req.body.allow_custom_amount
+            : true,
         recipient_account: req.body.recipient_account || null,
       };
 
@@ -266,9 +274,10 @@ export function registerRoutes(app: Express): Server {
 
       const currentAmount = paymentsSum?.total || 0;
       const paymentCount = paymentsCount?.count || 0;
-      const progressPercentage = project.target_amount > 0 
-        ? Math.round((currentAmount / project.target_amount) * 100)
-        : 0;
+      const progressPercentage =
+        project.target_amount > 0
+          ? Math.round((currentAmount / project.target_amount) * 100)
+          : 0;
 
       return res.json({
         ...project,
@@ -407,13 +416,13 @@ export function registerRoutes(app: Express): Server {
         },
         back_urls: {
           success: `https://${req.get(
-            "host",
+            "host"
           )}/projects/${projectId}?success=true`,
           failure: `https://${req.get(
-            "host",
+            "host"
           )}/projects/${projectId}?success=false`,
           pending: `https://${req.get(
-            "host",
+            "host"
           )}/projects/${projectId}?pending=true`,
         },
         auto_return: "approved",
@@ -538,13 +547,11 @@ export function registerRoutes(app: Express): Server {
           );
       } else {
         // Add the reaction
-        await db
-          .insert(reactions)
-          .values({
-            project_id: projectId,
-            user_id: user.id,
-            emoji,
-          });
+        await db.insert(reactions).values({
+          project_id: projectId,
+          user_id: user.id,
+          emoji,
+        });
       }
 
       // Get updated reaction counts
@@ -568,7 +575,7 @@ export function registerRoutes(app: Express): Server {
           )
         );
 
-      const userReactionEmojis = userReactions.map(r => r.emoji);
+      const userReactionEmojis = userReactions.map((r) => r.emoji);
 
       // Format response with all possible reactions
       const allReactions = [
@@ -577,13 +584,13 @@ export function registerRoutes(app: Express): Server {
         { emoji: "🎈", label: "Balloon" },
         { emoji: "🎊", label: "Confetti" },
         { emoji: "❤️", label: "Love" },
-        { emoji: "🌟", label: "Star" }
-      ].map(r => {
-        const countData = reactionCounts.find(rc => rc.emoji === r.emoji);
+        { emoji: "🌟", label: "Star" },
+      ].map((r) => {
+        const countData = reactionCounts.find((rc) => rc.emoji === r.emoji);
         return {
           emoji: r.emoji,
           count: countData?.count || 0,
-          reacted: userReactionEmojis.includes(r.emoji)
+          reacted: userReactionEmojis.includes(r.emoji),
         };
       });
 
@@ -615,13 +622,13 @@ export function registerRoutes(app: Express): Server {
             headers: {
               Authorization: `Bearer ${process.env.MERCADOPAGO_ACCESS_TOKEN}`,
             },
-          },
+          }
         );
 
         if (!paymentResponse.ok) {
           console.error(
             "Error fetching payment from MercadoPago:",
-            paymentResponse.statusText,
+            paymentResponse.statusText
           );
           return res
             .status(400)
@@ -704,7 +711,7 @@ export function registerRoutes(app: Express): Server {
               .where(eq(projects.id, projectId));
 
             console.log(
-              `Payment approved for project ${projectId}: $${paymentData.transaction_amount}`,
+              `Payment approved for project ${projectId}: $${paymentData.transaction_amount}`
             );
           }
         }

@@ -72,6 +72,8 @@ type ProjectWithDetails = Project & {
     created_at: string;
   }[];
   isOwner: boolean;
+  fixed_amounts?: string;
+  allow_custom_amount?: boolean;
 };
 
 export default function ProjectPage() {
@@ -468,16 +470,95 @@ export default function ProjectPage() {
                         <FormItem>
                           <FormLabel>Monto ($ARS)</FormLabel>
                           <FormControl>
-                            <Input
-                              type="number"
-                              placeholder="Ej: 1000"
-                              {...field}
-                            />
+                            <div className="space-y-3">
+                              {/* Fixed Amounts */}
+                              {project.fixed_amounts &&
+                                (() => {
+                                  try {
+                                    const fixedAmounts = JSON.parse(
+                                      project.fixed_amounts
+                                    );
+                                    if (
+                                      Array.isArray(fixedAmounts) &&
+                                      fixedAmounts.length > 0
+                                    ) {
+                                      return (
+                                        <div className="space-y-2">
+                                          <p className="text-sm text-muted-foreground">
+                                            Montos sugeridos:
+                                          </p>
+                                          <div className="grid grid-cols-2 gap-2">
+                                            {fixedAmounts.map(
+                                              (amount: number) => (
+                                                <Button
+                                                  key={amount}
+                                                  type="button"
+                                                  variant={
+                                                    field.value === amount
+                                                      ? "default"
+                                                      : "outline"
+                                                  }
+                                                  className="h-10"
+                                                  onClick={() =>
+                                                    field.onChange(amount)
+                                                  }
+                                                >
+                                                  ${amount.toLocaleString()}
+                                                </Button>
+                                              )
+                                            )}
+                                          </div>
+                                        </div>
+                                      );
+                                    }
+                                  } catch (error) {
+                                    console.error(
+                                      "Error parsing fixed_amounts:",
+                                      error
+                                    );
+                                  }
+                                  return null;
+                                })()}
+
+                              {/* Custom Amount Input */}
+                              {project.allow_custom_amount !== false && (
+                                <div className="space-y-2">
+                                  {project.fixed_amounts && (
+                                    <p className="text-sm text-muted-foreground">
+                                      O ingresa un monto personalizado:
+                                    </p>
+                                  )}
+                                  <div className="relative">
+                                    <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground">
+                                      $
+                                    </span>
+                                    <Input
+                                      type="number"
+                                      placeholder="Ej: 1000"
+                                      className="pl-6"
+                                      {...field}
+                                    />
+                                  </div>
+                                </div>
+                              )}
+                            </div>
                           </FormControl>
                           <FormMessage />
                         </FormItem>
                       )}
                     />
+
+                    {/* Monto a abonar */}
+                    {paymentForm.watch("amount") > 0 && (
+                      <div className="p-4 bg-primary/5 border border-primary/20 rounded-lg">
+                        <p className="text-sm text-muted-foreground mb-1">
+                          Monto a abonar:
+                        </p>
+                        <p className="text-2xl font-bold text-primary">
+                          ${paymentForm.watch("amount").toLocaleString()}
+                        </p>
+                      </div>
+                    )}
 
                     <FormField
                       control={paymentForm.control}

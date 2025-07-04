@@ -2,11 +2,13 @@ import { useState, type ReactNode } from "react";
 import { Check, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { useToast } from "@/hooks/use-toast";
 
 interface Step {
   title: string;
   description: string;
   content: ReactNode;
+  validation?: () => { isValid: boolean; errors: string[] };
 }
 
 interface WizardFormProps {
@@ -15,10 +17,29 @@ interface WizardFormProps {
   isSubmitting?: boolean;
 }
 
-export function WizardForm({ steps, onComplete, isSubmitting }: WizardFormProps) {
+export function WizardForm({
+  steps,
+  onComplete,
+  isSubmitting,
+}: WizardFormProps) {
   const [currentStep, setCurrentStep] = useState(0);
+  const { toast } = useToast();
 
   const handleNext = () => {
+    // Validar el paso actual si tiene validación
+    const currentStepData = steps[currentStep];
+    if (currentStepData.validation) {
+      const validation = currentStepData.validation();
+      if (!validation.isValid) {
+        toast({
+          variant: "destructive",
+          title: "Error de validación",
+          description: validation.errors.join("\n"),
+        });
+        return;
+      }
+    }
+
     if (currentStep === steps.length - 1) {
       onComplete();
     } else {

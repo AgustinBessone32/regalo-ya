@@ -52,6 +52,7 @@ export function CountdownTimer({ eventDate }: CountdownTimerProps) {
 
   return (
     <div className="flex gap-2 text-sm">
+      <span className="text-muted-foreground">Queda: </span>
       {timeLeft.days > 0 && (
         <span className="font-medium">{timeLeft.days}d</span>
       )}
@@ -61,7 +62,6 @@ export function CountdownTimer({ eventDate }: CountdownTimerProps) {
       {timeLeft.minutes > 0 && (
         <span className="font-medium">{timeLeft.minutes}m</span>
       )}
-      <span className="text-muted-foreground">remaining</span>
     </div>
   );
 }
