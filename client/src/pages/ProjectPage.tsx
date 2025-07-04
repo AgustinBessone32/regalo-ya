@@ -310,6 +310,16 @@ export default function ProjectPage() {
 
   const currentAmount = project.current_amount ?? 0;
 
+  // Función para determinar si el evento ya ha finalizado
+  const isEventFinished = () => {
+    if (!project.event_date) return false;
+    const eventDate = new Date(project.event_date);
+    const now = new Date();
+    return eventDate < now;
+  };
+
+  const eventFinished = isEventFinished();
+
   return (
     <>
       <MetaTags
@@ -356,7 +366,9 @@ export default function ProjectPage() {
         <div className="grid gap-6 md:gap-8 lg:grid-cols-2">
           <div className="space-y-4 sm:space-y-6">
             <div>
-              <h1 className="text-2xl sm:text-3xl font-bold mb-3 leading-tight">{project.title}</h1>
+              <h1 className="text-2xl sm:text-3xl font-bold mb-3 leading-tight">
+                {project.title}
+              </h1>
               {project.image_url && (
                 <div className="relative w-full aspect-video mb-4 rounded-lg overflow-hidden bg-muted">
                   <img
@@ -372,7 +384,9 @@ export default function ProjectPage() {
                   />
                 </div>
               )}
-              <p className="text-muted-foreground leading-relaxed">{project.description}</p>
+              <p className="text-muted-foreground leading-relaxed">
+                {project.description}
+              </p>
             </div>
 
             <EmojiReaction
@@ -385,7 +399,9 @@ export default function ProjectPage() {
                 <>
                   <div className="flex items-center gap-2 text-muted-foreground text-sm">
                     <CalendarIcon className="h-4 w-4 flex-shrink-0" />
-                    <span className="break-words">{format(new Date(project.event_date), "PPP")}</span>
+                    <span className="break-words">
+                      {format(new Date(project.event_date), "PPP")}
+                    </span>
                   </div>
                   <CountdownTimer eventDate={project.event_date} />
                 </>
@@ -400,9 +416,20 @@ export default function ProjectPage() {
 
               <div className="flex items-center gap-2 text-muted-foreground text-sm">
                 <Users className="h-4 w-4 flex-shrink-0" />
-                <span className="break-words">Creado por {project.creator.email}</span>
+                <span className="break-words">
+                  Creado por {project.creator.email}
+                </span>
               </div>
             </div>
+
+            {eventFinished && (
+              <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+                <p className="text-amber-800 text-sm">
+                  ⏰ Este evento ya ha finalizado. Las contribuciones están
+                  cerradas.
+                </p>
+              </div>
+            )}
 
             <Dialog
               open={isPaymentDialogOpen}
@@ -411,11 +438,12 @@ export default function ProjectPage() {
               <DialogTrigger asChild>
                 <Button
                   variant="outline"
-                  className="w-full bg-primary/5 hover:bg-primary/10 border-primary/20 text-primary hover:text-primary py-3"
+                  className="w-full bg-primary/5 hover:bg-primary/10 border-primary/20 text-primary hover:text-primary py-3 disabled:opacity-50 disabled:cursor-not-allowed"
                   size="lg"
+                  disabled={eventFinished}
                 >
                   <Gift className="h-4 w-4 mr-2" />
-                  Agregar Regalo
+                  {eventFinished ? "Evento Finalizado" : "Agregar Regalo"}
                 </Button>
               </DialogTrigger>
               <DialogContent>
@@ -489,7 +517,10 @@ export default function ProjectPage() {
 
             <Card>
               <CardContent className="pt-4 sm:pt-6">
-                <Progress value={project.progress_percentage || 0} className="h-3 mb-4" />
+                <Progress
+                  value={project.progress_percentage || 0}
+                  className="h-3 mb-4"
+                />
                 <div className="flex flex-col sm:flex-row sm:justify-between gap-2 mb-3">
                   <span className="text-sm text-muted-foreground">
                     ${currentAmount} recaudados
@@ -526,7 +557,7 @@ export default function ProjectPage() {
             </Card>
 
             {/* Contribution Metrics */}
-            <ContributionMetrics 
+            <ContributionMetrics
               contributors={project.payment_details || []}
               totalAmount={project.current_amount || 0}
             />
@@ -535,6 +566,12 @@ export default function ProjectPage() {
               <Card>
                 <CardHeader>
                   <CardTitle>Hacer una Contribución</CardTitle>
+                  {eventFinished && (
+                    <p className="text-sm text-muted-foreground">
+                      Este evento ya ha finalizado. No se pueden realizar nuevas
+                      contribuciones.
+                    </p>
+                  )}
                 </CardHeader>
                 <CardContent>
                   <Form {...form}>
@@ -586,13 +623,17 @@ export default function ProjectPage() {
 
                       <Button
                         type="submit"
-                        className="w-full"
-                        disabled={contributeMutation.isPending}
+                        className="w-full disabled:opacity-50 disabled:cursor-not-allowed"
+                        disabled={contributeMutation.isPending || eventFinished}
                       >
                         {contributeMutation.isPending && (
                           <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                         )}
-                        {user ? "Contribuir" : "Inicia sesión para contribuir"}
+                        {eventFinished
+                          ? "Evento Finalizado"
+                          : user
+                          ? "Contribuir"
+                          : "Inicia sesión para contribuir"}
                       </Button>
                     </form>
                   </Form>
@@ -603,7 +644,9 @@ export default function ProjectPage() {
             {project.contributions.length > 0 && (
               <Card>
                 <CardHeader className="pb-3">
-                  <CardTitle className="text-lg">Contribuciones Recientes</CardTitle>
+                  <CardTitle className="text-lg">
+                    Contribuciones Recientes
+                  </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-3">

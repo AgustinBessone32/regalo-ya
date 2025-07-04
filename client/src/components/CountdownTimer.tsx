@@ -1,5 +1,10 @@
 import { useEffect, useState } from "react";
-import { differenceInDays, differenceInHours, differenceInMinutes, isPast } from "date-fns";
+import {
+  differenceInDays,
+  differenceInHours,
+  differenceInMinutes,
+  isPast,
+} from "date-fns";
 
 interface CountdownTimerProps {
   eventDate: string | Date;
@@ -40,7 +45,7 @@ export function CountdownTimer({ eventDate }: CountdownTimerProps) {
   if (timeLeft.days === 0 && timeLeft.hours === 0 && timeLeft.minutes === 0) {
     return (
       <div className="text-sm text-muted-foreground">
-        Event has passed
+        El evento ha concluido
       </div>
     );
   }
@@ -48,19 +53,13 @@ export function CountdownTimer({ eventDate }: CountdownTimerProps) {
   return (
     <div className="flex gap-2 text-sm">
       {timeLeft.days > 0 && (
-        <span className="font-medium">
-          {timeLeft.days}d
-        </span>
+        <span className="font-medium">{timeLeft.days}d</span>
       )}
       {timeLeft.hours > 0 && (
-        <span className="font-medium">
-          {timeLeft.hours}h
-        </span>
+        <span className="font-medium">{timeLeft.hours}h</span>
       )}
       {timeLeft.minutes > 0 && (
-        <span className="font-medium">
-          {timeLeft.minutes}m
-        </span>
+        <span className="font-medium">{timeLeft.minutes}m</span>
       )}
       <span className="text-muted-foreground">remaining</span>
     </div>
