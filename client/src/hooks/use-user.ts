@@ -34,12 +34,20 @@ async function handleRequest(
         return { ok: false, message: response.statusText };
       }
 
-      const message = await response.text();
-      return { ok: false, message };
+      const responseText = await response.text();
+
+      // Try to parse as JSON to extract error message
+      try {
+        const errorData = JSON.parse(responseText);
+        return { ok: false, message: errorData.error || responseText };
+      } catch {
+        // If not JSON, return the text as is
+        return { ok: false, message: responseText };
+      }
     }
 
     const data = await response.json();
-    return { ok: true, user: data.user };
+    return { ok: true, user: data };
   } catch (e: any) {
     return { ok: false, message: e.toString() };
   }
@@ -74,7 +82,7 @@ export function useUser() {
         return null;
       }
     },
-    staleTime: Infinity,
+    staleTime: 0,
     retry: false,
   });
 

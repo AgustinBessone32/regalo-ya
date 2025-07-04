@@ -1,4 +1,4 @@
-import { Switch, Route } from "wouter";
+import { Switch, Route, useLocation } from "wouter";
 import { Card } from "@/components/ui/card";
 import { AlertCircle, Loader2 } from "lucide-react";
 import AuthPage from "./pages/AuthPage";
@@ -7,9 +7,18 @@ import ProjectPage from "./pages/ProjectPage";
 import HomePage from "./pages/HomePage";
 import LandingPage from "./pages/LandingPage";
 import { useUser } from "./hooks/use-user";
+import { useEffect } from "react";
 
 function App() {
   const { user, isLoading } = useUser();
+  const [, setLocation] = useLocation();
+
+  // Redirect authenticated users away from auth page
+  useEffect(() => {
+    if (user && window.location.pathname === "/auth") {
+      setLocation("/");
+    }
+  }, [user, setLocation]);
 
   if (isLoading) {
     return (

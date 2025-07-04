@@ -21,8 +21,7 @@ import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Gift, Loader2 } from "lucide-react";
 import { useUser } from "@/hooks/use-user";
-import { useState, useEffect } from "react";
-import { useLocation } from "wouter";
+import { useState } from "react";
 
 const authSchema = z.object({
   email: z.string().email("Por favor, introduce un email válido"),
@@ -32,7 +31,6 @@ const authSchema = z.object({
 export default function AuthPage() {
   const { loginMutation, registerMutation, user } = useUser();
   const [activeTab, setActiveTab] = useState<"login" | "register">("login");
-  const [, setLocation] = useLocation();
 
   const form = useForm<z.infer<typeof authSchema>>({
     resolver: zodResolver(authSchema),
@@ -41,13 +39,6 @@ export default function AuthPage() {
       password: "",
     },
   });
-
-  // Redirect when user is authenticated
-  useEffect(() => {
-    if (user) {
-      setLocation("/");
-    }
-  }, [user, setLocation]);
 
   const onSubmit = async (data: z.infer<typeof authSchema>) => {
     const userData = {
