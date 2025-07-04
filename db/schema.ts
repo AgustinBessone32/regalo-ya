@@ -43,7 +43,9 @@ export const projects = pgTable("projects", {
   invitation_token: text("invitation_token").notNull(),
   payment_method: text("payment_method", {
     enum: ["mercadopago"],
-  }).notNull().default("mercadopago"),
+  })
+    .notNull()
+    .default("mercadopago"),
   payment_details: text("payment_details"),
   fixed_amounts: text("fixed_amounts"),
   allow_custom_amount: boolean("allow_custom_amount").default(true),
@@ -57,7 +59,7 @@ export const insertProjectSchema = z.object({
     .string()
     .min(10, "La descripción debe tener al menos 10 caracteres"),
   image_url: z.string().optional().nullable(),
-  target_amount: z.number().default(0),
+  target_amount: z.number(),
   location: z.string().optional().nullable(),
   event_date: z.date().optional().nullable(),
   is_public: z.boolean().default(false),

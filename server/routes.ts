@@ -135,7 +135,6 @@ export function registerRoutes(app: Express): Server {
         creator_id: user.id,
         invitation_token: nanoid(),
         event_date: req.body.event_date ? new Date(req.body.event_date) : null,
-        target_amount: req.body.target_amount || 0,
         image_url: req.body.image_url || null,
         current_amount: 0,
         is_public: false,
@@ -146,6 +145,8 @@ export function registerRoutes(app: Express): Server {
             : true,
         recipient_account: req.body.recipient_account || null,
       };
+
+      console.log("PD", projectData);
 
       const validationResult = insertProjectSchema.safeParse(projectData);
       if (!validationResult.success) {
