@@ -2,13 +2,26 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Gift } from "lucide-react";
+import { Gift, Loader2 } from "lucide-react";
 import { useUser } from "@/hooks/use-user";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 
 const authSchema = z.object({
@@ -17,7 +30,7 @@ const authSchema = z.object({
 });
 
 export default function AuthPage() {
-  const { login, register } = useUser();
+  const { loginMutation, registerMutation, user } = useUser();
   const [activeTab, setActiveTab] = useState<"login" | "register">("login");
   const [, setLocation] = useLocation();
 
@@ -29,16 +42,27 @@ export default function AuthPage() {
     },
   });
 
-  const onSubmit = async (data: z.infer<typeof authSchema>) => {
-    try {
-      const action = activeTab === "login" ? login : register;
-      await action(data);
-      // After successful authentication, redirect to home
+  // Redirect when user is authenticated
+  useEffect(() => {
+    if (user) {
       setLocation("/");
-    } catch (error) {
-      console.error("Auth error:", error);
+    }
+  }, [user, setLocation]);
+
+  const onSubmit = async (data: z.infer<typeof authSchema>) => {
+    const userData = {
+      email: data.email,
+      password: data.password,
+    };
+
+    if (activeTab === "login") {
+      loginMutation.mutate(userData);
+    } else {
+      registerMutation.mutate(userData);
     }
   };
+
+  const isSubmitting = loginMutation.isPending || registerMutation.isPending;
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
@@ -59,10 +83,20 @@ export default function AuthPage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <Tabs defaultValue="login" value={activeTab} onValueChange={(value) => setActiveTab(value as "login" | "register")}>
+            <Tabs
+              defaultValue="login"
+              value={activeTab}
+              onValueChange={(value) =>
+                setActiveTab(value as "login" | "register")
+              }
+            >
               <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="login">Iniciar Sesión</TabsTrigger>
-                <TabsTrigger value="register">Registrarse</TabsTrigger>
+                <TabsTrigger value="login" disabled={isSubmitting}>
+                  Iniciar Sesión
+                </TabsTrigger>
+                <TabsTrigger value="register" disabled={isSubmitting}>
+                  Registrarse
+                </TabsTrigger>
               </TabsList>
 
               <Form {...form}>
@@ -77,7 +111,12 @@ export default function AuthPage() {
                       <FormItem>
                         <FormLabel>Correo Electrónico</FormLabel>
                         <FormControl>
-                          <Input type="email" placeholder="tu@email.com" {...field} />
+                          <Input
+                            type="email"
+                            placeholder="tu@email.com"
+                            {...field}
+                            disabled={isSubmitting}
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -91,15 +130,35 @@ export default function AuthPage() {
                       <FormItem>
                         <FormLabel>Contraseña</FormLabel>
                         <FormControl>
-                          <Input type="password" placeholder="Tu contraseña" {...field} />
+                          <Input
+                            type="password"
+                            placeholder="Tu contraseña"
+                            {...field}
+                            disabled={isSubmitting}
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
                     )}
                   />
 
-                  <Button type="submit" className="w-full">
-                    {activeTab === "login" ? "Iniciar Sesión" : "Crear Cuenta"}
+                  <Button
+                    type="submit"
+                    className="w-full"
+                    disabled={isSubmitting}
+                  >
+                    {isSubmitting ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        {activeTab === "login"
+                          ? "Iniciando Sesión..."
+                          : "Creando Cuenta..."}
+                      </>
+                    ) : activeTab === "login" ? (
+                      "Iniciar Sesión"
+                    ) : (
+                      "Crear Cuenta"
+                    )}
                   </Button>
                 </form>
               </Form>

@@ -1,23 +1,25 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { useToast } from '@/hooks/use-toast';
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useToast } from "@/hooks/use-toast";
 
 type User = {
   id: number;
-  username: string;
+  email: string;
 };
 
-type RequestResult = {
-  ok: true;
-  user?: User;
-} | {
-  ok: false;
-  message: string;
-};
+type RequestResult =
+  | {
+      ok: true;
+      user?: User;
+    }
+  | {
+      ok: false;
+      message: string;
+    };
 
 async function handleRequest(
   url: string,
   method: string,
-  body?: { username: string; password: string; }
+  body?: { email: string; password: string }
 ): Promise<RequestResult> {
   try {
     const response = await fetch(url, {
@@ -47,12 +49,16 @@ export function useUser() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const { data: user, error, isLoading } = useQuery<User | null>({
-    queryKey: ['/api/user'],
+  const {
+    data: user,
+    error,
+    isLoading,
+  } = useQuery<User | null>({
+    queryKey: ["/api/user"],
     queryFn: async () => {
       try {
-        const response = await fetch('/api/user', {
-          credentials: 'include'
+        const response = await fetch("/api/user", {
+          credentials: "include",
         });
 
         if (!response.ok) {
@@ -64,7 +70,7 @@ export function useUser() {
 
         return response.json();
       } catch (error) {
-        console.error('Error fetching user:', error);
+        console.error("Error fetching user:", error);
         return null;
       }
     },
@@ -73,10 +79,11 @@ export function useUser() {
   });
 
   const loginMutation = useMutation({
-    mutationFn: (userData: { username: string; password: string; }) => handleRequest('/api/login', 'POST', userData),
+    mutationFn: (userData: { email: string; password: string }) =>
+      handleRequest("/api/login", "POST", userData),
     onSuccess: (result) => {
       if (result.ok) {
-        queryClient.invalidateQueries({ queryKey: ['/api/user'] });
+        queryClient.invalidateQueries({ queryKey: ["/api/user"] });
         toast({
           title: "¡Éxito!",
           description: "Sesión iniciada correctamente",
@@ -92,10 +99,11 @@ export function useUser() {
   });
 
   const registerMutation = useMutation({
-    mutationFn: (userData: { username: string; password: string; }) => handleRequest('/api/register', 'POST', userData),
+    mutationFn: (userData: { email: string; password: string }) =>
+      handleRequest("/api/register", "POST", userData),
     onSuccess: (result) => {
       if (result.ok) {
-        queryClient.invalidateQueries({ queryKey: ['/api/user'] });
+        queryClient.invalidateQueries({ queryKey: ["/api/user"] });
         toast({
           title: "¡Éxito!",
           description: "Registro completado correctamente",
@@ -111,10 +119,10 @@ export function useUser() {
   });
 
   const logoutMutation = useMutation({
-    mutationFn: () => handleRequest('/api/logout', 'POST'),
+    mutationFn: () => handleRequest("/api/logout", "POST"),
     onSuccess: (result) => {
       if (result.ok) {
-        queryClient.invalidateQueries({ queryKey: ['/api/user'] });
+        queryClient.invalidateQueries({ queryKey: ["/api/user"] });
         toast({
           title: "¡Éxito!",
           description: "Sesión cerrada correctamente",
@@ -136,5 +144,8 @@ export function useUser() {
     login: loginMutation.mutate,
     register: registerMutation.mutate,
     logout: logoutMutation.mutate,
+    loginMutation,
+    registerMutation,
+    logoutMutation,
   };
 }
