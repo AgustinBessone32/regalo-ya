@@ -92,6 +92,7 @@ export default function CreateProject() {
         },
         body: JSON.stringify({
           ...data,
+          target_amount: 0, // Valor por defecto ya que no usamos monto objetivo
           event_date: data.event_date || null,
           fixed_amounts: data.fixed_amounts
             ? JSON.stringify(data.fixed_amounts)

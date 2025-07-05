@@ -59,7 +59,7 @@ export const insertProjectSchema = z.object({
     .string()
     .min(10, "La descripción debe tener al menos 10 caracteres"),
   image_url: z.string().optional().nullable(),
-  target_amount: z.number(),
+  target_amount: z.number().default(0), // No requerido, valor por defecto 0
   location: z.string().optional().nullable(),
   event_date: z.date().optional().nullable(),
 
@@ -69,7 +69,7 @@ export const insertProjectSchema = z.object({
   payment_details: z.string().optional().nullable(),
   fixed_amounts: z.string().optional().nullable(),
   allow_custom_amount: z.boolean().default(true),
-  recipient_account: z.string().min(1, "Debes proporcionar tu alias bancario"),
+  recipient_account: z.string().optional().nullable(), // Opcional y puede ser null
 });
 
 export type Project = typeof projects.$inferSelect;

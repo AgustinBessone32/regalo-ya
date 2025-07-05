@@ -136,6 +136,7 @@ export function registerRoutes(app: Express): Server {
         invitation_token: nanoid(),
         event_date: req.body.event_date ? new Date(req.body.event_date) : null,
         image_url: req.body.image_url || null,
+        target_amount: req.body.target_amount || 0, // Valor por defecto 0
         current_amount: 0,
         fixed_amounts: req.body.fixed_amounts || null,
         allow_custom_amount:
