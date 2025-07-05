@@ -468,12 +468,6 @@ export default function ProjectPage() {
                 )}
               </Button>
             )}
-
-            <ShareButton
-              title={`${project.title} - Colección de Regalos de Cumpleaños`}
-              description={project.description || ""}
-              url={shareableUrl}
-            />
           </div>
         </div>
 
