@@ -354,7 +354,7 @@ export default function CreateProject() {
                     <Input placeholder="Lugar de la celebración" {...field} />
                   </FormControl>
                   <p className="text-sm text-muted-foreground">
-                    Coloca la ubicación de Google Maps o la dirección del lugar
+                    Coloca la ubicación de Google Maps o la dirección del lugar.
                   </p>
                   <FormMessage />
                 </FormItem>
