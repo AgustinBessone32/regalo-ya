@@ -12,6 +12,9 @@ import {
   Bell,
   BellOff,
   Gift,
+  Heart,
+  ArrowLeft,
+  AlertCircle,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
@@ -94,6 +97,11 @@ export default function ProjectPage() {
 
   // Generate the full shareable URL
   const shareableUrl = `${window.location.origin}/projects/${id}`;
+
+  // Check if success parameter is present
+  const urlParams = new URLSearchParams(window.location.search);
+  const isSuccess = urlParams.get("success") === "true";
+  const isError = urlParams.get("success") === "false";
 
   const {
     data: project,
@@ -235,7 +243,7 @@ export default function ProjectPage() {
     }
   };
 
-  const { permission, requestPermission, scheduleNotification } =
+  const { permission, requestPermission, scheduleNotification, isSupported } =
     useNotifications();
 
   const handleNotificationToggle = async () => {
@@ -337,6 +345,93 @@ export default function ProjectPage() {
 
   console.log("ppp", project.payment_details);
 
+  // Show success or error page if success parameter is present
+  if (isSuccess || isError) {
+    return (
+      <>
+        <MetaTags
+          title={
+            isSuccess
+              ? "¡Gracias por tu contribución! - RegaloYa"
+              : "Error en el pago - RegaloYa"
+          }
+          description={
+            isSuccess
+              ? "Tu contribución ha sido procesada exitosamente"
+              : "Hubo un problema con el procesamiento del pago"
+          }
+          url={shareableUrl}
+        />
+
+        <div className="min-h-[70vh] flex items-center justify-center px-4 sm:px-0">
+          <div className="w-full max-w-md mx-auto text-center space-y-4 sm:space-y-6">
+            <div
+              className={`mx-auto w-16 h-16 sm:w-20 sm:h-20 rounded-full flex items-center justify-center ${
+                isSuccess ? "bg-green-100" : "bg-red-100"
+              }`}
+            >
+              {isSuccess ? (
+                <Heart className="h-8 w-8 sm:h-10 sm:w-10 text-green-600 fill-current" />
+              ) : (
+                <AlertCircle className="h-8 w-8 sm:h-10 sm:w-10 text-red-600" />
+              )}
+            </div>
+
+            <div className="space-y-3 sm:space-y-4">
+              <h1
+                className={`text-xl sm:text-2xl font-bold ${
+                  isSuccess ? "text-green-700" : "text-red-700"
+                }`}
+              >
+                {isSuccess
+                  ? "¡Gracias por tu contribución!"
+                  : "Lamentamos el inconveniente"}
+              </h1>
+
+              <div className="space-y-2 sm:space-y-3">
+                {isSuccess ? (
+                  <>
+                    <p className="text-sm sm:text-base text-muted-foreground leading-relaxed px-2 sm:px-0">
+                      Tu regalo ha sido procesado exitosamente y será entregado
+                      al cumpleañero.
+                    </p>
+                    <p className="text-xs sm:text-sm text-muted-foreground px-4 sm:px-0">
+                      Recibirás una confirmación por email con los detalles de
+                      tu contribución.
+                    </p>
+                  </>
+                ) : (
+                  <>
+                    <p className="text-sm sm:text-base text-muted-foreground leading-relaxed px-2 sm:px-0">
+                      Lamentamos que no hayas podido completar tu regalo en este
+                      momento.
+                    </p>
+                    <p className="text-xs sm:text-sm text-muted-foreground px-4 sm:px-0">
+                      Puedes intentarlo nuevamente en unos minutos. Si el
+                      problema persiste, contacta con soporte.
+                    </p>
+                  </>
+                )}
+              </div>
+            </div>
+
+            <Button
+              onClick={() => {
+                // Usar window.location para limpiar completamente los parámetros de la URL
+                window.location.href = `/projects/${id}`;
+              }}
+              className="w-full h-12 sm:h-auto text-sm sm:text-base"
+              size="lg"
+            >
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Volver al Proyecto
+            </Button>
+          </div>
+        </div>
+      </>
+    );
+  }
+
   return (
     <>
       <MetaTags
@@ -355,7 +450,7 @@ export default function ProjectPage() {
           )}
 
           <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
-            {project.isOwner && (
+            {project.isOwner && isSupported && (
               <Button
                 variant="outline"
                 size="icon"
@@ -382,8 +477,8 @@ export default function ProjectPage() {
           </div>
         </div>
 
-        <div className="grid gap-6 md:gap-8 lg:grid-cols-2">
-          <div className="space-y-4 sm:space-y-6">
+        <div className="grid gap-4 sm:gap-6 md:gap-8 lg:grid-cols-2">
+          <div className="space-y-4 sm:space-y-6 order-2 lg:order-1">
             <div>
               <h1 className="text-2xl sm:text-3xl font-bold mb-3 leading-tight">
                 {project.title}
@@ -639,13 +734,13 @@ export default function ProjectPage() {
             </Card>
           </div>
 
-          <div className="space-y-4 sm:space-y-6 lg:order-last order-first">
+          <div className="space-y-4 sm:space-y-6 order-1 lg:order-2">
             {/* Sharing Block */}
-            <Card>
-              <CardHeader>
+            <Card className="mb-4 sm:mb-0">
+              <CardHeader className="px-4 sm:px-6">
                 <CardTitle className="text-lg">Compartir Proyecto</CardTitle>
               </CardHeader>
-              <CardContent>
+              <CardContent className="px-4 sm:px-6">
                 <ShareButton
                   title={project.title}
                   description={project.description}
@@ -664,13 +759,13 @@ export default function ProjectPage() {
 
             {/* Contribuciones Recientes - Solo para no propietarios */}
             {!project.isOwner && project.contributions.length > 0 && (
-              <Card>
-                <CardHeader className="pb-3">
+              <Card className="mt-4 sm:mt-0">
+                <CardHeader className="pb-3 px-4 sm:px-6">
                   <CardTitle className="text-lg">
                     Contribuciones Recientes
                   </CardTitle>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="px-4 sm:px-6">
                   <div className="space-y-3">
                     {project.contributions.map((contribution) => (
                       <div
