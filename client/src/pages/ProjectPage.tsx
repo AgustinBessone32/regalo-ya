@@ -807,7 +807,7 @@ export default function ProjectPage() {
                 </p>
               </div>
               <Button 
-                onClick={() => window.location.href = '/auth'}
+                onClick={() => window.location.href = '/'}
                 className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 font-medium whitespace-nowrap"
                 size="lg"
               >
