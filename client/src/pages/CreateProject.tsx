@@ -32,13 +32,12 @@ const projectSchema = z.object({
 
   location: z.string().optional(),
   event_date: z.string().min(1, "La fecha del evento es requerida").default(""),
-  target_amount: z.number().min(1, "La cantidad esperada debe ser mayor a 0"),
 
   payment_method: z.enum(["mercadopago"]).default("mercadopago"),
   payment_details: z.string().optional(),
   fixed_amounts: z.array(z.number().min(1)).optional(),
   allow_custom_amount: z.boolean().default(true),
-  recipient_account: z.string().min(1, "Debes proporcionar tu alias bancario"),
+  recipient_account: z.string().optional(),
 });
 
 type FormData = z.infer<typeof projectSchema> & {
@@ -46,7 +45,6 @@ type FormData = z.infer<typeof projectSchema> & {
   location?: string;
   payment_details?: string;
   fixed_amounts?: number[];
-  target_amount?: number;
   allow_custom_amount?: boolean;
   recipient_account?: string;
 };
@@ -66,6 +64,7 @@ export default function CreateProject() {
     preview: null,
   });
   const [fixedAmounts, setFixedAmounts] = useState<number[]>([]);
+  const [isCreating, setIsCreating] = useState(false);
 
   const form = useForm<FormData>({
     resolver: zodResolver(projectSchema),
@@ -75,7 +74,6 @@ export default function CreateProject() {
       image_url: "",
       location: "",
       event_date: "",
-      target_amount: 0,
 
       payment_method: "mercadopago",
       payment_details: "",
@@ -119,10 +117,12 @@ export default function CreateProject() {
       });
 
       setTimeout(() => {
+        setIsCreating(false);
         setLocation(`/projects/${data.id}`);
-      }, 100);
+      }, 1500); // Mostrar feedback por 1.5 segundos más
     },
     onError: (error: Error) => {
+      setIsCreating(false);
       toast({
         variant: "destructive",
         title: "Error",
@@ -150,6 +150,7 @@ export default function CreateProject() {
       return;
     }
 
+    setIsCreating(true);
     createProjectMutation.mutate(result.data);
   };
 
@@ -174,9 +175,7 @@ export default function CreateProject() {
           errors.push("La descripción debe tener al menos 10 caracteres");
         }
 
-        if (!values.target_amount || values.target_amount <= 0) {
-          errors.push("La cantidad esperada debe ser mayor a 0");
-        }
+
 
         return {
           isValid: errors.length === 0,
@@ -215,37 +214,6 @@ export default function CreateProject() {
                       {...field}
                     />
                   </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="target_amount"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Cantidad Esperada ($ARS)</FormLabel>
-                  <FormControl>
-                    <div className="relative">
-                      <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground">
-                        $
-                      </span>
-                      <Input
-                        type="text"
-                        placeholder="Ej: 50000"
-                        className="pl-6"
-                        {...field}
-                        onChange={(e) =>
-                          field.onChange(Number(e.target.value) || 0)
-                        }
-                      />
-                    </div>
-                  </FormControl>
-                  <p className="text-sm text-muted-foreground">
-                    Establece el monto objetivo que esperas recaudar para el
-                    proyecto
-                  </p>
                   <FormMessage />
                 </FormItem>
               )}
@@ -385,6 +353,9 @@ export default function CreateProject() {
                   <FormControl>
                     <Input placeholder="Lugar de la celebración" {...field} />
                   </FormControl>
+                  <p className="text-sm text-muted-foreground">
+                    Pega la dirección de Google Maps o escribe la dirección del lugar
+                  </p>
                   <FormMessage />
                 </FormItem>
               )}
@@ -401,12 +372,7 @@ export default function CreateProject() {
         const values = form.getValues();
         const errors: string[] = [];
 
-        if (
-          !values.recipient_account ||
-          values.recipient_account.trim() === ""
-        ) {
-          errors.push("Debes proporcionar tu alias bancario");
-        }
+
 
         return {
           isValid: errors.length === 0,
@@ -505,41 +471,45 @@ export default function CreateProject() {
               />
             </div>
 
-            {/* Recipient Account Section */}
-            <div className="space-y-3 pt-4 border-t">
-              <FormLabel className="text-base font-medium">
-                Cuenta de Destino
-              </FormLabel>
-              <FormField
-                control={form.control}
-                name="recipient_account"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Alias de tu cuenta bancaria</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Ej: juan.perez.mp" {...field} />
-                    </FormControl>
-                    <p className="text-sm text-muted-foreground">
-                      Aquí transferiremos el monto total recaudado, un día
-                      después de que finalice el proyecto{" "}
-                      {form.watch("event_date") &&
-                      form.watch("event_date") !== ""
-                        ? `(${new Date(
-                            form.watch("event_date")!
-                          ).toLocaleDateString()})`
-                        : "(fecha del evento)"}
-                      .
-                    </p>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
+
           </form>
         </Form>
       ),
     },
   ];
+
+  // Pantalla de feedback mientras se crea el proyecto
+  if (isCreating) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-50 via-white to-pink-50">
+        <Card className="w-full max-w-md mx-4">
+          <CardContent className="pt-6 pb-6">
+            <div className="flex flex-col items-center text-center space-y-6">
+              <div className="relative">
+                <Loader2 className="h-16 w-16 animate-spin text-purple-500" />
+                <div className="absolute inset-0 h-16 w-16 rounded-full border-4 border-purple-200 opacity-25"></div>
+              </div>
+              
+              <div className="space-y-2">
+                <h2 className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+                  Creando Proyecto
+                </h2>
+                <p className="text-gray-600">
+                  Solo unos segundos...
+                </p>
+              </div>
+              
+              <div className="text-sm text-gray-500 space-y-1">
+                <p>✓ Configurando el proyecto</p>
+                <p>✓ Estableciendo los métodos de pago</p>
+                <p>🔄 Finalizando la configuración</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-2xl mx-auto space-y-8">

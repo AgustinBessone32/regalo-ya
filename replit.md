@@ -124,6 +124,10 @@ The application is configured for deployment on Replit with the following setup:
   - Improved authentication page with color-coded tabs and visual indicators
   - Added clear differentiation between login and registration states to prevent user confusion
   - Implemented gradient buttons and contextual messages for better UX
+  - Enhanced project creation process: removed target amount requirement from step 1
+  - Added helpful text for location field suggesting Google Maps links or manual address
+  - Removed alias requirement from step 3 payment configuration
+  - Added feedback screen during project creation with loading animation and status updates
 - June 23, 2025. Initial setup
 
 ## User Preferences
