@@ -789,20 +789,20 @@ export default function ProjectPage() {
 
       {/* Banner para usuarios no registrados */}
       {!user && (
-        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/20 dark:to-indigo-950/20 border-t border-blue-100 dark:border-blue-800/30">
+        <div className="bg-gradient-to-r from-purple-50 to-pink-50 border-t border-purple-100">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
             <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
               <div className="text-center sm:text-left">
-                <h3 className="text-lg font-semibold text-blue-900 dark:text-blue-100 mb-1">
+                <h3 className="text-lg font-semibold text-gray-800 mb-1">
                   ¿Quieres crear tu propia colecta?
                 </h3>
-                <p className="text-sm text-blue-700 dark:text-blue-200">
+                <p className="text-sm text-gray-600">
                   Únete a RegaloYa y organiza colectas para cualquier ocasión especial
                 </p>
               </div>
               <Button 
                 onClick={() => window.location.href = '/'}
-                className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 font-medium whitespace-nowrap"
+                className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white border-0 px-6 py-2 font-medium whitespace-nowrap shadow-lg"
                 size="lg"
               >
                 Regístrate Gratis
