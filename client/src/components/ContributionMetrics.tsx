@@ -2,7 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Users, Gift, TrendingUp } from "lucide-react";
 
 interface Contributor {
-  payer_email: string;
+  contributor_name: string;
   amount: number;
   description?: string;
   created_at: string;
@@ -13,24 +13,28 @@ interface ContributionMetricsProps {
   totalAmount: number;
 }
 
-export function ContributionMetrics({ contributors, totalAmount }: ContributionMetricsProps) {
-  const averageAmount = contributors.length > 0 
-    ? Math.round(totalAmount / contributors.length)
-    : 0;
+export function ContributionMetrics({
+  contributors,
+  totalAmount,
+}: ContributionMetricsProps) {
+  const averageAmount =
+    contributors.length > 0 ? Math.round(totalAmount / contributors.length) : 0;
+
+  console.log("ccc", contributors);
 
   const uniqueContributors = contributors.reduce((acc, contributor) => {
-    const email = contributor.payer_email || "Anónimo";
-    const displayName = email.split('@')[0]; // Use part before @ as display name
-    if (!acc[email]) {
-      acc[email] = { name: displayName, totalAmount: 0, contributions: 0 };
+    const name = contributor.contributor_name || "Anónimo";
+    if (!acc[name]) {
+      acc[name] = { name: name, totalAmount: 0, contributions: 0 };
     }
-    acc[email].totalAmount += contributor.amount;
-    acc[email].contributions += 1;
+    acc[name].totalAmount += contributor.amount;
+    acc[name].contributions += 1;
     return acc;
   }, {} as Record<string, { name: string; totalAmount: number; contributions: number }>);
 
-  const contributorList = Object.values(uniqueContributors)
-    .sort((a, b) => b.totalAmount - a.totalAmount);
+  const contributorList = Object.values(uniqueContributors).sort(
+    (a, b) => b.totalAmount - a.totalAmount
+  );
 
   return (
     <div className="space-y-4">
@@ -44,9 +48,7 @@ export function ContributionMetrics({ contributors, totalAmount }: ContributionM
                 <p className="text-sm font-medium text-muted-foreground">
                   Contribuyentes
                 </p>
-                <p className="text-2xl font-bold">
-                  {contributorList.length}
-                </p>
+                <p className="text-2xl font-bold">{contributorList.length}</p>
               </div>
             </div>
           </CardContent>
@@ -60,9 +62,7 @@ export function ContributionMetrics({ contributors, totalAmount }: ContributionM
                 <p className="text-sm font-medium text-muted-foreground">
                   Total Regalos
                 </p>
-                <p className="text-2xl font-bold">
-                  {contributors.length}
-                </p>
+                <p className="text-2xl font-bold">{contributors.length}</p>
               </div>
             </div>
           </CardContent>
@@ -76,9 +76,7 @@ export function ContributionMetrics({ contributors, totalAmount }: ContributionM
                 <p className="text-sm font-medium text-muted-foreground">
                   Promedio por Regalo
                 </p>
-                <p className="text-2xl font-bold">
-                  ${averageAmount}
-                </p>
+                <p className="text-2xl font-bold">${averageAmount}</p>
               </div>
             </div>
           </CardContent>
@@ -94,7 +92,7 @@ export function ContributionMetrics({ contributors, totalAmount }: ContributionM
           <CardContent>
             <div className="space-y-3">
               {contributorList.slice(0, 10).map((contributor, index) => (
-                <div 
+                <div
                   key={contributor.name}
                   className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
                 >
@@ -105,7 +103,8 @@ export function ContributionMetrics({ contributors, totalAmount }: ContributionM
                     <div>
                       <p className="font-medium">{contributor.name}</p>
                       <p className="text-sm text-muted-foreground">
-                        {contributor.contributions} {contributor.contributions === 1 ? 'regalo' : 'regalos'}
+                        {contributor.contributions}{" "}
+                        {contributor.contributions === 1 ? "regalo" : "regalos"}
                       </p>
                     </div>
                   </div>

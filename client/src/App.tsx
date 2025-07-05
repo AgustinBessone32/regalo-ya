@@ -32,6 +32,13 @@ function App() {
     return (
       <Switch>
         <Route path="/auth" component={AuthPage} />
+        <Route path="/projects/:id">
+          <div className="min-h-screen bg-background">
+            <main className="container mx-auto px-2 sm:px-4 py-4 sm:py-8">
+              <ProjectPage />
+            </main>
+          </div>
+        </Route>
         <Route path="/" component={LandingPage} />
         <Route component={LandingPage} />
       </Switch>

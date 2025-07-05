@@ -61,12 +61,21 @@ const paymentSchema = z.object({
 
 type ProjectWithDetails = Project & {
   creator: { email: string };
-  contributions: Contribution[];
+  contributions: Array<{
+    id: number;
+    amount: number;
+    message?: string;
+    description?: string;
+    contributor_name: string;
+    project_id: number;
+    created_at: string;
+    type?: string;
+  }>;
   reactions: { emoji: string; count: number; reacted: boolean }[];
   contribution_count: number;
   progress_percentage: number;
   payment_details: {
-    payer_email: string;
+    payer_name: string;
     amount: number;
     description?: string;
     created_at: string;
@@ -92,6 +101,16 @@ export default function ProjectPage() {
     error,
   } = useQuery<ProjectWithDetails>({
     queryKey: [`/api/projects/${id}`],
+    queryFn: async () => {
+      const response = await fetch(`/api/projects/${id}`, {
+        credentials: "include",
+      });
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Error al cargar el proyecto");
+      }
+      return response.json();
+    },
     enabled: !!id,
   });
 
@@ -118,7 +137,7 @@ export default function ProjectPage() {
   const contributeMutation = useMutation({
     mutationFn: async (data: z.infer<typeof contributionSchema>) => {
       if (!user) {
-        setLocation("/auth");
+        setLocation(`/auth?redirect=/projects/${id}`);
         throw new Error("Se requiere autenticación");
       }
 
@@ -181,7 +200,7 @@ export default function ProjectPage() {
   ) => {
     try {
       if (!user) {
-        setLocation("/auth");
+        setLocation(`/auth?redirect=/projects/${id}`);
         return;
       }
 
@@ -243,17 +262,16 @@ export default function ProjectPage() {
     }
   };
 
-  // Handle unauthorized access or project not found
+  // Handle errors with toast
   useEffect(() => {
-    if (error?.message === "You don't have access to this project") {
+    if (error && !isLoading) {
       toast({
         variant: "destructive",
-        title: "Acceso denegado",
-        description: "No tienes permiso para ver este proyecto",
+        title: "Error",
+        description: "No se pudo cargar el proyecto",
       });
-      setLocation("/");
     }
-  }, [error, toast, setLocation]);
+  }, [error, isLoading, toast]);
 
   if (isLoading) {
     return (
@@ -264,11 +282,6 @@ export default function ProjectPage() {
   }
 
   if (error) {
-    toast({
-      variant: "destructive",
-      title: "Error",
-      description: "No se pudo cargar el proyecto",
-    });
     return (
       <div className="flex items-center justify-center min-h-[50vh]">
         <Card>
@@ -322,6 +335,8 @@ export default function ProjectPage() {
 
   const eventFinished = isEventFinished();
 
+  console.log("ppp", project.payment_details);
+
   return (
     <>
       <MetaTags
@@ -333,9 +348,11 @@ export default function ProjectPage() {
 
       <div className="space-y-6 sm:space-y-8">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-          <Button variant="outline" onClick={() => setLocation("/")}>
-            Volver a Proyectos
-          </Button>
+          {user && (
+            <Button variant="outline" onClick={() => setLocation("/")}>
+              Volver a Proyectos
+            </Button>
+          )}
 
           <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
             {project.isOwner && (
@@ -637,92 +654,16 @@ export default function ProjectPage() {
               </CardContent>
             </Card>
 
-            {/* Contribution Metrics */}
-            <ContributionMetrics
-              contributors={project.payment_details || []}
-              totalAmount={project.current_amount || 0}
-            />
-
-            {!project.isOwner && (
-              <Card>
-                <CardHeader>
-                  <CardTitle>Hacer una Contribución</CardTitle>
-                  {eventFinished && (
-                    <p className="text-sm text-muted-foreground">
-                      Este evento ya ha finalizado. No se pueden realizar nuevas
-                      contribuciones.
-                    </p>
-                  )}
-                </CardHeader>
-                <CardContent>
-                  <Form {...form}>
-                    <form
-                      onSubmit={form.handleSubmit(handleContribute)}
-                      className="space-y-4"
-                    >
-                      <FormField
-                        control={form.control}
-                        name="name"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Tu Nombre</FormLabel>
-                            <FormControl>
-                              <Input {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-
-                      <FormField
-                        control={form.control}
-                        name="amount"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Monto ($)</FormLabel>
-                            <FormControl>
-                              <Input type="number" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-
-                      <FormField
-                        control={form.control}
-                        name="message"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Mensaje (Opcional)</FormLabel>
-                            <FormControl>
-                              <Textarea {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-
-                      <Button
-                        type="submit"
-                        className="w-full disabled:opacity-50 disabled:cursor-not-allowed"
-                        disabled={contributeMutation.isPending || eventFinished}
-                      >
-                        {contributeMutation.isPending && (
-                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        )}
-                        {eventFinished
-                          ? "Evento Finalizado"
-                          : user
-                          ? "Contribuir"
-                          : "Inicia sesión para contribuir"}
-                      </Button>
-                    </form>
-                  </Form>
-                </CardContent>
-              </Card>
+            {/* Contribution Metrics - Only visible to owner */}
+            {project.isOwner && (
+              <ContributionMetrics
+                contributors={project.payment_details || []}
+                totalAmount={project.current_amount || 0}
+              />
             )}
 
-            {project.contributions.length > 0 && (
+            {/* Contribuciones Recientes - Solo para no propietarios */}
+            {!project.isOwner && project.contributions.length > 0 && (
               <Card>
                 <CardHeader className="pb-3">
                   <CardTitle className="text-lg">
@@ -740,15 +681,13 @@ export default function ProjectPage() {
                           <p className="font-medium text-sm break-words">
                             {contribution.contributor_name}
                           </p>
-                          {contribution.message && (
+                          {(contribution.message ||
+                            contribution.description) && (
                             <p className="text-xs text-muted-foreground mt-1 break-words">
-                              {contribution.message}
+                              {contribution.message || contribution.description}
                             </p>
                           )}
                         </div>
-                        <span className="font-medium text-sm flex-shrink-0 self-start">
-                          ${contribution.amount}
-                        </span>
                       </div>
                     ))}
                   </div>

@@ -39,7 +39,7 @@ export const projects = pgTable("projects", {
   creator_id: integer("creator_id")
     .references(() => users.id)
     .notNull(),
-  is_public: boolean("is_public").default(false),
+
   invitation_token: text("invitation_token").notNull(),
   payment_method: text("payment_method", {
     enum: ["mercadopago"],
@@ -62,7 +62,7 @@ export const insertProjectSchema = z.object({
   target_amount: z.number(),
   location: z.string().optional().nullable(),
   event_date: z.date().optional().nullable(),
-  is_public: z.boolean().default(false),
+
   creator_id: z.number(),
   invitation_token: z.string(),
   payment_method: z.enum(["mercadopago"]).default("mercadopago"),
@@ -142,6 +142,7 @@ export const payments = pgTable("payments", {
   description: text("description"),
   external_reference: text("external_reference"),
   payer_email: text("payer_email"),
+  payer_name: text("payer_name"),
   created_at: timestamp("created_at").defaultNow(),
   updated_at: timestamp("updated_at").defaultNow(),
 });

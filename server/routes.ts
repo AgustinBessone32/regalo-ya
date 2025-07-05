@@ -68,7 +68,7 @@ export function registerRoutes(app: Express): Server {
           event_date: projects.event_date,
           location: projects.location,
           creator_id: projects.creator_id,
-          is_public: projects.is_public,
+
           invitation_token: projects.invitation_token,
           payment_method: projects.payment_method,
           payment_details: projects.payment_details,
@@ -137,7 +137,6 @@ export function registerRoutes(app: Express): Server {
         event_date: req.body.event_date ? new Date(req.body.event_date) : null,
         image_url: req.body.image_url || null,
         current_amount: 0,
-        is_public: false,
         fixed_amounts: req.body.fixed_amounts || null,
         allow_custom_amount:
           req.body.allow_custom_amount !== undefined
@@ -145,8 +144,6 @@ export function registerRoutes(app: Express): Server {
             : true,
         recipient_account: req.body.recipient_account || null,
       };
-
-      console.log("PD", projectData);
 
       const validationResult = insertProjectSchema.safeParse(projectData);
       if (!validationResult.success) {
@@ -176,32 +173,24 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
-  // Get single project (with access control)
+  // Get single project (public access)
   app.get("/api/projects/:id", async (req, res) => {
     try {
-      if (!req.isAuthenticated()) {
-        return res.status(401).json({ error: "Authentication required" });
-      }
-
-      const user = req.user as any;
-      if (!user?.id || !user?.email) {
-        return res.status(401).json({ error: "Invalid user session" });
-      }
-
       const projectId = parseInt(req.params.id);
       if (isNaN(projectId)) {
         return res.status(400).json({ error: "Invalid project ID" });
       }
 
-      // Get project with strict access check
+      // Get project with user info
+      const user = req.user as any;
       const [projectWithAccess] = await db
         .select({
           project: projects,
-          isOwner: sql<boolean>`${projects.creator_id} = ${user.id}`,
+          isOwner: sql<boolean>`${projects.creator_id} = ${user?.id || 0}`,
           isContributor: sql<boolean>`EXISTS (
             SELECT 1 FROM ${contributions}
             WHERE ${contributions.project_id} = ${projectId}
-            AND ${contributions.contributor_name} = ${user.email}
+            AND ${contributions.contributor_name} = ${user?.email || ""}
           )`,
         })
         .from(projects)
@@ -213,17 +202,46 @@ export function registerRoutes(app: Express): Server {
 
       const { project, isOwner, isContributor } = projectWithAccess;
 
-      // Check access rights
-      if (!isOwner && !isContributor) {
-        return res.status(403).json({ error: "Access denied" });
-      }
-
-      // Get project details including payments
+      // Get project details including contributions and payments
       const projectContributions = await db
         .select()
         .from(contributions)
         .where(eq(contributions.project_id, projectId))
         .orderBy(desc(contributions.created_at));
+
+      // Get approved payments as contributions
+      const projectPayments = await db
+        .select({
+          id: payments.id,
+          amount: payments.amount,
+          description: payments.description,
+          contributor_name: payments.payer_name || payments.payer_email,
+          project_id: payments.project_id,
+          created_at: payments.created_at,
+        })
+        .from(payments)
+        .where(
+          and(
+            eq(payments.project_id, projectId),
+            eq(payments.status, "approved")
+          )
+        )
+        .orderBy(desc(payments.created_at));
+
+      // Combine contributions and payments
+      console.log("Project contributions:", projectContributions.length);
+      console.log("Project payments:", projectPayments.length);
+
+      const allContributions = [
+        ...projectContributions.map((c) => ({ ...c, type: "contribution" })),
+        ...projectPayments.map((p) => ({ ...p, type: "payment" })),
+      ].sort(
+        (a, b) =>
+          new Date(b.created_at || new Date()).getTime() -
+          new Date(a.created_at || new Date()).getTime()
+      );
+
+      console.log("All contributions:", allContributions.length);
 
       // Calculate current amount from approved payments
       const [paymentsSum] = await db
@@ -259,7 +277,7 @@ export function registerRoutes(app: Express): Server {
       // Get payment details for metrics
       const paymentDetails = await db
         .select({
-          payer_email: payments.payer_email,
+          payer_name: payments.payer_name || payments.payer_email,
           amount: payments.amount,
           description: payments.description,
           created_at: payments.created_at,
@@ -287,7 +305,7 @@ export function registerRoutes(app: Express): Server {
         progress_percentage: progressPercentage,
         isOwner,
         creator: { email: creator?.email || "Unknown" },
-        contributions: projectContributions,
+        contributions: allContributions,
         reactions: [],
         payment_details: paymentDetails,
       });
@@ -691,6 +709,10 @@ export function registerRoutes(app: Express): Server {
             description: paymentData.description,
             external_reference: paymentData.external_reference,
             payer_email: paymentData.payer?.email,
+            payer_name:
+              paymentData.payer?.first_name +
+              " " +
+              paymentData.payer?.last_name,
           });
         }
 

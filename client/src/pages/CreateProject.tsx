@@ -33,7 +33,7 @@ const projectSchema = z.object({
   location: z.string().optional(),
   event_date: z.string().min(1, "La fecha del evento es requerida").default(""),
   target_amount: z.number().min(1, "La cantidad esperada debe ser mayor a 0"),
-  is_public: z.boolean().default(false),
+
   payment_method: z.enum(["mercadopago"]).default("mercadopago"),
   payment_details: z.string().optional(),
   fixed_amounts: z.array(z.number().min(1)).optional(),
@@ -76,7 +76,7 @@ export default function CreateProject() {
       location: "",
       event_date: "",
       target_amount: 0,
-      is_public: false,
+
       payment_method: "mercadopago",
       payment_details: "",
       fixed_amounts: [],

@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
+import { useLocation } from "wouter";
 
 type User = {
   id: number;
@@ -56,6 +57,7 @@ async function handleRequest(
 export function useUser() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const [, setLocation] = useLocation();
 
   const {
     data: user,
@@ -96,6 +98,15 @@ export function useUser() {
           title: "¡Éxito!",
           description: "Sesión iniciada correctamente",
         });
+
+        // Check for redirect parameter
+        const urlParams = new URLSearchParams(window.location.search);
+        const redirect = urlParams.get("redirect");
+        if (redirect) {
+          setLocation(redirect);
+        } else {
+          setLocation("/");
+        }
       } else {
         toast({
           variant: "destructive",
@@ -116,6 +127,15 @@ export function useUser() {
           title: "¡Éxito!",
           description: "Registro completado correctamente",
         });
+
+        // Check for redirect parameter
+        const urlParams = new URLSearchParams(window.location.search);
+        const redirect = urlParams.get("redirect");
+        if (redirect) {
+          setLocation(redirect);
+        } else {
+          setLocation("/");
+        }
       } else {
         toast({
           variant: "destructive",
