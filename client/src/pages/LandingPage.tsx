@@ -39,7 +39,7 @@ export default function LandingPage() {
     {
       icon: <Shield className="w-6 h-6" />,
       title: "Seguro y Confiable",
-      description: "Tus datos y contribuciones están protegidos con la máxima seguridad."
+      description: "Todos los pagos son procesados por MercadoPago con máxima seguridad. Tus datos están protegidos y encriptados."
     },
     {
       icon: <Smartphone className="w-6 h-6" />,
@@ -53,7 +53,8 @@ export default function LandingPage() {
     "Seguimiento en tiempo real de las contribuciones",
     "Invitaciones automáticas por enlace",
     "Historial completo de todas las contribuciones",
-    "Puedes contribuir con Tarjeta de Débito, Crédito o transferencia, accesible para todos"
+    "Pagos 100% seguros procesados por MercadoPago, la plataforma de confianza",
+    "Contribuye con Tarjeta de Débito, Crédito o transferencia, accesible para todos"
   ];
 
   const testimonials = [
@@ -80,19 +81,19 @@ export default function LandingPage() {
   const faqs = [
     {
       question: "¿Cómo funciona RegaloYa?",
-      answer: "RegaloYa es muy simple: creas un proyecto de regalo, defines los detalles del evento, invitas a familiares y amigos compartiendo un enlace, y ellos pueden contribuir de forma segura con tarjeta de débito, crédito o transferencia. Puedes hacer seguimiento en tiempo real de todas las contribuciones."
+      answer: "RegaloYa es muy simple: creas un proyecto de regalo, defines los detalles del evento, invitas a familiares y amigos compartiendo un enlace, y ellos pueden contribuir de forma 100% segura a través de MercadoPago con tarjeta de débito, crédito o transferencia. Puedes hacer seguimiento en tiempo real de todas las contribuciones."
     },
     {
       question: "¿Es seguro usar RegaloYa para las contribuciones?",
-      answer: "Absolutamente. Utilizamos MercadoPago, una de las plataformas de pago más seguras y confiables de Argentina. Todos los datos están encriptados y protegidos. No almacenamos información de tarjetas de crédito en nuestros servidores."
+      answer: "Completamente seguro. Todos los pagos son procesados exclusivamente por MercadoPago, la plataforma de pagos más confiable y segura de Argentina, utilizada por millones de usuarios. Con encriptación de nivel bancario, tus datos financieros están totalmente protegidos. RegaloYa nunca ve ni almacena información de tarjetas de crédito."
     },
     {
       question: "¿Qué métodos de pago puedo usar?",
-      answer: "Puedes contribuir con tarjeta de débito, tarjeta de crédito o transferencia bancaria a través de MercadoPago. Esto hace que sea accesible para todos, sin importar el método de pago que prefieran."
+      answer: "A través de la plataforma segura de MercadoPago, puedes contribuir con tarjeta de débito, tarjeta de crédito o transferencia bancaria. MercadoPago garantiza la seguridad de todas las transacciones y hace que sea accesible para todos, sin importar el método de pago que prefieran."
     },
     {
       question: "¿Cuánto cuesta usar RegaloYa?",
-      answer: "RegaloYa es completamente gratis para crear proyectos e invitar participantes. Solo se aplican las comisiones estándar de MercadoPago por el procesamiento de pagos, que son transparentes y competitivas."
+      answer: "RegaloYa es completamente gratis para crear proyectos e invitar participantes. Solo se aplican las comisiones estándar y transparentes de MercadoPago por el procesamiento seguro de pagos, las cuales son muy competitivas en el mercado."
     },
     {
       question: "¿Qué pasa si no alcanzamos la meta del proyecto?",
