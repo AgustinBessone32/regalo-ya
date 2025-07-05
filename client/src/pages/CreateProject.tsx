@@ -352,7 +352,12 @@ export default function CreateProject() {
                 <FormItem>
                   <FormLabel>Ubicación (Opcional)</FormLabel>
                   <FormControl>
-                    <Input placeholder="Lugar de la celebración" {...field} />
+                    <Input 
+                      placeholder="Lugar de la celebración" 
+                      {...field}
+                      value={field.value || ""}
+                      onChange={(e) => field.onChange(e.target.value)}
+                    />
                   </FormControl>
                   <p className="text-sm text-muted-foreground">
                     Coloca la ubicación de Google Maps o la dirección del lugar.

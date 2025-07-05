@@ -148,6 +148,8 @@ export function registerRoutes(app: Express): Server {
 
       const validationResult = insertProjectSchema.safeParse(projectData);
       if (!validationResult.success) {
+        console.error("Project validation failed:", validationResult.error.errors);
+        console.error("Project data received:", projectData);
         return res.status(400).json({
           error: "Invalid project data",
           details: validationResult.error.errors,
