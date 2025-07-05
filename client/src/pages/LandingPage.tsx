@@ -2,6 +2,12 @@ import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 import { 
   Gift, 
   Users, 
@@ -12,7 +18,9 @@ import {
   Calendar,
   DollarSign,
   Shield,
-  Smartphone
+  Smartphone,
+  ChevronDown,
+  HelpCircle
 } from "lucide-react";
 import { MetaTags } from "@/components/MetaTags";
 
@@ -45,7 +53,7 @@ export default function LandingPage() {
     "Seguimiento en tiempo real de las contribuciones",
     "Invitaciones automáticas por enlace",
     "Historial completo de todas las contribuciones",
-    "Sin costos ocultos ni comisiones"
+    "Puedes contribuir con Tarjeta de Débito, Crédito o transferencia, accesible para todos"
   ];
 
   const testimonials = [
@@ -69,11 +77,46 @@ export default function LandingPage() {
     }
   ];
 
+  const faqs = [
+    {
+      question: "¿Cómo funciona RegaloYa?",
+      answer: "RegaloYa es muy simple: creas un proyecto de regalo, defines los detalles del evento, invitas a familiares y amigos compartiendo un enlace, y ellos pueden contribuir de forma segura con tarjeta de débito, crédito o transferencia. Puedes hacer seguimiento en tiempo real de todas las contribuciones."
+    },
+    {
+      question: "¿Es seguro usar RegaloYa para las contribuciones?",
+      answer: "Absolutamente. Utilizamos MercadoPago, una de las plataformas de pago más seguras y confiables de Argentina. Todos los datos están encriptados y protegidos. No almacenamos información de tarjetas de crédito en nuestros servidores."
+    },
+    {
+      question: "¿Qué métodos de pago puedo usar?",
+      answer: "Puedes contribuir con tarjeta de débito, tarjeta de crédito o transferencia bancaria a través de MercadoPago. Esto hace que sea accesible para todos, sin importar el método de pago que prefieran."
+    },
+    {
+      question: "¿Cuánto cuesta usar RegaloYa?",
+      answer: "RegaloYa es completamente gratis para crear proyectos e invitar participantes. Solo se aplican las comisiones estándar de MercadoPago por el procesamiento de pagos, que son transparentes y competitivas."
+    },
+    {
+      question: "¿Qué pasa si no alcanzamos la meta del proyecto?",
+      answer: "No hay problema. RegaloYa no requiere metas mínimas. Puedes recibir las contribuciones sin importar el monto alcanzado. Al finalizar el proyecto, recibes todo lo recaudado en tu cuenta bancaria especificada."
+    },
+    {
+      question: "¿Cómo recibo el dinero de las contribuciones?",
+      answer: "Al crear tu proyecto, especificas una cuenta bancaria (CBU o alias). Una vez finalizado el proyecto, los fondos se transfieren automáticamente a esa cuenta en un plazo de 24 horas."
+    },
+    {
+      question: "¿Puedo ver quién contribuyó y cuánto?",
+      answer: "Sí, como organizador del proyecto tienes acceso completo a ver todas las contribuciones, incluyendo quién contribuyó, cuánto y cuándo. Esto te permite agradecer personalmente a cada participante."
+    },
+    {
+      question: "¿Cómo invito a las personas a contribuir?",
+      answer: "Es muy fácil. RegaloYa genera un enlace único para tu proyecto que puedes compartir por WhatsApp, email, redes sociales o como prefieras. Las personas solo necesitan hacer clic en el enlace para ver el proyecto y contribuir."
+    }
+  ];
+
   return (
     <>
       <MetaTags
-        title="RegaloYa - Regalos Colaborativos Fáciles y Seguros"
-        description="Organiza colectas grupales para regalos especiales. Invita a familiares y amigos, haz seguimiento en tiempo real y crea momentos inolvidables juntos."
+        title="RegaloYa - Regalos Colaborativos Fáciles y Seguros | Colectas Grupales Argentina"
+        description="Organiza colectas grupales para regalos especiales en Argentina. Invita a familiares y amigos, acepta pagos con tarjeta y transferencia, seguimiento en tiempo real. ¡Gratis para siempre!"
         url={window.location.href}
       />
       
@@ -115,20 +158,17 @@ export default function LandingPage() {
               haz seguimiento en tiempo real y crea momentos inolvidables juntos.
             </p>
             
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <div className="flex justify-center">
               <Link href="/auth">
                 <Button size="lg" className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white border-0 shadow-lg px-8 py-4 text-lg">
                   Crear Mi Primer Proyecto
                   <ArrowRight className="ml-2 w-5 h-5" />
                 </Button>
               </Link>
-              <Button variant="outline" size="lg" className="px-8 py-4 text-lg">
-                Ver Cómo Funciona
-              </Button>
             </div>
             
             <p className="text-sm text-gray-500 mt-4">
-              ✅ Gratis para siempre • ✅ Sin comisiones • ✅ Configuración en 2 minutos
+              ✅ Gratis para siempre • ✅ Configuración en 2 minutos
             </p>
           </div>
         </section>
@@ -231,6 +271,33 @@ export default function LandingPage() {
                 </div>
               ))}
             </div>
+          </div>
+        </section>
+
+        {/* FAQ Section */}
+        <section className="py-20 px-4">
+          <div className="container mx-auto max-w-4xl">
+            <div className="text-center mb-16">
+              <h2 className="text-3xl md:text-4xl font-bold mb-4 text-gray-800">
+                Preguntas Frecuentes
+              </h2>
+              <p className="text-xl text-gray-600">
+                Resolvemos las dudas más comunes para que tengas total tranquilidad
+              </p>
+            </div>
+            
+            <Accordion type="single" collapsible className="w-full space-y-4">
+              {faqs.map((faq, index) => (
+                <AccordionItem key={index} value={`item-${index}`} className="border border-purple-100 rounded-lg bg-white/80 px-6">
+                  <AccordionTrigger className="text-left font-semibold text-gray-800 py-6 hover:text-purple-600">
+                    {faq.question}
+                  </AccordionTrigger>
+                  <AccordionContent className="text-gray-600 pb-6 leading-relaxed">
+                    {faq.answer}
+                  </AccordionContent>
+                </AccordionItem>
+              ))}
+            </Accordion>
           </div>
         </section>
 

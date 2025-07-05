@@ -112,6 +112,12 @@ The application is configured for deployment on Replit with the following setup:
   - Updated sharing functionality to include only copy link and WhatsApp options (removed Twitter/Facebook)
   - Added sharing modal in project cards with copy and WhatsApp options
   - Added dedicated sharing block within project pages
+  - Optimized mobile responsive design for better project visibility
+  - Improved landing page: removed "Ver como funciona" button, eliminated "Sin comisiones" text
+  - Added favicon with RegaloYa branding
+  - Created comprehensive FAQ section for user confidence and SEO positioning
+  - Added payment methods accessibility message in benefits section
+  - Enhanced meta tags and page titles for better SEO optimization
 - June 23, 2025. Initial setup
 
 ## User Preferences
