@@ -121,6 +121,9 @@ The application is configured for deployment on Replit with the following setup:
   - Strengthened security messaging highlighting MercadoPago integration across all sections
   - Updated FAQs to emphasize MercadoPago's security and trustworthiness
   - Enhanced features section to highlight secure payment processing
+  - Improved authentication page with color-coded tabs and visual indicators
+  - Added clear differentiation between login and registration states to prevent user confusion
+  - Implemented gradient buttons and contextual messages for better UX
 - June 23, 2025. Initial setup
 
 ## User Preferences
