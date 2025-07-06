@@ -435,44 +435,22 @@ export default function LandingPage() {
         {/* Footer */}
         <footer className="bg-gray-800 text-white py-12 px-4">
           <div className="container mx-auto max-w-6xl">
-            <div className="grid md:grid-cols-4 gap-8 mb-8">
-              <div className="md:col-span-2">
-                <div className="flex items-center space-x-2 mb-4">
-                  <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-pink-500 rounded-lg flex items-center justify-center">
-                    <Gift className="w-5 h-5 text-white" />
-                  </div>
-                  <span className="text-xl font-bold">RegaloYa</span>
+            <div className="flex flex-col md:flex-row justify-between items-center">
+              <div className="flex items-center space-x-2 mb-4 md:mb-0">
+                <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-pink-500 rounded-lg flex items-center justify-center">
+                  <Gift className="w-5 h-5 text-white" />
                 </div>
-                <p className="text-gray-400 mb-4">
+                <span className="text-xl font-bold">RegaloYa</span>
+              </div>
+              
+              <div className="text-center md:text-right">
+                <p className="text-gray-400">
+                  © 2024 RegaloYa. Todos los derechos reservados.
+                </p>
+                <p className="text-gray-400 text-sm mt-1">
                   Regalos colaborativos fáciles y seguros para toda la familia.
                 </p>
               </div>
-              
-              <div>
-                <h3 className="text-lg font-semibold mb-4 text-white">Empresa</h3>
-                <ul className="space-y-2 text-gray-400">
-                  <li><Link to="/" className="hover:text-white transition-colors">Acerca de</Link></li>
-                  <li><Link to="/" className="hover:text-white transition-colors">Contacto</Link></li>
-                  <li><Link to="/" className="hover:text-white transition-colors">Términos</Link></li>
-                  <li><Link to="/" className="hover:text-white transition-colors">Privacidad</Link></li>
-                </ul>
-              </div>
-              
-              <div>
-                <h3 className="text-lg font-semibold mb-4 text-white">Soluciones por Industria</h3>
-                <ul className="space-y-2 text-gray-400">
-                  <li><Link to="/soluciones-retail" className="hover:text-white transition-colors">Retail y Comercios</Link></li>
-                  <li><Link to="/soluciones-oficinas" className="hover:text-white transition-colors">Oficinas Corporativas</Link></li>
-                  <li><Link to="/soluciones-restaurantes" className="hover:text-white transition-colors">Restaurantes</Link></li>
-                  <li><Link to="/soluciones-educacion" className="hover:text-white transition-colors">Centros Educativos</Link></li>
-                </ul>
-              </div>
-            </div>
-            
-            <div className="border-t border-gray-700 pt-8 text-center">
-              <p className="text-gray-400">
-                © 2025 RegaloYa. Todos los derechos reservados.
-              </p>
             </div>
           </div>
         </footer>

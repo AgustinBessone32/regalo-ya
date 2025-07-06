@@ -128,12 +128,6 @@ The application is configured for deployment on Replit with the following setup:
   - Added helpful text for location field suggesting Google Maps links or manual address
   - Removed alias requirement from step 3 payment configuration
   - Added feedback screen during project creation with loading animation and status updates
-- July 6, 2025. Implemented SEO-optimized landing pages system:
-  - Created RetailLanding component with complete SEO structure (H1-H3 hierarchy, meta tags, alt attributes)
-  - Added routing system for vertical-specific landing pages with clean URLs (/soluciones-retail)
-  - Updated main landing page footer to include "Soluciones por Industria" section
-  - Established foundation for future vertical landing pages (offices, restaurants, education)
-  - Integrated founder photos (Beti, Jota, Agus) successfully served from attached_assets
 - June 23, 2025. Initial setup
 
 ## User Preferences
