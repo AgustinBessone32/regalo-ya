@@ -351,14 +351,11 @@ export default function LandingPage() {
               {/* Beti Dominguez */}
               <div className="text-center group">
                 <div className="relative mb-6 mx-auto w-48 h-48 overflow-hidden rounded-full border-4 border-purple-200 group-hover:border-purple-400 transition-all duration-300">
-                  <img 
-                    src="/attached_assets/Captura de pantalla 2025-07-06 a la(s) 7.17.09 p. m._1751840386080.png" 
-                    alt="Beti Dominguez"
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                  />
+                  <div className="w-full h-full bg-gradient-to-br from-purple-200 to-pink-200 flex items-center justify-center group-hover:scale-105 transition-transform duration-300">
+                    <div className="text-4xl font-bold text-purple-600">BD</div>
+                  </div>
                 </div>
-                <h3 className="text-xl font-bold text-gray-800 mb-2">Beti Dominguez</h3>
-                <p className="text-purple-600 font-medium mb-3">Co-fundadora</p>
+                <h3 className="text-xl font-bold text-gray-800 mb-4">Beti Dominguez</h3>
                 <p className="text-gray-600 leading-relaxed">
                   La que en cada cumple se pone las pilas para juntar la plata. Su experiencia organizando regalos grupales inspiró la creación de RegaloYa.
                 </p>
@@ -367,14 +364,11 @@ export default function LandingPage() {
               {/* Jota Juarez */}
               <div className="text-center group">
                 <div className="relative mb-6 mx-auto w-48 h-48 overflow-hidden rounded-full border-4 border-purple-200 group-hover:border-purple-400 transition-all duration-300">
-                  <img 
-                    src="/attached_assets/Captura de pantalla 2025-07-06 a la(s) 7.16.40 p. m._1751840386080.png" 
-                    alt="Jota Juarez"
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                  />
+                  <div className="w-full h-full bg-gradient-to-br from-blue-200 to-purple-200 flex items-center justify-center group-hover:scale-105 transition-transform duration-300">
+                    <div className="text-4xl font-bold text-blue-600">JJ</div>
+                  </div>
                 </div>
-                <h3 className="text-xl font-bold text-gray-800 mb-2">Jota Juarez</h3>
-                <p className="text-purple-600 font-medium mb-3">CTO & Co-fundador</p>
+                <h3 className="text-xl font-bold text-gray-800 mb-4">Jota Juarez</h3>
                 <p className="text-gray-600 leading-relaxed">
                   El que le gusta resolver cosas con tecnología, y ahora con IA. Desarrolló toda la plataforma para hacer los regalos colaborativos súper fáciles.
                 </p>
@@ -383,14 +377,11 @@ export default function LandingPage() {
               {/* Agus Bessone */}
               <div className="text-center group">
                 <div className="relative mb-6 mx-auto w-48 h-48 overflow-hidden rounded-full border-4 border-purple-200 group-hover:border-purple-400 transition-all duration-300">
-                  <img 
-                    src="/attached_assets/Captura de pantalla 2025-07-06 a la(s) 7.16.33 p. m._1751840386078.png" 
-                    alt="Agus Bessone"
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                  />
+                  <div className="w-full h-full bg-gradient-to-br from-green-200 to-blue-200 flex items-center justify-center group-hover:scale-105 transition-transform duration-300">
+                    <div className="text-4xl font-bold text-green-600">AB</div>
+                  </div>
                 </div>
-                <h3 className="text-xl font-bold text-gray-800 mb-2">Agus Bessone</h3>
-                <p className="text-purple-600 font-medium mb-3">CEO & Co-fundador</p>
+                <h3 className="text-xl font-bold text-gray-800 mb-4">Agus Bessone</h3>
                 <p className="text-gray-600 leading-relaxed">
                   El que hace que las cosas pasen. Lidera la visión de RegaloYa para transformar la forma en que organizamos regalos en familia y entre amigos.
                 </p>
