@@ -1,0 +1,131 @@
+Necesito que crees una **nueva landing page específica para la siguiente keyword: [inserta aquí el dominio o keyword objetivo]**.
+
+### Requisitos:
+1. La landing debe ser una **página nueva e independiente**. No debe reemplazar la landing actual.
+2. El **link a esta nueva landing debe agregarse en el footer del sitio web**, dentro de la sección "Soluciones por industria" o "Descubrí más", manteniendo el formato visual y de enlace de las landings actuales.
+3. Debes **utilizar los siguientes textos tal como están**, adaptando solo la estructura visual si es necesario:
+
+---
+
+# 🎁 Organiza Regalos de Cumpleaños Sin Caos
+
+## La Solución Simple para Colectas Grupales en la Escuela
+
+Si alguna vez intentaste juntar dinero para el regalo de cumpleaños de un compañero o compañera de tus hijos, seguro viviste esto:  
+📱 Decenas de mensajes en el grupo de WhatsApp.  
+💸 Capturas de transferencias por todos lados.  
+📊 Encuestas para saber quién participa.  
+📍 Compartir la ubicación del lugar de la compra o la entrega.
+
+**Con RegaloYa todo eso se resuelve en un solo lugar. Simple, seguro y sin estrés.**
+
+✅ Gratis para siempre  
+✅ Creación en menos de 2 minutos  
+✅ Pagos con tarjeta de crédito, débito o transferencia a través de MercadoPago
+
+---
+
+## ¿Por Qué Elegir RegaloYa para los Regalos de Cumpleaños de los Chicos?
+
+### 🎁 Colectas Grupales Sin Caos en WhatsApp  
+Olvidate de seguir el hilo interminable de mensajes. RegaloYa centraliza todo en un solo enlace.
+
+### 👨‍👩‍👧‍👦 Invita Fácilmente a Otros Padres y Madres  
+Compartí el enlace en el grupo de WhatsApp y listo. Todos pueden participar cuando quieran y desde donde estén.
+
+### 💳 Pagos Accesibles para Todos  
+Cada persona puede aportar con **tarjeta de crédito, débito o transferencia**, de manera rápida y segura.
+
+### 🔒 100% Seguro con MercadoPago  
+Todos los pagos se procesan a través de MercadoPago. Los datos están siempre protegidos y encriptados.
+
+### 📱 Todo en un Solo Lugar  
+Seguí la colecta, sabé quién aportó, cuánto falta para la meta y organizá todo sin salir de la plataforma.
+
+---
+
+## Cómo Funciona RegaloYa para Colectas Escolares
+
+1. **Crea la Colecta en 2 Minutos**  
+   Definí el regalo, cargá la meta y personalizá el evento.
+
+2. **Compartí el Enlace en WhatsApp**  
+   Invitá a las familias de la sala o el grado a sumarse con un solo clic.
+
+3. **Recibí los Aportes y Hacé Seguimiento**  
+   Controlá en tiempo real quién aportó y cuánto falta para alcanzar el objetivo.
+
+---
+
+## Beneficios Clave de RegaloYa para Cumpleaños Infantiles
+
+- ✅ Centralizás todo en un solo lugar (no más caos de mensajes).  
+- ✅ Podés ver quién aportó y cuánto.  
+- ✅ Todos pueden pagar con tarjeta de crédito, débito o transferencia.  
+- ✅ Seguimiento en tiempo real.  
+- ✅ 100% seguro con MercadoPago.  
+- ✅ Gratis y fácil de usar desde el celular.
+
+---
+
+## Preguntas Frecuentes de Padres y Madres
+
+**¿Cómo funciona la colecta para el cumpleaños de los chicos?**  
+Creás un proyecto, compartís el enlace y las familias pueden aportar de forma segura y simple.
+
+**¿Puedo saber quién aportó y cuánto?**  
+Sí, siempre podés ver el historial completo de contribuciones.
+
+**¿Qué pasa si no se llega a la meta?**  
+No hay problema. Igual podés usar el dinero recaudado para comprar otro regalo.
+
+**¿Cómo pueden pagar los otros padres?**  
+Con tarjeta de crédito, débito o transferencia, de manera simple y segura con MercadoPago.
+
+**¿Es seguro usar RegaloYa?**  
+Sí, usamos MercadoPago, una plataforma confiable y segura.
+
+---
+
+## Lo Que Dicen Otros Padres y Madres
+
+_"Antes era un caos organizar el regalo en el grupo de WhatsApp. Ahora con RegaloYa es súper ordenado y todos pueden participar fácil."_  
+**Martina G. - Mamá de sala de 5**
+
+_"Me encantó porque pude aportar con tarjeta de crédito y no tuve que hacer transferencias complicadas."_  
+**Luis M. - Papá de primer grado**
+
+_"Fue muy fácil, creé el proyecto y lo compartí en el grupo en menos de 5 minutos."_  
+**Paula T. - Mamá de jardín**
+
+---
+
+## Empezá Ahora y Organiza el Próximo Regalo de Cumpleaños Sin Estrés
+
+Sumate a las familias que ya organizan los cumpleaños de sus hijos de forma simple y colaborativa.
+
+👉 **Crear Mi Colecta Gratis Ahora**
+
+_No se necesita tarjeta de crédito • Creación en 2 minutos_
+
+---
+
+### SEO Obligatorio:
+- Estructura correcta de encabezados (H1, H2, H3).
+- URL optimizada y simple (por ejemplo: /colecta-cumpleanos-escuela).
+- Meta title y meta description que incluyan la keyword proporcionada.
+- Etiquetas alt para todas las imágenes.
+
+### Diseño:
+- Mantener la estructura base del sitio.
+- La sección de fundadores debe estar presente en la misma ubicación que en las landings actuales.
+- El footer y el header deben mantenerse idénticos.
+
+### Entregables:
+- Código HTML completo de la nueva landing.
+- Ubicación exacta y formato del nuevo enlace en el footer.
+- Meta title y meta description sugeridos.
+
+⚠️ Importante: No reemplazar ni sobrescribir la landing principal existente. Esta es una landing adicional.
+
+Cuando estés listo, pedime la keyword específica para comenzar.
