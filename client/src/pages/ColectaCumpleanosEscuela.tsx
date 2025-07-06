@@ -138,99 +138,52 @@ export default function ColectaCumpleanosEscuela() {
               🎁 Solución para Padres y Madres
             </Badge>
             
-            <h1 className="text-4xl md:text-6xl font-bold mb-6 leading-tight">
-              Organiza Regalos de Cumpleaños <span className="bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">Sin Caos</span>
+            <h1 className="text-4xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+              Organiza Regalos de Cumpleaños
+              <br />
+              <span className="text-gray-800">Sin Caos</span>
             </h1>
             
-            <p className="text-xl md:text-2xl text-gray-600 mb-8 max-w-3xl mx-auto leading-relaxed">
-              La Solución Simple para Colectas Grupales en la Escuela
+            <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto leading-relaxed">
+              La Solución Simple para Colectas Grupales en la Escuela. Olvidate del caos en WhatsApp y organiza colectas de manera profesional y segura.
             </p>
-
-            {/* Problem description */}
-            <div className="bg-white p-8 rounded-2xl shadow-lg mb-8 max-w-4xl mx-auto border border-gray-100">
-              <p className="text-lg text-gray-700 mb-6 leading-relaxed">
-                Si alguna vez intentaste juntar dinero para el regalo de cumpleaños de un compañero o compañera de tus hijos, seguro viviste esto:
-              </p>
-              <div className="grid md:grid-cols-2 gap-4 text-left">
-                <div className="flex items-center gap-3 text-gray-600">
-                  <span className="text-2xl">📱</span>
-                  <span>Decenas de mensajes en el grupo de WhatsApp</span>
-                </div>
-                <div className="flex items-center gap-3 text-gray-600">
-                  <span className="text-2xl">💸</span>
-                  <span>Capturas de transferencias por todos lados</span>
-                </div>
-                <div className="flex items-center gap-3 text-gray-600">
-                  <span className="text-2xl">📊</span>
-                  <span>Encuestas para saber quién participa</span>
-                </div>
-                <div className="flex items-center gap-3 text-gray-600">
-                  <span className="text-2xl">📍</span>
-                  <span>Compartir la ubicación del lugar de la compra</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Solution */}
-            <div className="bg-gradient-to-r from-purple-500 to-pink-500 text-white p-8 rounded-2xl mb-8 max-w-4xl mx-auto">
-              <h2 className="text-2xl md:text-3xl font-bold mb-4">
-                Con RegaloYa todo eso se resuelve en un solo lugar. Simple, seguro y sin estrés.
-              </h2>
-              <div className="grid md:grid-cols-3 gap-6 mt-6">
-                <div className="flex items-center gap-2">
-                  <CheckCircle className="w-5 h-5 flex-shrink-0" />
-                  <span>Gratis para siempre</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <CheckCircle className="w-5 h-5 flex-shrink-0" />
-                  <span>Creación en menos de 2 minutos</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <CheckCircle className="w-5 h-5 flex-shrink-0" />
-                  <span>Pagos con MercadoPago</span>
-                </div>
-              </div>
-            </div>
-
-            <div className="flex flex-col sm:flex-row gap-4 justify-center mb-4">
+            
+            <div className="flex justify-center">
               <Link href="/auth">
                 <Button size="lg" className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white border-0 shadow-lg px-8 py-4 text-lg">
-                  Crear Mi Colecta Gratis Ahora
-                  <Heart className="ml-2 w-5 h-5" />
+                  Crear Mi Colecta Gratis
+                  <ArrowRight className="ml-2 w-5 h-5" />
                 </Button>
               </Link>
             </div>
-            <p className="text-sm text-gray-500">
-              No se necesita tarjeta de crédito • Creación en 2 minutos
+            
+            <p className="text-sm text-gray-500 mt-4">
+              ✅ Gratis para siempre • ✅ Configuración en 2 minutos
             </p>
           </div>
         </section>
 
         {/* Features Section */}
-        <section className="py-20 px-4 bg-white">
+        <section className="py-20 px-4 bg-white/60 backdrop-blur-sm">
           <div className="container mx-auto max-w-6xl">
             <div className="text-center mb-16">
-              <h2 className="text-3xl md:text-4xl font-bold mb-4">
-                ¿Por Qué Elegir RegaloYa para los Regalos de Cumpleaños de los Chicos?
+              <h2 className="text-3xl md:text-4xl font-bold mb-4 text-gray-800">
+                ¿Por qué elegir RegaloYa para colectas escolares?
               </h2>
               <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-                Todo lo que necesitas para organizar colectas escolares sin complicaciones
+                Simplificamos la organización de regalos grupales para que te enfoques en lo importante: celebrar.
               </p>
             </div>
-
+            
             <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
               {features.map((feature, index) => (
-                <Card key={index} className="p-6 h-full hover:shadow-lg transition-shadow duration-300 border-0 shadow-md">
-                  <CardContent className="p-0 text-center">
-                    <div className="inline-flex items-center justify-center w-12 h-12 bg-gradient-to-br from-purple-100 to-pink-100 rounded-lg mb-4 text-purple-600">
+                <Card key={index} className="text-center border-purple-100 hover:shadow-lg transition-all duration-300 bg-white/80">
+                  <CardContent className="p-6">
+                    <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-500 rounded-lg flex items-center justify-center mx-auto mb-4 text-white">
                       {feature.icon}
                     </div>
-                    <h3 className="text-lg font-semibold mb-3 text-gray-800">
-                      {feature.title}
-                    </h3>
-                    <p className="text-gray-600 leading-relaxed">
-                      {feature.description}
-                    </p>
+                    <h3 className="text-lg font-semibold mb-2 text-gray-800">{feature.title}</h3>
+                    <p className="text-gray-600 text-sm">{feature.description}</p>
                   </CardContent>
                 </Card>
               ))}
