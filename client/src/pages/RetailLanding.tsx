@@ -19,8 +19,8 @@ export default function RetailLanding() {
   return (
     <>
       <MetaTags
-        title="RegaloYa para Retail - Soluciones de Regalos Colaborativos para Comercios"
-        description="Potencia tu negocio retail con RegaloYa. Facilita regalos colaborativos para empleados, clientes y eventos especiales. Aumenta la fidelización y las ventas."
+        title="Regalos Colaborativos para Retail | RegaloYa - Mejora tu Ambiente Laboral"
+        description="Plataforma líder de regalos colaborativos para negocios retail. Aumenta la fidelización de empleados, fortalece el equipo y mejora el clima laboral. Integración con MercadoPago. ¡Prueba gratis!"
         url={window.location.href}
       />
       

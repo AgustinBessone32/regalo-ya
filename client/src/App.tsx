@@ -6,6 +6,7 @@ import CreateProject from "./pages/CreateProject";
 import ProjectPage from "./pages/ProjectPage";
 import HomePage from "./pages/HomePage";
 import LandingPage from "./pages/LandingPage";
+import RetailLanding from "./pages/RetailLanding";
 import { useUser } from "./hooks/use-user";
 import { useEffect } from "react";
 
@@ -39,6 +40,7 @@ function App() {
             </main>
           </div>
         </Route>
+        <Route path="/soluciones-retail" component={RetailLanding} />
         <Route path="/" component={LandingPage} />
         <Route component={LandingPage} />
       </Switch>
