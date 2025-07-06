@@ -335,6 +335,83 @@ export default function LandingPage() {
           </div>
         </section>
 
+        {/* Founders Section */}
+        <section className="py-20 px-4 bg-gradient-to-br from-gray-50 to-gray-100">
+          <div className="container mx-auto max-w-6xl">
+            <div className="text-center mb-16">
+              <h2 className="text-3xl md:text-4xl font-bold mb-4 text-gray-800">
+                Los Fundadores
+              </h2>
+              <p className="text-xl text-gray-600">
+                El equipo que hizo realidad RegaloYa para simplificar los regalos colaborativos
+              </p>
+            </div>
+            
+            <div className="grid md:grid-cols-3 gap-8">
+              {/* Beti Dominguez */}
+              <div className="text-center group">
+                <div className="relative mb-6 mx-auto w-48 h-48 overflow-hidden rounded-full border-4 border-purple-200 group-hover:border-purple-400 transition-all duration-300">
+                  <img 
+                    src="/attached_assets/Captura de pantalla 2025-07-06 a la(s) 7.17.09 p. m._1751840386080.png" 
+                    alt="Beti Dominguez"
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                  />
+                </div>
+                <h3 className="text-xl font-bold text-gray-800 mb-2">Beti Dominguez</h3>
+                <p className="text-purple-600 font-medium mb-3">Co-fundadora</p>
+                <p className="text-gray-600 leading-relaxed">
+                  La que en cada cumple se pone las pilas para juntar la plata. Su experiencia organizando regalos grupales inspiró la creación de RegaloYa.
+                </p>
+              </div>
+
+              {/* Jota Juarez */}
+              <div className="text-center group">
+                <div className="relative mb-6 mx-auto w-48 h-48 overflow-hidden rounded-full border-4 border-purple-200 group-hover:border-purple-400 transition-all duration-300">
+                  <img 
+                    src="/attached_assets/Captura de pantalla 2025-07-06 a la(s) 7.16.40 p. m._1751840386080.png" 
+                    alt="Jota Juarez"
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                  />
+                </div>
+                <h3 className="text-xl font-bold text-gray-800 mb-2">Jota Juarez</h3>
+                <p className="text-purple-600 font-medium mb-3">CTO & Co-fundador</p>
+                <p className="text-gray-600 leading-relaxed">
+                  El que le gusta resolver cosas con tecnología, y ahora con IA. Desarrolló toda la plataforma para hacer los regalos colaborativos súper fáciles.
+                </p>
+              </div>
+
+              {/* Agus Bessone */}
+              <div className="text-center group">
+                <div className="relative mb-6 mx-auto w-48 h-48 overflow-hidden rounded-full border-4 border-purple-200 group-hover:border-purple-400 transition-all duration-300">
+                  <img 
+                    src="/attached_assets/Captura de pantalla 2025-07-06 a la(s) 7.16.33 p. m._1751840386078.png" 
+                    alt="Agus Bessone"
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                  />
+                </div>
+                <h3 className="text-xl font-bold text-gray-800 mb-2">Agus Bessone</h3>
+                <p className="text-purple-600 font-medium mb-3">CEO & Co-fundador</p>
+                <p className="text-gray-600 leading-relaxed">
+                  El que hace que las cosas pasen. Lidera la visión de RegaloYa para transformar la forma en que organizamos regalos en familia y entre amigos.
+                </p>
+              </div>
+            </div>
+
+            {/* Mission Statement */}
+            <div className="text-center mt-16 max-w-3xl mx-auto">
+              <div className="bg-white/80 backdrop-blur-sm rounded-lg p-8 shadow-lg border border-purple-100">
+                <p className="text-lg text-gray-700 italic leading-relaxed">
+                  "Nacimos de la experiencia real de organizar regalos grupales. Sabemos lo complicado que puede ser coordinar contribuciones, 
+                  y por eso creamos RegaloYa: para que cada celebración sea especial sin el estrés de la organización."
+                </p>
+                <div className="mt-4 text-purple-600 font-medium">
+                  — El equipo de RegaloYa
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
         {/* CTA Section */}
         <section className="py-20 px-4 bg-gradient-to-br from-purple-50 to-pink-50">
           <div className="container mx-auto max-w-4xl text-center">
