@@ -56,7 +56,7 @@ export default function AuthPage() {
   const isSubmitting = loginMutation.isPending || registerMutation.isPending;
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
+    <div className="min-h-screen flex items-center justify-center bg-gray-100 p-4">
       <div className="w-full max-w-md space-y-6">
         {/* Logo y título simplificado */}
         <div className="text-center">
