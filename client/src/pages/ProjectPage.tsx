@@ -743,9 +743,14 @@ export default function ProjectPage() {
             </Card>
 
             {/* Contribution Metrics - Only visible to owner */}
-            {project.isOwner && (
+            {project.isOwner && Array.isArray(project.payment_details) && (
               <ContributionMetrics
-                contributors={project.payment_details || []}
+                contributors={project.payment_details.map(payment => ({
+                  contributor_name: payment.payer_name,
+                  amount: payment.amount,
+                  description: payment.description,
+                  created_at: payment.created_at
+                }))}
                 totalAmount={project.current_amount || 0}
               />
             )}
