@@ -6,6 +6,7 @@ import CreateProject from "./pages/CreateProject";
 import ProjectPage from "./pages/ProjectPage";
 import HomePage from "./pages/HomePage";
 import LandingPage from "./pages/LandingPage";
+import ColectaCumpleanosEscuela from "./pages/ColectaCumpleanosEscuela";
 import { useUser } from "./hooks/use-user";
 import { useEffect } from "react";
 
@@ -39,6 +40,7 @@ function App() {
             </main>
           </div>
         </Route>
+        <Route path="/colecta-cumpleanos-escuela" component={ColectaCumpleanosEscuela} />
         <Route path="/" component={LandingPage} />
         <Route component={LandingPage} />
       </Switch>

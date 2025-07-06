@@ -435,20 +435,73 @@ export default function LandingPage() {
         {/* Footer */}
         <footer className="bg-gray-800 text-white py-12 px-4">
           <div className="container mx-auto max-w-6xl">
-            <div className="flex flex-col md:flex-row justify-between items-center">
-              <div className="flex items-center space-x-2 mb-4 md:mb-0">
-                <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-pink-500 rounded-lg flex items-center justify-center">
-                  <Gift className="w-5 h-5 text-white" />
+            <div className="grid md:grid-cols-3 gap-8 mb-8">
+              {/* Logo and Company Info */}
+              <div>
+                <div className="flex items-center space-x-2 mb-4">
+                  <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-pink-500 rounded-lg flex items-center justify-center">
+                    <Gift className="w-5 h-5 text-white" />
+                  </div>
+                  <span className="text-xl font-bold">RegaloYa</span>
                 </div>
-                <span className="text-xl font-bold">RegaloYa</span>
+                <p className="text-gray-400 text-sm">
+                  Regalos colaborativos fáciles y seguros para toda la familia.
+                </p>
               </div>
-              
-              <div className="text-center md:text-right">
+
+              {/* Soluciones por Industria */}
+              <div>
+                <h3 className="text-lg font-semibold mb-4">Soluciones por Industria</h3>
+                <ul className="space-y-2">
+                  <li>
+                    <Link href="/colecta-cumpleanos-escuela">
+                      <span className="text-gray-400 hover:text-white transition-colors cursor-pointer">
+                        Colectas Escolares
+                      </span>
+                    </Link>
+                  </li>
+                  <li>
+                    <span className="text-gray-400">
+                      Eventos Familiares
+                    </span>
+                  </li>
+                  <li>
+                    <span className="text-gray-400">
+                      Regalos Corporativos
+                    </span>
+                  </li>
+                </ul>
+              </div>
+
+              {/* Descubrí Más */}
+              <div>
+                <h3 className="text-lg font-semibold mb-4">Descubrí Más</h3>
+                <ul className="space-y-2">
+                  <li>
+                    <Link href="/auth">
+                      <span className="text-gray-400 hover:text-white transition-colors cursor-pointer">
+                        Crear Proyecto
+                      </span>
+                    </Link>
+                  </li>
+                  <li>
+                    <span className="text-gray-400">
+                      Cómo Funciona
+                    </span>
+                  </li>
+                  <li>
+                    <span className="text-gray-400">
+                      Soporte
+                    </span>
+                  </li>
+                </ul>
+              </div>
+            </div>
+            
+            <div className="border-t border-gray-700 pt-8">
+              <div className="text-center">
                 <p className="text-gray-400">
                   © 2024 RegaloYa. Todos los derechos reservados.
-                </p>
-                <p className="text-gray-400 text-sm mt-1">
-                  Regalos colaborativos fáciles y seguros para toda la familia.
                 </p>
               </div>
             </div>
