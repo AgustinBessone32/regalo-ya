@@ -67,8 +67,20 @@ export default function AuthPage() {
           </p>
         </div>
 
-        <Card className="shadow-lg border-0">
+        <Card className={`shadow-lg border-t-4 ${
+          activeTab === "login" ? "border-t-blue-500" : "border-t-green-500"
+        } transition-colors duration-300`}>
           <CardHeader className="text-center pb-4">
+            <div className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-medium mb-3 ${
+              activeTab === "login" 
+                ? "bg-blue-50 text-blue-700" 
+                : "bg-green-50 text-green-700"
+            }`}>
+              <div className={`w-2 h-2 rounded-full ${
+                activeTab === "login" ? "bg-blue-500" : "bg-green-500"
+              }`}></div>
+              {activeTab === "login" ? "Acceso con cuenta existente" : "Creación de nueva cuenta"}
+            </div>
             <CardTitle className="text-xl text-gray-900">
               {activeTab === "login" ? "Iniciar Sesión" : "Crear Cuenta"}
             </CardTitle>
