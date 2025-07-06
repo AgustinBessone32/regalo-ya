@@ -352,7 +352,7 @@ export default function LandingPage() {
               <div className="text-center group">
                 <div className="relative mb-6 mx-auto w-48 h-48 overflow-hidden rounded-full border-4 border-purple-200 group-hover:border-purple-400 transition-all duration-300">
                   <img 
-                    src="/attached_assets/Captura de pantalla 2025-07-06 a la(s) 7.17.09 p. m._1751840386080.png"
+                    src="/attached_assets/beti.png"
                     alt="Beti Dominguez"
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                   />
@@ -367,7 +367,7 @@ export default function LandingPage() {
               <div className="text-center group">
                 <div className="relative mb-6 mx-auto w-48 h-48 overflow-hidden rounded-full border-4 border-purple-200 group-hover:border-purple-400 transition-all duration-300">
                   <img 
-                    src="/attached_assets/Captura de pantalla 2025-07-06 a la(s) 7.16.40 p. m._1751840386080.png"
+                    src="/attached_assets/jota.png"
                     alt="Jota Juarez"
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                   />
@@ -382,7 +382,7 @@ export default function LandingPage() {
               <div className="text-center group">
                 <div className="relative mb-6 mx-auto w-48 h-48 overflow-hidden rounded-full border-4 border-purple-200 group-hover:border-purple-400 transition-all duration-300">
                   <img 
-                    src="/attached_assets/Captura de pantalla 2025-07-06 a la(s) 7.16.33 p. m._1751840386078.png"
+                    src="/attached_assets/agus.png"
                     alt="Agus Bessone"
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                   />
