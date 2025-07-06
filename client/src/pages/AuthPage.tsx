@@ -56,29 +56,31 @@ export default function AuthPage() {
   const isSubmitting = loginMutation.isPending || registerMutation.isPending;
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background p-4">
-      <div className="w-full max-w-md space-y-8">
-        <div className="flex flex-col items-center gap-2">
-          <Gift className="h-12 w-12 text-primary" />
-          <h1 className="text-2xl font-semibold text-center">RegaloYa</h1>
-          <p className="text-sm text-muted-foreground text-center">
-            Simplifica la organización de regalos colaborativos
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
+      <div className="w-full max-w-md space-y-6">
+        {/* Logo y título simplificado */}
+        <div className="text-center">
+          <Gift className="h-10 w-10 text-primary mx-auto mb-3" />
+          <h1 className="text-2xl font-bold text-gray-900">RegaloYa</h1>
+          <p className="text-sm text-gray-600 mt-1">
+            Organiza regalos colaborativos fácilmente
           </p>
         </div>
 
-        <Card className="border-2 border-purple-100">
-          <CardHeader className="text-center pb-2">
-            <CardTitle className="text-2xl bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
-              ¡Bienvenido a RegaloYa!
+        <Card className="shadow-lg border-0">
+          <CardHeader className="text-center pb-4">
+            <CardTitle className="text-xl text-gray-900">
+              {activeTab === "login" ? "Iniciar Sesión" : "Crear Cuenta"}
             </CardTitle>
-            <CardDescription className="text-gray-600">
+            <CardDescription className="text-gray-600 text-sm">
               {activeTab === "login" 
-                ? "Inicia sesión con tu cuenta existente" 
-                : "Crea tu cuenta nueva para comenzar"
+                ? "Ingresa a tu cuenta de RegaloYa" 
+                : "Únete a RegaloYa gratis"
               }
             </CardDescription>
           </CardHeader>
           <CardContent>
+            {/* Tabs más simples */}
             <Tabs
               defaultValue="login"
               value={activeTab}
@@ -86,72 +88,43 @@ export default function AuthPage() {
                 setActiveTab(value as "login" | "register")
               }
             >
-              <TabsList className="grid w-full grid-cols-2 bg-gray-100 p-1 rounded-lg mb-6">
+              <TabsList className="grid w-full grid-cols-2 mb-6">
                 <TabsTrigger 
                   value="login" 
                   disabled={isSubmitting}
-                  className={`rounded-md transition-all duration-200 ${
-                    activeTab === "login" 
-                      ? "bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-md" 
-                      : "text-gray-600 hover:text-gray-800"
-                  }`}
+                  className="text-sm"
                 >
-                  <span className="font-semibold">Iniciar Sesión</span>
+                  Iniciar Sesión
                 </TabsTrigger>
                 <TabsTrigger 
                   value="register" 
                   disabled={isSubmitting}
-                  className={`rounded-md transition-all duration-200 ${
-                    activeTab === "register" 
-                      ? "bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-md" 
-                      : "text-gray-600 hover:text-gray-800"
-                  }`}
+                  className="text-sm"
                 >
-                  <span className="font-semibold">Registrarse</span>
+                  Registrarse
                 </TabsTrigger>
               </TabsList>
-
-              {/* Indicador visual adicional */}
-              <div className={`p-3 rounded-lg mb-4 border-l-4 ${
-                activeTab === "login" 
-                  ? "bg-blue-50 border-blue-500" 
-                  : "bg-green-50 border-green-500"
-              }`}>
-                <p className={`text-sm font-medium ${
-                  activeTab === "login" ? "text-blue-700" : "text-green-700"
-                }`}>
-                  {activeTab === "login" 
-                    ? "🔑 Accediendo con cuenta existente" 
-                    : "✨ Creando nueva cuenta"
-                  }
-                </p>
-                <p className={`text-xs mt-1 ${
-                  activeTab === "login" ? "text-blue-600" : "text-green-600"
-                }`}>
-                  {activeTab === "login" 
-                    ? "Ya tienes una cuenta de RegaloYa" 
-                    : "Primera vez usando RegaloYa"
-                  }
-                </p>
-              </div>
 
               <Form {...form}>
                 <form
                   onSubmit={form.handleSubmit(onSubmit)}
-                  className="space-y-4 mt-4"
+                  className="space-y-5"
                 >
                   <FormField
                     control={form.control}
                     name="email"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Correo Electrónico</FormLabel>
+                        <FormLabel className="text-sm font-medium text-gray-700">
+                          Correo Electrónico
+                        </FormLabel>
                         <FormControl>
                           <Input
                             type="email"
-                            placeholder="tu@email.com"
+                            placeholder="ejemplo@email.com"
                             {...field}
                             disabled={isSubmitting}
+                            className="h-11"
                           />
                         </FormControl>
                         <FormMessage />
@@ -164,13 +137,16 @@ export default function AuthPage() {
                     name="password"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Contraseña</FormLabel>
+                        <FormLabel className="text-sm font-medium text-gray-700">
+                          Contraseña
+                        </FormLabel>
                         <FormControl>
                           <Input
                             type="password"
-                            placeholder="Tu contraseña"
+                            placeholder={activeTab === "login" ? "Ingresa tu contraseña" : "Crea una contraseña"}
                             {...field}
                             disabled={isSubmitting}
+                            className="h-11"
                           />
                         </FormControl>
                         <FormMessage />
@@ -180,37 +156,29 @@ export default function AuthPage() {
 
                   <Button
                     type="submit"
-                    className={`w-full font-semibold transition-all duration-200 ${
-                      activeTab === "login"
-                        ? "bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white shadow-lg"
-                        : "bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white shadow-lg"
-                    }`}
+                    className="w-full bg-primary hover:bg-primary/90 text-primary-foreground h-11 font-medium text-base"
                     disabled={isSubmitting}
                   >
                     {isSubmitting ? (
                       <>
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                         {activeTab === "login"
-                          ? "Iniciando Sesión..."
-                          : "Creando Cuenta..."}
+                          ? "Iniciando..."
+                          : "Creando cuenta..."}
                       </>
                     ) : activeTab === "login" ? (
-                      <>
-                        🔑 Iniciar Sesión
-                      </>
+                      "Iniciar Sesión"
                     ) : (
-                      <>
-                        ✨ Crear Mi Cuenta
-                      </>
+                      "Crear Mi Cuenta"
                     )}
                   </Button>
 
-                  {/* Mensaje de ayuda adicional */}
-                  <div className="text-center mt-4">
+                  {/* Mensaje de cambio simplificado */}
+                  <div className="text-center pt-2">
                     <p className="text-xs text-gray-500">
                       {activeTab === "login" 
-                        ? "¿No tienes cuenta? Haz clic en 'Registrarse' arriba" 
-                        : "¿Ya tienes cuenta? Haz clic en 'Iniciar Sesión' arriba"
+                        ? "¿Primera vez? Cambia a 'Registrarse'" 
+                        : "¿Ya tienes cuenta? Cambia a 'Iniciar Sesión'"
                       }
                     </p>
                   </div>
