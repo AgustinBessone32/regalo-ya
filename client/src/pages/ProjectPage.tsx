@@ -545,13 +545,12 @@ export default function ProjectPage() {
             >
               <DialogTrigger asChild>
                 <Button
-                  variant="outline"
-                  className="w-full bg-primary/5 hover:bg-primary/10 border-primary/20 text-primary hover:text-primary py-3 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full bg-primary hover:bg-primary/90 text-primary-foreground py-3 disabled:opacity-50 disabled:cursor-not-allowed"
                   size="lg"
                   disabled={eventFinished}
                 >
                   <Gift className="h-4 w-4 mr-2" />
-                  {eventFinished ? "Evento Finalizado" : "Agregar Regalo"}
+                  {eventFinished ? "Evento Finalizado" : "Regalar"}
                 </Button>
               </DialogTrigger>
               <DialogContent>
