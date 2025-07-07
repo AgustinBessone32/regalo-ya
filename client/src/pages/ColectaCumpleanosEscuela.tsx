@@ -139,14 +139,39 @@ export default function ColectaCumpleanosEscuela() {
             </Badge>
             
             <h1 className="text-4xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
-              Organiza Regalos de Cumpleaños
+              La Solución Simple para
               <br />
-              <span className="text-gray-800">Sin Caos</span>
+              <span className="text-gray-800">Colectas Grupales en la Escuela</span>
             </h1>
             
             <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto leading-relaxed">
-              La Solución Simple para Colectas Grupales en la Escuela. Olvidate del caos en WhatsApp y organiza colectas de manera profesional y segura.
+              Olvidate del caos en WhatsApp y organiza colectas de manera profesional y segura.
             </p>
+
+            {/* Problem description */}
+            <div className="bg-white p-8 rounded-2xl shadow-lg mb-8 max-w-4xl mx-auto border border-gray-100">
+              <p className="text-lg text-gray-700 mb-6 leading-relaxed">
+                Si alguna vez intentaste juntar dinero para el regalo de cumpleaños de un compañero o compañera de tus hijos, seguro viviste esto:
+              </p>
+              <div className="grid md:grid-cols-2 gap-4 text-left">
+                <div className="flex items-center gap-3 text-gray-600">
+                  <span className="text-2xl">📱</span>
+                  <span>Decenas de mensajes en el grupo de WhatsApp</span>
+                </div>
+                <div className="flex items-center gap-3 text-gray-600">
+                  <span className="text-2xl">💸</span>
+                  <span>Capturas de transferencias por todos lados</span>
+                </div>
+                <div className="flex items-center gap-3 text-gray-600">
+                  <span className="text-2xl">📊</span>
+                  <span>Encuestas para saber quién participa</span>
+                </div>
+                <div className="flex items-center gap-3 text-gray-600">
+                  <span className="text-2xl">📍</span>
+                  <span>Compartir la ubicación del lugar de la compra o la entrega</span>
+                </div>
+              </div>
+            </div>
             
             <div className="flex justify-center">
               <Link href="/auth">
