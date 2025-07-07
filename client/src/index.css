@@ -42,3 +42,21 @@
     transform: none !important;
   }
 }
+
+/* Clase personalizada para inputs sin zoom */
+.no-zoom-input {
+  font-size: 16px !important;
+}
+
+/* Aplicar a todos los inputs de Tailwind */
+input[class*="flex"],
+input[class*="h-"],
+input[class*="w-"],
+input[class*="px-"],
+input[class*="py-"],
+input[class*="border"],
+input[class*="rounded"],
+input[class*="bg-"],
+input[class*="text-"] {
+  font-size: 16px !important;
+}
