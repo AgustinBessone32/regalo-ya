@@ -657,8 +657,8 @@ export function registerRoutes(app: Express): Server {
           return res.status(400).json({ error: "No external reference" });
         }
 
-        console.log("PAYMENT:", paymentData);
-        console.log("PAYMENT JSON:", JSON.stringify(paymentData));
+        console.log("PAYMENT:", paymentData.payer);
+        console.log("PAYMENT JSON:", JSON.stringify(paymentData.payer));
 
         const match = externalRef.match(/project_(\d+)/);
 
