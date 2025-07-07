@@ -20,21 +20,24 @@ import {
   Shield,
   Smartphone,
   ChevronDown,
-  HelpCircle
+  HelpCircle,
+  Building,
+  Trophy,
+  Briefcase
 } from "lucide-react";
 import { MetaTags } from "@/components/MetaTags";
 
-export default function ColectaCumpleanosEscuela() {
+export default function RegalosCorporativos() {
   const features = [
     {
-      icon: <Gift className="w-6 h-6" />,
-      title: "Colectas Grupales Sin Caos en WhatsApp",
-      description: "Olvidate de seguir el hilo interminable de mensajes. RegaloYa centraliza todo en un solo enlace."
+      icon: <Building className="w-6 h-6" />,
+      title: "Regalos Profesionales y Elegantes",
+      description: "Organiza regalos corporativos para despedidas, promociones, jubilaciones y fechas especiales de la empresa."
     },
     {
       icon: <Users className="w-6 h-6" />,
-      title: "Invita Fácilmente a Otros Padres y Madres",
-      description: "Compartí el enlace en el grupo de WhatsApp y listo. Todos pueden participar cuando quieran y desde donde estén."
+      title: "Unifica a Todo el Equipo",
+      description: "Involucra a compañeros de diferentes departamentos y sucursales. Todos pueden participar desde cualquier lugar."
     },
     {
       icon: <Shield className="w-6 h-6" />,
@@ -42,71 +45,71 @@ export default function ColectaCumpleanosEscuela() {
       description: "Todos los pagos se procesan a través de MercadoPago. Los datos están siempre protegidos y encriptados."
     },
     {
-      icon: <Smartphone className="w-6 h-6" />,
-      title: "Todo en un Solo Lugar",
-      description: "Seguí la colecta, sabé quién aportó, cuánto falta para la meta y organizá todo sin salir de la plataforma."
+      icon: <Trophy className="w-6 h-6" />,
+      title: "Reconocimientos Memorables",
+      description: "Crea regalos que demuestren verdadero reconocimiento y aprecio hacia compañeros y colaboradores."
     }
   ];
 
   const benefits = [
-    "Centralizás todo en un solo lugar (no más caos de mensajes)",
-    "Podés ver quién aportó y cuánto",
+    "Organiza regalos para cualquier ocasión corporativa",
+    "Involucra a empleados de diferentes departamentos y sedes",
     "Todos pueden pagar con tarjeta de crédito, débito o transferencia",
-    "Seguimiento en tiempo real",
+    "Seguimiento transparente y en tiempo real",
     "100% seguro con MercadoPago",
-    "Gratis y fácil de usar desde el celular"
+    "Gratis y profesional para usar en el trabajo"
   ];
 
   const testimonials = [
     {
-      name: "Martina G.",
-      role: "Mamá de sala de 5",
-      content: "Antes era un caos organizar el regalo en el grupo de WhatsApp. Ahora con RegaloYa es súper ordenado y todos pueden participar fácil.",
+      name: "María G.",
+      role: "Gerente de RRHH",
+      content: "Para la despedida de nuestro director usamos RegaloYa. Participaron más de 50 empleados de todas las sucursales. Fue muy emotivo.",
       rating: 5
     },
     {
-      name: "Luis M.",
-      role: "Papá de primer grado",
-      content: "Me encantó porque pude aportar con tarjeta de crédito y no tuve que hacer transferencias complicadas.",
+      name: "Carlos R.",
+      role: "Coordinador de equipo",
+      content: "Mi compañera se jubiló después de 30 años. Con RegaloYa organizamos un regalo increíble entre todos. Muy fácil de usar.",
       rating: 5
     },
     {
-      name: "Paula T.",
-      role: "Mamá de jardín",
-      content: "Fue muy fácil, creé el proyecto y lo compartí en el grupo en menos de 5 minutos.",
+      name: "Ana L.",
+      role: "Líder de proyecto",
+      content: "Para el cumpleaños de nuestro jefe organizamos una colecta súper ordenada. RegaloYa nos ayudó a mantener todo profesional.",
       rating: 5
     }
   ];
 
   const faqs = [
     {
-      question: "¿Cómo funciona la colecta para el cumpleaños de los chicos?",
-      answer: "Creás un proyecto, compartís el enlace y las familias pueden aportar de forma segura y simple."
+      question: "¿Cómo funciona para regalos corporativos?",
+      answer: "Creás un proyecto para el evento corporativo, invitás a los compañeros de trabajo y ellos pueden contribuir de forma segura y profesional."
     },
     {
-      question: "¿Puedo saber quién aportó y cuánto?",
-      answer: "Sí, siempre podés ver el historial completo de contribuciones."
+      question: "¿Pueden participar empleados de otras sucursales?",
+      answer: "¡Por supuesto! RegaloYa funciona para toda Argentina. Los empleados pueden contribuir desde cualquier lugar del país."
     },
     {
-      question: "¿Qué pasa si no se llega a la meta?",
-      answer: "No hay problema. Igual podés usar el dinero recaudado para comprar otro regalo."
+      question: "¿Qué tipo de eventos corporativos puedo organizar?",
+      answer: "Cualquier ocasión: despedidas, jubilaciones, promociones, cumpleaños, día de la secretaria, navidad empresarial y más."
     },
     {
-      question: "¿Cómo pueden pagar los otros padres?",
-      answer: "Con tarjeta de crédito, débito o transferencia, de manera simple y segura con MercadoPago."
+      question: "¿Es apropiado usar RegaloYa en el trabajo?",
+      answer: "Completamente apropiado. RegaloYa es una plataforma profesional que mantiene la privacidad y organización necesaria en el ámbito laboral."
     },
     {
-      question: "¿Es seguro usar RegaloYa?",
-      answer: "Sí, usamos MercadoPago, una plataforma confiable y segura."
+      question: "¿Cómo mantengo la confidencialidad del regalo?",
+      answer: "RegaloYa te permite controlar quién ve las contribuciones. Podés mantener la sorpresa mientras organizas de manera transparente."
     }
   ];
 
   return (
     <>
       <MetaTags
-        title="Colecta Cumpleaños Niños Escuela - RegaloYa | Organiza Regalos Grupales Sin Caos"
-        description="Organiza colectas para cumpleaños de niños en la escuela de forma simple y segura. Pagos con MercadoPago, sin estrés en WhatsApp. Gratis y fácil de usar."
-        url="/colecta-cumpleanos-escuela"
+        title="Regalos Corporativos - RegaloYa | Organiza Regalos Empresariales Grupales"
+        description="Organiza regalos corporativos para despedidas, jubilaciones y eventos empresariales. Involucra a todo el equipo, pagos seguros con MercadoPago. Profesional y gratis."
+        url="/regalos-corporativos"
       />
       
       <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-pink-50">
@@ -135,48 +138,23 @@ export default function ColectaCumpleanosEscuela() {
         <section className="py-20 px-4">
           <div className="container mx-auto max-w-6xl text-center">
             <Badge variant="secondary" className="mb-6 bg-gradient-to-r from-purple-100 to-pink-100 text-purple-700 border-0">
-              🎁 Solución para Padres y Madres
+              🏢 Solución para Empresas
             </Badge>
             
             <h1 className="text-4xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
-              La Solución Simple para
+              Regalos Corporativos
               <br />
-              <span className="text-gray-800">Colectas Grupales en la Escuela</span>
+              <span className="text-gray-800">Profesionales y Memorables</span>
             </h1>
             
             <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto leading-relaxed">
-              Olvidate del caos en WhatsApp y organiza colectas de manera simple y segura.
+              Organiza regalos empresariales para despedidas, jubilaciones, promociones y eventos especiales. Involucra a todo el equipo de manera profesional.
             </p>
-
-            {/* Problem description */}
-            <div className="bg-white p-8 rounded-2xl shadow-lg mb-8 max-w-4xl mx-auto border border-gray-100">
-              <p className="text-lg text-gray-700 mb-6 leading-relaxed">
-                Si alguna vez intentaste juntar dinero para el regalo de cumpleaños de un compañero o compañera de tus hijos, seguro viviste esto:
-              </p>
-              <div className="grid md:grid-cols-2 gap-4 text-left">
-                <div className="flex items-center gap-3 text-gray-600">
-                  <span className="text-2xl">📱</span>
-                  <span>Decenas de mensajes en el grupo de WhatsApp</span>
-                </div>
-                <div className="flex items-center gap-3 text-gray-600">
-                  <span className="text-2xl">💸</span>
-                  <span>Capturas de transferencias por todos lados</span>
-                </div>
-                <div className="flex items-center gap-3 text-gray-600">
-                  <span className="text-2xl">📊</span>
-                  <span>Encuestas para saber quién participa</span>
-                </div>
-                <div className="flex items-center gap-3 text-gray-600">
-                  <span className="text-2xl">📍</span>
-                  <span>Compartir la ubicación del lugar de la compra o la entrega</span>
-                </div>
-              </div>
-            </div>
             
             <div className="flex justify-center">
               <Link href="/auth">
                 <Button size="lg" className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white border-0 shadow-lg px-8 py-4 text-lg">
-                  Crear Mi Colecta Gratis
+                  Crear Mi Regalo Corporativo
                   <ArrowRight className="ml-2 w-5 h-5" />
                 </Button>
               </Link>
@@ -193,10 +171,10 @@ export default function ColectaCumpleanosEscuela() {
           <div className="container mx-auto max-w-6xl">
             <div className="text-center mb-16">
               <h2 className="text-3xl md:text-4xl font-bold mb-4 text-gray-800">
-                ¿Por qué elegir RegaloYa para colectas escolares?
+                ¿Por qué elegir RegaloYa para regalos corporativos?
               </h2>
               <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-                Simplificamos la organización de regalos grupales para que te enfoques en lo importante: celebrar.
+                Simplificamos la organización de regalos empresariales para que te enfoques en lo importante: reconocer y valorar.
               </p>
             </div>
             
@@ -217,14 +195,14 @@ export default function ColectaCumpleanosEscuela() {
         </section>
 
         {/* How It Works Section */}
-        <section className="py-20 px-4 bg-gradient-to-br from-gray-50 to-purple-50">
+        <section className="py-20 px-4">
           <div className="container mx-auto max-w-6xl">
             <div className="text-center mb-16">
-              <h2 className="text-3xl md:text-4xl font-bold mb-4">
-                Cómo Funciona RegaloYa para Colectas Escolares
+              <h2 className="text-3xl md:text-4xl font-bold mb-4 text-gray-800">
+                Cómo Funciona RegaloYa para Regalos Corporativos
               </h2>
               <p className="text-xl text-gray-600">
-                En solo 3 pasos simples organizas la colecta perfecta
+                En solo 3 pasos simples organizas el regalo corporativo perfecto
               </p>
             </div>
 
@@ -237,10 +215,10 @@ export default function ColectaCumpleanosEscuela() {
                   <div className="absolute -inset-3 bg-gradient-to-br from-purple-200 to-pink-200 rounded-2xl opacity-0 group-hover:opacity-30 transition-opacity duration-300"></div>
                 </div>
                 <h3 className="text-xl font-bold mb-3 text-gray-800">
-                  Crea la Colecta en 2 Minutos
+                  Crea el Proyecto Corporativo
                 </h3>
                 <p className="text-gray-600 leading-relaxed">
-                  Definí el regalo, cargá la meta y personalizá el evento.
+                  Define el evento empresarial, el regalo objetivo y personaliza los detalles del reconocimiento.
                 </p>
               </div>
 
@@ -252,10 +230,10 @@ export default function ColectaCumpleanosEscuela() {
                   <div className="absolute -inset-3 bg-gradient-to-br from-purple-200 to-pink-200 rounded-2xl opacity-0 group-hover:opacity-30 transition-opacity duration-300"></div>
                 </div>
                 <h3 className="text-xl font-bold mb-3 text-gray-800">
-                  Compartí el Enlace en WhatsApp
+                  Invita a Todo el Equipo
                 </h3>
                 <p className="text-gray-600 leading-relaxed">
-                  Invitá a las familias de la sala o el grado a sumarse con un solo clic.
+                  Comparte el enlace con compañeros de diferentes departamentos y sucursales. Participación profesional y ordenada.
                 </p>
               </div>
 
@@ -267,10 +245,10 @@ export default function ColectaCumpleanosEscuela() {
                   <div className="absolute -inset-3 bg-gradient-to-br from-purple-200 to-pink-200 rounded-2xl opacity-0 group-hover:opacity-30 transition-opacity duration-300"></div>
                 </div>
                 <h3 className="text-xl font-bold mb-3 text-gray-800">
-                  Recibí los Aportes y Hacé Seguimiento
+                  Entrega el Reconocimiento
                 </h3>
                 <p className="text-gray-600 leading-relaxed">
-                  Controlá en tiempo real quién aportó y cuánto falta para alcanzar el objetivo.
+                  Recibe las contribuciones y haz realidad el regalo que demuestre el verdadero aprecio del equipo.
                 </p>
               </div>
             </div>
@@ -282,10 +260,10 @@ export default function ColectaCumpleanosEscuela() {
           <div className="container mx-auto max-w-6xl">
             <div className="text-center mb-16">
               <h2 className="text-3xl md:text-4xl font-bold mb-4">
-                Beneficios Clave de RegaloYa para Cumpleaños Infantiles
+                Beneficios Clave de RegaloYa para Regalos Corporativos
               </h2>
               <p className="text-xl text-gray-600">
-                Todo lo que necesitas en una sola plataforma
+                Todo lo que necesitas para crear reconocimientos empresariales memorables
               </p>
             </div>
 
@@ -305,10 +283,10 @@ export default function ColectaCumpleanosEscuela() {
           <div className="container mx-auto max-w-6xl">
             <div className="text-center mb-16">
               <h2 className="text-3xl md:text-4xl font-bold mb-4">
-                Lo Que Dicen Otros Padres y Madres
+                Lo Que Dicen Otros Equipos de Trabajo
               </h2>
               <p className="text-xl text-gray-600">
-                Familias reales que ya usan RegaloYa
+                Empresas reales que ya crearon reconocimientos especiales con RegaloYa
               </p>
             </div>
 
@@ -340,10 +318,10 @@ export default function ColectaCumpleanosEscuela() {
           <div className="container mx-auto max-w-4xl">
             <div className="text-center mb-16">
               <h2 className="text-3xl md:text-4xl font-bold mb-4">
-                Preguntas Frecuentes de Padres y Madres
+                Preguntas Frecuentes sobre Regalos Corporativos
               </h2>
               <p className="text-xl text-gray-600">
-                Resolvemos todas tus dudas sobre colectas escolares
+                Resolvemos todas tus dudas sobre regalos empresariales
               </p>
             </div>
 
@@ -430,16 +408,16 @@ export default function ColectaCumpleanosEscuela() {
         <section className="py-20 px-4 bg-gradient-to-br from-purple-50 to-pink-50">
           <div className="container mx-auto max-w-4xl text-center">
             <h2 className="text-3xl md:text-4xl font-bold mb-6 text-gray-800">
-              Empezá Ahora y Organiza el Próximo Regalo de Cumpleaños Sin Estrés
+              Empezá Ahora y Crea Reconocimientos Corporativos Memorables
             </h2>
             <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
-              Sumate a las familias que ya organizan los cumpleaños de sus hijos de forma simple y colaborativa.
+              Sumate a las empresas que ya organizan regalos corporativos de forma profesional y colaborativa.
             </p>
             
             <Link href="/auth">
               <Button size="lg" className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white border-0 shadow-lg px-8 py-4 text-lg">
-                👉 Crear Mi Colecta Gratis Ahora
-                <Heart className="ml-2 w-5 h-5" />
+                🏢 Crear Mi Regalo Corporativo Gratis
+                <Briefcase className="ml-2 w-5 h-5" />
               </Button>
             </Link>
             

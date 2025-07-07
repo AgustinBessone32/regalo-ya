@@ -7,6 +7,8 @@ import ProjectPage from "./pages/ProjectPage";
 import HomePage from "./pages/HomePage";
 import LandingPage from "./pages/LandingPage";
 import ColectaCumpleanosEscuela from "./pages/ColectaCumpleanosEscuela";
+import EventosFamiliares from "./pages/EventosFamiliares";
+import RegalosCorporativos from "./pages/RegalosCorporativos";
 import { useUser } from "./hooks/use-user";
 import { useEffect } from "react";
 
@@ -41,6 +43,8 @@ function App() {
           </div>
         </Route>
         <Route path="/colecta-cumpleanos-escuela" component={ColectaCumpleanosEscuela} />
+        <Route path="/eventos-familiares" component={EventosFamiliares} />
+        <Route path="/regalos-corporativos" component={RegalosCorporativos} />
         <Route path="/" component={LandingPage} />
         <Route component={LandingPage} />
       </Switch>

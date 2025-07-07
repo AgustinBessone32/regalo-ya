@@ -136,6 +136,14 @@ The application is configured for deployment on Replit with the following setup:
   - Maintained founder photos section and consistent branding across all pages
   - Configured server to serve founder images from attached_assets directory
   - Enhanced footer navigation with industry-specific solutions and discovery sections
+- July 7, 2025. Extended specialized landing pages ecosystem
+  - Created /eventos-familiares landing page targeting family event gift collections
+  - Created /regalos-corporativos landing page targeting corporate gift collections
+  - Both new pages follow identical design structure as main landing page
+  - Added proper routing in App.tsx for new specialized pages
+  - Updated footer navigation across all existing pages to link to new specialized sections
+  - Each specialized page includes targeted content, testimonials, FAQs and features for specific use cases
+  - Maintained consistent founder photos section and RegaloYa branding across all specialized pages
 - June 23, 2025. Initial setup
 
 ## User Preferences

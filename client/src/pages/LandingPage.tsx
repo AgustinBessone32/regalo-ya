@@ -461,14 +461,18 @@ export default function LandingPage() {
                     </Link>
                   </li>
                   <li>
-                    <span className="text-gray-400">
-                      Eventos Familiares
-                    </span>
+                    <Link href="/eventos-familiares">
+                      <span className="text-gray-400 hover:text-white transition-colors cursor-pointer">
+                        Eventos Familiares
+                      </span>
+                    </Link>
                   </li>
                   <li>
-                    <span className="text-gray-400">
-                      Regalos Corporativos
-                    </span>
+                    <Link href="/regalos-corporativos">
+                      <span className="text-gray-400 hover:text-white transition-colors cursor-pointer">
+                        Regalos Corporativos
+                      </span>
+                    </Link>
                   </li>
                 </ul>
               </div>
