@@ -145,7 +145,7 @@ export default function ColectaCumpleanosEscuela() {
             </h1>
             
             <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto leading-relaxed">
-              Olvidate del caos en WhatsApp y organiza colectas de manera profesional y segura.
+              Olvidate del caos en WhatsApp y organiza colectas de manera simple y segura.
             </p>
 
             {/* Problem description */}
