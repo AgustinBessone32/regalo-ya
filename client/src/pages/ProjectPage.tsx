@@ -59,6 +59,7 @@ const contributionSchema = z.object({
 
 const paymentSchema = z.object({
   amount: z.coerce.number().min(1, "El monto debe ser mayor a 0"),
+  full_name: z.string().min(1, "El nombre es requerido"),
   description: z.string().optional(),
 });
 
@@ -137,6 +138,7 @@ export default function ProjectPage() {
     resolver: zodResolver(paymentSchema),
     defaultValues: {
       amount: 0,
+      full_name: "",
       description: "",
     },
   });
@@ -660,6 +662,25 @@ export default function ProjectPage() {
                         </p>
                       </div>
                     )}
+
+                    <FormField
+                      control={paymentForm.control}
+                      name="full_name"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-foreground">
+                            Nombre para identificarte
+                          </FormLabel>
+                          <FormControl>
+                            <Input
+                              placeholder="Tu nombre completo"
+                              {...field}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
 
                     <FormField
                       control={paymentForm.control}

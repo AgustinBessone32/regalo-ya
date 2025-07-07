@@ -389,7 +389,7 @@ export function registerRoutes(app: Express): Server {
         return res.status(400).json({ error: "Invalid project ID" });
       }
 
-      const { amount, description } = req.body;
+      const { amount, description, full_name } = req.body;
       if (!amount || amount <= 0) {
         return res.status(400).json({ error: "Valid amount is required" });
       }
@@ -427,6 +427,10 @@ export function registerRoutes(app: Express): Server {
             unit_price: Number(amount),
           },
         ],
+        metadata: {
+          project_id: projectId,
+          full_name: full_name ?? "",
+        },
         back_urls: {
           success: `https://${req.get(
             "host"
@@ -657,9 +661,6 @@ export function registerRoutes(app: Express): Server {
           return res.status(400).json({ error: "No external reference" });
         }
 
-        console.log("PAYMENT:", paymentData.payer);
-        console.log("PAYMENT JSON:", JSON.stringify(paymentData.payer));
-
         const match = externalRef.match(/project_(\d+)/);
 
         const projectId = parseInt(match[1]);
@@ -698,10 +699,7 @@ export function registerRoutes(app: Express): Server {
             description: paymentData.description,
             external_reference: paymentData.external_reference,
             payer_email: paymentData.payer?.email,
-            payer_name:
-              paymentData.payer?.first_name +
-              " " +
-              paymentData.payer?.last_name,
+            payer_name: paymentData.metadata.full_name,
           });
         }
 
