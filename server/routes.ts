@@ -148,7 +148,10 @@ export function registerRoutes(app: Express): Server {
 
       const validationResult = insertProjectSchema.safeParse(projectData);
       if (!validationResult.success) {
-        console.error("Project validation failed:", validationResult.error.errors);
+        console.error(
+          "Project validation failed:",
+          validationResult.error.errors
+        );
         console.error("Project data received:", projectData);
         return res.status(400).json({
           error: "Invalid project data",
@@ -381,15 +384,6 @@ export function registerRoutes(app: Express): Server {
   // Create MercadoPago payment link
   app.post("/api/projects/:id/payment", async (req, res) => {
     try {
-      if (!req.isAuthenticated()) {
-        return res.status(401).json({ error: "Authentication required" });
-      }
-
-      const user = req.user as any;
-      if (!user?.id || !user?.email) {
-        return res.status(401).json({ error: "Invalid user session" });
-      }
-
       const projectId = parseInt(req.params.id);
       if (isNaN(projectId)) {
         return res.status(400).json({ error: "Invalid project ID" });
@@ -433,9 +427,6 @@ export function registerRoutes(app: Express): Server {
             unit_price: Number(amount),
           },
         ],
-        payer: {
-          email: user.email,
-        },
         back_urls: {
           success: `https://${req.get(
             "host"
@@ -448,7 +439,7 @@ export function registerRoutes(app: Express): Server {
           )}/projects/${projectId}?pending=true`,
         },
         auto_return: "approved",
-        external_reference: `project_${projectId}_user_${user.id}`,
+        external_reference: `project_${projectId}_payment`,
         notification_url: `https://${req.get("host")}/api/webhooks/mercadopago`,
       };
 

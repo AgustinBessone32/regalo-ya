@@ -176,8 +176,6 @@ export default function CreateProject() {
           errors.push("La descripción debe tener al menos 10 caracteres");
         }
 
-
-
         return {
           isValid: errors.length === 0,
           errors,
@@ -185,17 +183,23 @@ export default function CreateProject() {
       },
       content: (
         <Form {...form}>
-          <form className="space-y-4" onSubmit={(e) => e.preventDefault()}>
+          <form
+            className="space-y-3 md:space-y-4"
+            onSubmit={(e) => e.preventDefault()}
+          >
             <FormField
               control={form.control}
               name="title"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Título del Proyecto</FormLabel>
+                  <FormLabel className="text-sm md:text-base">
+                    Título del Proyecto
+                  </FormLabel>
                   <FormControl>
                     <Input
                       placeholder="Regalo de Cumpleaños para Juan"
                       {...field}
+                      className="text-sm md:text-base"
                     />
                   </FormControl>
                   <FormMessage />
@@ -208,11 +212,14 @@ export default function CreateProject() {
               name="description"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Descripción</FormLabel>
+                  <FormLabel className="text-sm md:text-base">
+                    Descripción
+                  </FormLabel>
                   <FormControl>
                     <Textarea
                       placeholder="Cuéntanos sobre la celebración y los planes para el regalo"
                       {...field}
+                      className="text-sm md:text-base min-h-[80px] md:min-h-[100px]"
                     />
                   </FormControl>
                   <FormMessage />
@@ -225,14 +232,16 @@ export default function CreateProject() {
               name="image_url"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Imagen del Proyecto (Opcional)</FormLabel>
+                  <FormLabel className="text-sm md:text-base">
+                    Imagen del Proyecto (Opcional)
+                  </FormLabel>
                   <FormControl>
                     <div className="flex flex-col gap-2">
                       {imageUpload.isUploading ? (
-                        <div className="flex items-center justify-center p-4 border-2 border-dashed rounded-lg">
+                        <div className="flex items-center justify-center p-3 md:p-4 border-2 border-dashed rounded-lg">
                           <div className="flex flex-col items-center gap-2">
-                            <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                            <p className="text-sm text-muted-foreground">
+                            <Loader2 className="h-6 w-6 md:h-8 md:w-8 animate-spin text-primary" />
+                            <p className="text-xs md:text-sm text-muted-foreground">
                               Subiendo imagen...
                             </p>
                           </div>
@@ -275,7 +284,7 @@ export default function CreateProject() {
                         />
                       )}
                       {imageUpload.preview && !imageUpload.isUploading && (
-                        <div className="relative w-32 h-32">
+                        <div className="relative w-24 h-24 md:w-32 md:h-32">
                           <img
                             src={imageUpload.preview}
                             alt="Preview"
@@ -289,7 +298,7 @@ export default function CreateProject() {
                           <Button
                             variant="destructive"
                             size="icon"
-                            className="absolute top-1 right-1 h-6 w-6"
+                            className="absolute top-1 right-1 h-5 w-5 md:h-6 md:w-6"
                             onClick={() => {
                               field.onChange("");
                               setImageUpload((prev) => ({
@@ -330,15 +339,24 @@ export default function CreateProject() {
       },
       content: (
         <Form {...form}>
-          <form className="space-y-4" onSubmit={(e) => e.preventDefault()}>
+          <form
+            className="space-y-3 md:space-y-4"
+            onSubmit={(e) => e.preventDefault()}
+          >
             <FormField
               control={form.control}
               name="event_date"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Fecha del Evento</FormLabel>
+                  <FormLabel className="text-sm md:text-base">
+                    Fecha del Evento
+                  </FormLabel>
                   <FormControl>
-                    <Input type="date" {...field} />
+                    <Input
+                      type="date"
+                      {...field}
+                      className="text-sm md:text-base"
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -350,16 +368,19 @@ export default function CreateProject() {
               name="location"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Ubicación (Opcional)</FormLabel>
+                  <FormLabel className="text-sm md:text-base">
+                    Ubicación (Opcional)
+                  </FormLabel>
                   <FormControl>
-                    <Input 
-                      placeholder="Lugar de la celebración" 
+                    <Input
+                      placeholder="Lugar de la celebración"
                       {...field}
                       value={field.value || ""}
                       onChange={(e) => field.onChange(e.target.value)}
+                      className="text-sm md:text-base"
                     />
                   </FormControl>
-                  <p className="text-sm text-muted-foreground">
+                  <p className="text-xs md:text-sm text-muted-foreground">
                     Coloca la ubicación de Google Maps o la dirección del lugar.
                   </p>
                   <FormMessage />
@@ -378,8 +399,6 @@ export default function CreateProject() {
         const values = form.getValues();
         const errors: string[] = [];
 
-
-
         return {
           isValid: errors.length === 0,
           errors,
@@ -387,16 +406,21 @@ export default function CreateProject() {
       },
       content: (
         <Form {...form}>
-          <form className="space-y-4" onSubmit={(e) => e.preventDefault()}>
-            <div className="space-y-4">
-              <FormLabel className="text-base font-medium">
+          <form
+            className="space-y-3 md:space-y-4"
+            onSubmit={(e) => e.preventDefault()}
+          >
+            <div className="space-y-3 md:space-y-4">
+              <FormLabel className="text-sm md:text-base font-medium">
                 Opciones de Contribución
               </FormLabel>
 
               {/* Fixed Amounts Section */}
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <FormLabel>Montos Fijos</FormLabel>
+              <div className="space-y-2 md:space-y-3">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-0">
+                  <FormLabel className="text-sm md:text-base">
+                    Montos Fijos
+                  </FormLabel>
                   <Button
                     type="button"
                     variant="outline"
@@ -406,8 +430,9 @@ export default function CreateProject() {
                       setFixedAmounts(newAmounts);
                       form.setValue("fixed_amounts", newAmounts);
                     }}
+                    className="w-full sm:w-auto"
                   >
-                    <PlusIcon className="h-4 w-4 mr-1" />
+                    <PlusIcon className="h-3 w-3 md:h-4 md:w-4 mr-1" />
                     Agregar Monto
                   </Button>
                 </div>
@@ -429,6 +454,7 @@ export default function CreateProject() {
                           newAmounts.filter((a) => a > 0)
                         );
                       }}
+                      className="text-sm md:text-base"
                     />
                     <Button
                       type="button"
@@ -441,14 +467,15 @@ export default function CreateProject() {
                         setFixedAmounts(newAmounts);
                         form.setValue("fixed_amounts", newAmounts);
                       }}
+                      className="flex-shrink-0"
                     >
-                      <XIcon className="h-4 w-4" />
+                      <XIcon className="h-3 w-3 md:h-4 md:w-4" />
                     </Button>
                   </div>
                 ))}
 
                 {fixedAmounts.length === 0 && (
-                  <p className="text-sm text-muted-foreground">
+                  <p className="text-xs md:text-sm text-muted-foreground">
                     Agrega montos fijos que los contribuyentes puedan elegir
                   </p>
                 )}
@@ -467,8 +494,10 @@ export default function CreateProject() {
                       />
                     </FormControl>
                     <div className="space-y-1 leading-none">
-                      <FormLabel>Permitir monto personalizado</FormLabel>
-                      <p className="text-sm text-muted-foreground">
+                      <FormLabel className="text-sm md:text-base">
+                        Permitir monto personalizado
+                      </FormLabel>
+                      <p className="text-xs md:text-sm text-muted-foreground">
                         Los contribuyentes podrán elegir cuánto aportar
                       </p>
                     </div>
@@ -476,8 +505,6 @@ export default function CreateProject() {
                 )}
               />
             </div>
-
-
           </form>
         </Form>
       ),
@@ -487,25 +514,25 @@ export default function CreateProject() {
   // Pantalla de feedback mientras se crea el proyecto
   if (isCreating) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-50 via-white to-pink-50">
-        <Card className="w-full max-w-md mx-4">
-          <CardContent className="pt-6 pb-6">
-            <div className="flex flex-col items-center text-center space-y-6">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-50 via-white to-pink-50 px-4">
+        <Card className="w-full max-w-md">
+          <CardContent className="pt-4 md:pt-6 pb-4 md:pb-6 px-4 md:px-6">
+            <div className="flex flex-col items-center text-center space-y-4 md:space-y-6">
               <div className="relative">
-                <Loader2 className="h-16 w-16 animate-spin text-purple-500" />
-                <div className="absolute inset-0 h-16 w-16 rounded-full border-4 border-purple-200 opacity-25"></div>
+                <Loader2 className="h-12 w-12 md:h-16 md:w-16 animate-spin text-purple-500" />
+                <div className="absolute inset-0 h-12 w-12 md:h-16 md:w-16 rounded-full border-4 border-purple-200 opacity-25"></div>
               </div>
-              
+
               <div className="space-y-2">
-                <h2 className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+                <h2 className="text-xl md:text-2xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
                   Creando Proyecto
                 </h2>
-                <p className="text-gray-600">
+                <p className="text-sm md:text-base text-gray-600">
                   Solo unos segundos...
                 </p>
               </div>
-              
-              <div className="text-sm text-gray-500 space-y-1">
+
+              <div className="text-xs md:text-sm text-gray-500 space-y-1">
                 <p>✓ Configurando el proyecto</p>
                 <p>✓ Estableciendo los métodos de pago</p>
                 <p>🔄 Finalizando la configuración</p>
@@ -518,13 +545,17 @@ export default function CreateProject() {
   }
 
   return (
-    <div className="max-w-2xl mx-auto space-y-8">
-      <Button variant="outline" onClick={() => setLocation("/")}>
+    <div className="max-w-2xl mx-auto space-y-6 md:space-y-8 px-4 md:px-0">
+      <Button
+        variant="outline"
+        onClick={() => setLocation("/")}
+        className="w-full md:w-auto"
+      >
         Volver a Proyectos
       </Button>
 
       <Card>
-        <CardContent className="pt-6">
+        <CardContent className="pt-4 md:pt-6 px-4 md:px-6">
           <WizardForm
             steps={steps}
             onComplete={handleSubmit}

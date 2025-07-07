@@ -52,16 +52,19 @@ export function WizardForm({
   };
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6 md:space-y-8">
       {/* Pasos del Progreso */}
       <div className="relative">
         <div className="absolute left-0 top-[15px] w-full h-[2px] bg-muted" />
         <div className="relative flex justify-between">
           {steps.map((step, index) => (
-            <div key={index} className="flex flex-col items-center gap-2">
+            <div
+              key={index}
+              className="flex flex-col items-center gap-1 md:gap-2"
+            >
               <div
                 className={cn(
-                  "relative z-10 flex items-center justify-center w-8 h-8 rounded-full border text-sm font-medium",
+                  "relative z-10 flex items-center justify-center w-7 h-7 md:w-8 md:h-8 rounded-full border text-xs md:text-sm font-medium",
                   index < currentStep
                     ? "bg-primary text-primary-foreground border-primary"
                     : index === currentStep
@@ -70,38 +73,47 @@ export function WizardForm({
                 )}
               >
                 {index < currentStep ? (
-                  <Check className="h-4 w-4" />
+                  <Check className="h-3 w-3 md:h-4 md:w-4" />
                 ) : (
                   index + 1
                 )}
               </div>
-              <span className="text-sm font-medium">{step.title}</span>
+              <span className="text-xs md:text-sm font-medium text-center max-w-[60px] md:max-w-none leading-tight">
+                {step.title}
+              </span>
             </div>
           ))}
         </div>
       </div>
 
       {/* Contenido del Paso */}
-      <div className="min-h-[300px]">
-        <div className="mb-6">
-          <h3 className="text-lg font-semibold">{steps[currentStep].title}</h3>
-          <p className="text-sm text-muted-foreground">
+      <div className="min-h-[250px] md:min-h-[300px]">
+        <div className="mb-4 md:mb-6">
+          <h3 className="text-base md:text-lg font-semibold">
+            {steps[currentStep].title}
+          </h3>
+          <p className="text-xs md:text-sm text-muted-foreground mt-1">
             {steps[currentStep].description}
           </p>
         </div>
-        {steps[currentStep].content}
+        <div className="px-1 md:px-0">{steps[currentStep].content}</div>
       </div>
 
       {/* Navegación */}
-      <div className="flex justify-between">
+      <div className="flex flex-col-reverse gap-3 md:flex-row md:justify-between md:gap-0">
         <Button
           variant="outline"
           onClick={handleBack}
           disabled={currentStep === 0}
+          className="w-full md:w-auto"
         >
           Atrás
         </Button>
-        <Button onClick={handleNext} disabled={isSubmitting}>
+        <Button
+          onClick={handleNext}
+          disabled={isSubmitting}
+          className="w-full md:w-auto"
+        >
           {isSubmitting ? (
             "Creando..."
           ) : currentStep === steps.length - 1 ? (

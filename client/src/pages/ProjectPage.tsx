@@ -207,11 +207,6 @@ export default function ProjectPage() {
     data: z.infer<typeof paymentSchema>
   ) => {
     try {
-      if (!user) {
-        setLocation(`/auth?redirect=/projects/${id}`);
-        return;
-      }
-
       const response = await fetch(`/api/projects/${id}/payment`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
