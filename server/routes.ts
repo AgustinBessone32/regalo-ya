@@ -650,7 +650,7 @@ export function registerRoutes(app: Express): Server {
 
         const paymentData = await paymentResponse.json();
 
-        // Extraer información de la external_reference (project_id_user_id)
+        // Extraer información de la external_reference (project_id)
         const externalRef = paymentData.external_reference;
         if (!externalRef) {
           console.error("No external reference found in payment");
