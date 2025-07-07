@@ -460,6 +460,7 @@ export default function ProjectPage() {
                     ? "Notificaciones activadas"
                     : "Activar notificaciones"
                 }
+                className="hidden sm:flex"
               >
                 {permission === "granted" ? (
                   <Bell className="h-4 w-4" />
@@ -472,10 +473,10 @@ export default function ProjectPage() {
         </div>
 
         <div className="grid gap-4 sm:gap-6 md:gap-8 lg:grid-cols-2">
-          <div className="space-y-4 sm:space-y-6 order-2 lg:order-1">
-            <div>
-              <h1 className="text-2xl sm:text-3xl font-bold mb-3 leading-tight">
-                {project.title}
+          <div className="space-y-4 sm:space-y-6 order-1 lg:order-1">
+            <div className="px-4 sm:px-0">
+              <h1 className="text-2xl sm:text-3xl font-bold mb-2 sm:mb-3 leading-tight">
+                {project.title.charAt(0).toUpperCase() + project.title.slice(1)}
               </h1>
               {project.image_url && (
                 <div className="relative w-full aspect-video mb-4 rounded-lg overflow-hidden bg-muted">
@@ -502,7 +503,7 @@ export default function ProjectPage() {
               initialReactions={project.reactions}
             />
 
-            <div className="flex flex-col gap-3">
+            <div className="flex flex-col gap-3 px-4 sm:px-0">
               {project.event_date && (
                 <>
                   <div className="flex items-center gap-2 text-muted-foreground text-sm">
@@ -727,7 +728,7 @@ export default function ProjectPage() {
             </Card>
           </div>
 
-          <div className="space-y-4 sm:space-y-6 order-1 lg:order-2">
+          <div className="space-y-4 sm:space-y-6 order-2 lg:order-2">
             {/* Sharing Block */}
             <Card className="mb-4 sm:mb-0">
               <CardHeader className="px-4 sm:px-6">
@@ -745,11 +746,11 @@ export default function ProjectPage() {
             {/* Contribution Metrics - Only visible to owner */}
             {project.isOwner && Array.isArray(project.payment_details) && (
               <ContributionMetrics
-                contributors={project.payment_details.map(payment => ({
+                contributors={project.payment_details.map((payment) => ({
                   contributor_name: payment.payer_name,
                   amount: payment.amount,
                   description: payment.description,
-                  created_at: payment.created_at
+                  created_at: payment.created_at,
                 }))}
                 totalAmount={project.current_amount || 0}
               />
@@ -793,7 +794,7 @@ export default function ProjectPage() {
 
       {/* Banner para usuarios no registrados */}
       {!user && (
-        <div className="bg-gradient-to-r from-purple-50 to-pink-50 border-t border-purple-100">
+        <div className="mt-8 bg-gradient-to-r from-purple-50 to-pink-50 border-t border-purple-100">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
             <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
               <div className="text-center sm:text-left">
@@ -801,11 +802,12 @@ export default function ProjectPage() {
                   ¿Quieres crear tu propia colecta?
                 </h3>
                 <p className="text-sm text-gray-600">
-                  Únete a RegaloYa y organiza colectas para cualquier ocasión especial
+                  Únete a RegaloYa y organiza colectas para cualquier ocasión
+                  especial
                 </p>
               </div>
-              <Button 
-                onClick={() => window.location.href = '/'}
+              <Button
+                onClick={() => (window.location.href = "/")}
                 className="bg-primary hover:bg-primary/90 text-primary-foreground px-6 py-2 font-medium whitespace-nowrap shadow-lg"
                 size="lg"
               >

@@ -39,44 +39,50 @@ export function ContributionMetrics({
   return (
     <div className="space-y-4">
       {/* Summary Metrics */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-3 gap-2 sm:gap-4">
         <Card>
-          <CardContent className="pt-4">
-            <div className="flex items-center space-x-2">
-              <Users className="h-4 w-4 text-blue-600" />
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">
+          <CardContent className="pt-3 sm:pt-4 px-2 sm:px-6 flex items-center justify-center sm:block">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:space-x-2 text-center sm:text-left">
+              <Users className="h-4 w-4 text-blue-600 mx-auto sm:mx-0 mb-1 sm:mb-0" />
+              <div className="text-center sm:text-left">
+                <p className="text-xs sm:text-sm font-medium text-muted-foreground">
                   Contribuyentes
                 </p>
-                <p className="text-2xl font-bold">{contributorList.length}</p>
+                <p className="text-lg sm:text-2xl font-bold">
+                  {contributorList.length}
+                </p>
               </div>
             </div>
           </CardContent>
         </Card>
 
         <Card>
-          <CardContent className="pt-4">
-            <div className="flex items-center space-x-2">
-              <Gift className="h-4 w-4 text-green-600" />
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">
+          <CardContent className="pt-3 sm:pt-4 px-2 sm:px-6 flex items-center justify-center sm:block">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:space-x-2 text-center sm:text-left">
+              <Gift className="h-4 w-4 text-green-600 mx-auto sm:mx-0 mb-1 sm:mb-0" />
+              <div className="text-center sm:text-left">
+                <p className="text-xs sm:text-sm font-medium text-muted-foreground">
                   Total Regalos
                 </p>
-                <p className="text-2xl font-bold">{contributors.length}</p>
+                <p className="text-lg sm:text-2xl font-bold">
+                  {contributors.length}
+                </p>
               </div>
             </div>
           </CardContent>
         </Card>
 
         <Card>
-          <CardContent className="pt-4">
-            <div className="flex items-center space-x-2">
-              <TrendingUp className="h-4 w-4 text-purple-600" />
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">
+          <CardContent className="pt-3 sm:pt-4 px-2 sm:px-6 flex items-center justify-center sm:block">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:space-x-2 text-center sm:text-left">
+              <TrendingUp className="h-4 w-4 text-purple-600 mx-auto sm:mx-0 mb-1 sm:mb-0" />
+              <div className="text-center sm:text-left">
+                <p className="text-xs sm:text-sm font-medium text-muted-foreground">
                   Promedio por Regalo
                 </p>
-                <p className="text-2xl font-bold">${averageAmount}</p>
+                <p className="text-lg sm:text-2xl font-bold">
+                  ${averageAmount}
+                </p>
               </div>
             </div>
           </CardContent>
