@@ -493,6 +493,34 @@ export default function ColectaCumpleanosEscuela() {
                       </span>
                     </Link>
                   </li>
+                  <li>
+                    <Link href="/colecta-baby-shower">
+                      <span className="text-gray-400 hover:text-white transition-colors cursor-pointer">
+                        Baby Showers
+                      </span>
+                    </Link>
+                  </li>
+                  <li>
+                    <Link href="/colecta-casamientos">
+                      <span className="text-gray-400 hover:text-white transition-colors cursor-pointer">
+                        Casamientos
+                      </span>
+                    </Link>
+                  </li>
+                  <li>
+                    <Link href="/colecta-cumpleanos-adultos">
+                      <span className="text-gray-400 hover:text-white transition-colors cursor-pointer">
+                        Cumpleaños de Adultos
+                      </span>
+                    </Link>
+                  </li>
+                  <li>
+                    <Link href="/colecta-despedida-solteros">
+                      <span className="text-gray-400 hover:text-white transition-colors cursor-pointer">
+                        Despedidas de Solteros/as
+                      </span>
+                    </Link>
+                  </li>
                 </ul>
               </div>
 

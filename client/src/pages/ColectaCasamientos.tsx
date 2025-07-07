@@ -21,23 +21,22 @@ import {
   Smartphone,
   ChevronDown,
   HelpCircle,
-  Building,
-  Trophy,
-  Briefcase
+  Crown,
+  Sparkles
 } from "lucide-react";
 import { MetaTags } from "@/components/MetaTags";
 
-export default function RegalosCorporativos() {
+export default function ColectaCasamientos() {
   const features = [
     {
-      icon: <Building className="w-6 h-6" />,
-      title: "Regalos Profesionales y Elegantes",
-      description: "Organiza regalos corporativos para despedidas, promociones, jubilaciones y fechas especiales de la empresa."
+      icon: <Crown className="w-6 h-6" />,
+      title: "Casamientos de Ensueño",
+      description: "Organiza regalos especiales para la boda. Desde electrodomésticos hasta experiencias inolvidables para los novios."
     },
     {
       icon: <Users className="w-6 h-6" />,
-      title: "Unifica a Todo el Equipo",
-      description: "Involucra a compañeros de diferentes departamentos y sucursales. Todos pueden participar desde cualquier lugar."
+      title: "Unifica a Toda la Lista",
+      description: "Invita a familiares, amigos del colegio, facultad y trabajo. Todos pueden participar desde cualquier lugar."
     },
     {
       icon: <Shield className="w-6 h-6" />,
@@ -45,71 +44,71 @@ export default function RegalosCorporativos() {
       description: "Todos los pagos se procesan a través de MercadoPago. Los datos están siempre protegidos y encriptados."
     },
     {
-      icon: <Trophy className="w-6 h-6" />,
-      title: "Reconocimientos Memorables",
-      description: "Crea regalos que demuestren verdadero reconocimiento y aprecio hacia compañeros y colaboradores."
+      icon: <Sparkles className="w-6 h-6" />,
+      title: "Momentos Únicos",
+      description: "Haz que el casamiento sea especial con regalos que realmente marquen el inicio de esta nueva etapa."
     }
   ];
 
   const benefits = [
-    "Organiza regalos para cualquier ocasión corporativa",
-    "Involucra a empleados de diferentes departamentos y sedes",
+    "Organiza regalos para cualquier casamiento",
+    "Invita a familiares y amigos de todo el país",
     "Todos pueden pagar con tarjeta de crédito, débito o transferencia",
-    "Seguimiento transparente y en tiempo real",
+    "Seguimiento en tiempo real de las contribuciones",
     "100% seguro con MercadoPago",
-    "Gratis y profesional para usar en el trabajo"
+    "Gratis y fácil de usar desde cualquier dispositivo"
   ];
 
   const testimonials = [
     {
-      name: "María G.",
-      role: "Gerente de RRHH",
-      content: "Para la despedida de nuestro director usamos RegaloYa. Participaron más de 50 empleados de todas las sucursales. Fue muy emotivo.",
+      name: "Sofía y Mateo",
+      role: "Novios",
+      content: "Nuestros amigos organizaron una colecta increíble para nuestro casamiento. Recibimos el regalo perfecto para nuestro nuevo hogar.",
       rating: 5
     },
     {
-      name: "Carlos R.",
-      role: "Coordinador de equipo",
-      content: "Mi compañera se jubiló después de 30 años. Con RegaloYa organizamos un regalo increíble entre todos. Muy fácil de usar.",
+      name: "Laura P.",
+      role: "Madrina",
+      content: "Como madrina quería organizar algo especial para mi ahijada. Con RegaloYa participaron familiares de todo el país.",
       rating: 5
     },
     {
-      name: "Ana L.",
-      role: "Líder de proyecto",
-      content: "Para el cumpleaños de nuestro jefe organizamos una colecta súper ordenada. RegaloYa nos ayudó a mantener todo profesional.",
+      name: "Roberto M.",
+      role: "Amigo del novio",
+      content: "Para el casamiento de mi mejor amigo organizamos una colecta entre todos los amigos del colegio. Fue muy emotivo.",
       rating: 5
     }
   ];
 
   const faqs = [
     {
-      question: "¿Cómo funciona para regalos corporativos?",
-      answer: "Creás un proyecto para el evento corporativo, invitás a los compañeros de trabajo y ellos pueden contribuir de forma segura y profesional."
+      question: "¿Cómo funciona para casamientos?",
+      answer: "Creás un proyecto para el casamiento, invitás a familiares y amigos, y todos pueden contribuir de forma segura para el regalo de los novios."
     },
     {
-      question: "¿Pueden participar empleados de otras sucursales?",
-      answer: "¡Por supuesto! RegaloYa funciona para toda Argentina. Los empleados pueden contribuir desde cualquier lugar del país."
+      question: "¿Pueden participar invitados de otras ciudades?",
+      answer: "¡Por supuesto! RegaloYa funciona para toda Argentina. Los invitados pueden contribuir desde cualquier lugar del país."
     },
     {
-      question: "¿Qué tipo de eventos corporativos puedo organizar?",
-      answer: "Cualquier ocasión: despedidas, jubilaciones, promociones, cumpleaños, día de la secretaria, navidad empresarial y más."
+      question: "¿Qué tipo de regalos puedo organizar?",
+      answer: "Cualquier cosa que necesiten los novios: electrodomésticos, muebles, viajes de luna de miel, experiencias, decoración del hogar, etc."
     },
     {
-      question: "¿Es apropiado usar RegaloYa en el trabajo?",
-      answer: "Completamente apropiado. RegaloYa es una plataforma profesional que mantiene la privacidad y organización necesaria en el ámbito laboral."
+      question: "¿Cómo invito a todos los familiares y amigos?",
+      answer: "RegaloYa genera un enlace que podés compartir por WhatsApp, en las invitaciones o redes sociales. Cada invitado hace clic y puede contribuir."
     },
     {
-      question: "¿Cómo mantengo la confidencialidad del regalo?",
-      answer: "RegaloYa te permite controlar quién ve las contribuciones. Podés mantener la sorpresa mientras organizas de manera transparente."
+      question: "¿Es apropiado para regalos de boda?",
+      answer: "Completamente apropiado. RegaloYa es una forma moderna y elegante de organizar regalos colaborativos para casamientos."
     }
   ];
 
   return (
     <>
       <MetaTags
-        title="Regalos Corporativos - RegaloYa | Organiza Regalos Empresariales Grupales"
-        description="Organiza regalos corporativos para despedidas, jubilaciones y eventos empresariales. Involucra a todo el equipo, pagos seguros con MercadoPago. Profesional y gratis."
-        url="/regalos-corporativos"
+        title="Colecta para Regalo de Casamiento | Fácil, Rápida y Segura"
+        description="Crea una colecta para regalar a novios de forma colaborativa. Pagos accesibles y seguimiento en tiempo real."
+        url="/colecta-casamientos"
       />
       
       <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-pink-50">
@@ -138,23 +137,26 @@ export default function RegalosCorporativos() {
         <section className="py-20 px-4">
           <div className="container mx-auto max-w-6xl text-center">
             <Badge variant="secondary" className="mb-6 bg-gradient-to-r from-purple-100 to-pink-100 text-purple-700 border-0">
-              🏢 Solución para Empresas
+              💍 Solución para Casamientos
             </Badge>
             
             <h1 className="text-4xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
-              Regalos Corporativos
+              Casamientos
               <br />
-              <span className="text-gray-800">Profesionales y Memorables</span>
+              <span className="text-gray-800">De Ensueño</span>
             </h1>
             
             <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto leading-relaxed">
-              Organiza regalos empresariales para despedidas, jubilaciones, promociones y eventos especiales. Involucra a todo el equipo de manera profesional.
+              Organiza regalos grupales para casamientos de forma simple. 
+              <span className="block mt-2">
+                🤯 Ya no más grupos de WhatsApp caóticos preguntando "¿cuánto pone cada uno?" 😅💸
+              </span>
             </p>
             
             <div className="flex justify-center">
               <Link href="/auth">
                 <Button size="lg" className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white border-0 shadow-lg px-8 py-4 text-lg">
-                  Crear Mi Regalo Corporativo
+                  Crear Mi Regalo de Casamiento
                   <ArrowRight className="ml-2 w-5 h-5" />
                 </Button>
               </Link>
@@ -171,10 +173,10 @@ export default function RegalosCorporativos() {
           <div className="container mx-auto max-w-6xl">
             <div className="text-center mb-16">
               <h2 className="text-3xl md:text-4xl font-bold mb-4 text-gray-800">
-                ¿Por qué elegir RegaloYa para regalos corporativos?
+                ¿Por qué elegir RegaloYa para casamientos?
               </h2>
               <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-                Simplificamos la organización de regalos empresariales para que te enfoques en lo importante: reconocer y valorar.
+                Simplificamos la organización de regalos para que te enfoques en lo importante: celebrar el amor.
               </p>
             </div>
             
@@ -199,10 +201,10 @@ export default function RegalosCorporativos() {
           <div className="container mx-auto max-w-6xl">
             <div className="text-center mb-16">
               <h2 className="text-3xl md:text-4xl font-bold mb-4 text-gray-800">
-                Cómo Funciona RegaloYa para Regalos Corporativos
+                Cómo Funciona RegaloYa para Casamientos
               </h2>
               <p className="text-xl text-gray-600">
-                En solo 3 pasos simples organizas el regalo corporativo perfecto
+                En solo 3 pasos simples organizas el regalo de casamiento perfecto
               </p>
             </div>
 
@@ -215,10 +217,10 @@ export default function RegalosCorporativos() {
                   <div className="absolute -inset-3 bg-gradient-to-br from-purple-200 to-pink-200 rounded-2xl opacity-0 group-hover:opacity-30 transition-opacity duration-300"></div>
                 </div>
                 <h3 className="text-xl font-bold mb-3 text-gray-800">
-                  Crea el Proyecto Corporativo
+                  Crea el Proyecto del Casamiento
                 </h3>
                 <p className="text-gray-600 leading-relaxed">
-                  Define el evento empresarial, el regalo objetivo y personaliza los detalles del reconocimiento.
+                  Define qué regalo quieren juntar para los novios y personaliza los detalles del casamiento.
                 </p>
               </div>
 
@@ -230,10 +232,10 @@ export default function RegalosCorporativos() {
                   <div className="absolute -inset-3 bg-gradient-to-br from-purple-200 to-pink-200 rounded-2xl opacity-0 group-hover:opacity-30 transition-opacity duration-300"></div>
                 </div>
                 <h3 className="text-xl font-bold mb-3 text-gray-800">
-                  Invita a Todo el Equipo
+                  Invita a Familiares y Amigos
                 </h3>
                 <p className="text-gray-600 leading-relaxed">
-                  Comparte el enlace con compañeros de diferentes departamentos y sucursales. Participación profesional y ordenada.
+                  Comparte el enlace con toda la lista de invitados. Pueden participar desde cualquier lugar del país.
                 </p>
               </div>
 
@@ -245,10 +247,10 @@ export default function RegalosCorporativos() {
                   <div className="absolute -inset-3 bg-gradient-to-br from-purple-200 to-pink-200 rounded-2xl opacity-0 group-hover:opacity-30 transition-opacity duration-300"></div>
                 </div>
                 <h3 className="text-xl font-bold mb-3 text-gray-800">
-                  Entrega el Reconocimiento
+                  Celebra el Gran Día
                 </h3>
                 <p className="text-gray-600 leading-relaxed">
-                  Recibe las contribuciones y haz realidad el regalo que demuestre el verdadero aprecio del equipo.
+                  Recibe las contribuciones y haz realidad el regalo que hará inolvidable este momento único.
                 </p>
               </div>
             </div>
@@ -260,10 +262,10 @@ export default function RegalosCorporativos() {
           <div className="container mx-auto max-w-6xl">
             <div className="text-center mb-16">
               <h2 className="text-3xl md:text-4xl font-bold mb-4">
-                Beneficios Clave de RegaloYa para Regalos Corporativos
+                Beneficios Clave de RegaloYa para Casamientos
               </h2>
               <p className="text-xl text-gray-600">
-                Todo lo que necesitas para crear reconocimientos empresariales memorables
+                Todo lo que necesitas para crear regalos de casamiento inolvidables
               </p>
             </div>
 
@@ -283,10 +285,10 @@ export default function RegalosCorporativos() {
           <div className="container mx-auto max-w-6xl">
             <div className="text-center mb-16">
               <h2 className="text-3xl md:text-4xl font-bold mb-4">
-                Lo Que Dicen Otros Equipos de Trabajo
+                Lo Que Dicen Otros Novios
               </h2>
               <p className="text-xl text-gray-600">
-                Empresas reales que ya crearon reconocimientos especiales con RegaloYa
+                Parejas reales que ya recibieron regalos especiales organizados con RegaloYa
               </p>
             </div>
 
@@ -318,10 +320,10 @@ export default function RegalosCorporativos() {
           <div className="container mx-auto max-w-4xl">
             <div className="text-center mb-16">
               <h2 className="text-3xl md:text-4xl font-bold mb-4">
-                Preguntas Frecuentes sobre Regalos Corporativos
+                Preguntas Frecuentes sobre Casamientos
               </h2>
               <p className="text-xl text-gray-600">
-                Resolvemos todas tus dudas sobre regalos empresariales
+                Resolvemos todas tus dudas sobre regalos de casamiento
               </p>
             </div>
 
@@ -408,16 +410,16 @@ export default function RegalosCorporativos() {
         <section className="py-20 px-4 bg-gradient-to-br from-purple-50 to-pink-50">
           <div className="container mx-auto max-w-4xl text-center">
             <h2 className="text-3xl md:text-4xl font-bold mb-6 text-gray-800">
-              Empezá Ahora y Crea Reconocimientos Corporativos Memorables
+              Empezá Ahora y Crea Regalos de Casamiento Inolvidables
             </h2>
             <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
-              Sumate a las empresas que ya organizan regalos corporativos de forma profesional y colaborativa.
+              Sumate a las familias que ya organizan regalos de casamiento especiales de forma simple y colaborativa.
             </p>
             
             <Link href="/auth">
               <Button size="lg" className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white border-0 shadow-lg px-8 py-4 text-lg">
-                🏢 Crear Mi Regalo Corporativo Gratis
-                <Briefcase className="ml-2 w-5 h-5" />
+                💍 Crear Mi Regalo de Casamiento Gratis
+                <Crown className="ml-2 w-5 h-5" />
               </Button>
             </Link>
             

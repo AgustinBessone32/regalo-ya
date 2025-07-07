@@ -9,6 +9,10 @@ import LandingPage from "./pages/LandingPage";
 import ColectaCumpleanosEscuela from "./pages/ColectaCumpleanosEscuela";
 import EventosFamiliares from "./pages/EventosFamiliares";
 import RegalosCorporativos from "./pages/RegalosCorporativos";
+import ColectaBabyShower from "./pages/ColectaBabyShower";
+import ColectaCasamientos from "./pages/ColectaCasamientos";
+import ColectaCumpleanosAdultos from "./pages/ColectaCumpleanosAdultos";
+import ColectaDespedidaSolteros from "./pages/ColectaDespedidaSolteros";
 import { useUser } from "./hooks/use-user";
 import { useEffect } from "react";
 
@@ -45,6 +49,10 @@ function App() {
         <Route path="/colecta-cumpleanos-escuela" component={ColectaCumpleanosEscuela} />
         <Route path="/eventos-familiares" component={EventosFamiliares} />
         <Route path="/regalos-corporativos" component={RegalosCorporativos} />
+        <Route path="/colecta-baby-shower" component={ColectaBabyShower} />
+        <Route path="/colecta-casamientos" component={ColectaCasamientos} />
+        <Route path="/colecta-cumpleanos-adultos" component={ColectaCumpleanosAdultos} />
+        <Route path="/colecta-despedida-solteros" component={ColectaDespedidaSolteros} />
         <Route path="/" component={LandingPage} />
         <Route component={LandingPage} />
       </Switch>
