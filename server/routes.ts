@@ -657,16 +657,9 @@ export function registerRoutes(app: Express): Server {
           return res.status(400).json({ error: "No external reference" });
         }
 
-        const match = externalRef.match(/project_(\d+)_user_(\d+)/);
-        if (!match) {
-          console.error("Invalid external reference format:", externalRef);
-          return res
-            .status(400)
-            .json({ error: "Invalid external reference format" });
-        }
+        const match = externalRef.match(/project_(\d+)/);
 
         const projectId = parseInt(match[1]);
-        const userId = parseInt(match[2]);
 
         // Verificar si el pago ya existe
         const [existingPayment] = await db
@@ -691,7 +684,6 @@ export function registerRoutes(app: Express): Server {
           // Crear nuevo registro de pago
           await db.insert(payments).values({
             project_id: projectId,
-            user_id: userId,
             mercadopago_payment_id: paymentId.toString(),
             preference_id: paymentData.order.id || "",
             amount: Math.round(paymentData.transaction_amount),

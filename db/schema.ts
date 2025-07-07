@@ -116,9 +116,7 @@ export const payments = pgTable("payments", {
   project_id: integer("project_id")
     .references(() => projects.id)
     .notNull(),
-  user_id: integer("user_id")
-    .references(() => users.id)
-    .notNull(),
+
   mercadopago_payment_id: text("mercadopago_payment_id").unique().notNull(),
   preference_id: text("preference_id").notNull(),
   amount: integer("amount").notNull(),
