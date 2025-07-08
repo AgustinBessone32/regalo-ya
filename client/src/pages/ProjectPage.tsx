@@ -224,7 +224,7 @@ export default function ProjectPage() {
       const { paymentUrl } = await response.json();
 
       // Redirect to MercadoPago
-      window.open(paymentUrl, "_blank");
+      window.location.href = paymentUrl;
       setIsPaymentDialogOpen(false);
 
       toast({
